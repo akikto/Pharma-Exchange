@@ -21,6 +21,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:backend": "npm run test --workspace=backend",
     "test:frontend": "npm run test --workspace=frontend",
+    "smoke": "bash scripts/smoke-test.sh",
     "lint": "npm run lint --workspaces --if-present"
   },
   "engines": {

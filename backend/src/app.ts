@@ -22,6 +22,7 @@ import reviewRoutes from './modules/review/review.routes';
 import reportRoutes from './modules/report/report.routes';
 import uploadRoutes from './modules/upload/upload.routes';
 import { analyticsRouter, adminRouter } from './modules/admin/admin.routes';
+import healthRoutes from './modules/health/health.routes';
 
 export function createApp(): express.Application {
   initializeFirebase();
@@ -51,6 +52,7 @@ export function createApp(): express.Application {
   }
 
   const v1 = express.Router();
+  v1.use('/health', healthRoutes);
   v1.use('/auth', authRoutes);
   v1.use('/pharmacies', pharmacyRoutes);
   v1.use('/medicines', medicineRoutes);
