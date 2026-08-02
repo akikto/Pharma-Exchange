@@ -39,6 +39,7 @@ export const marketplaceSearchSchema = z.object({
   minDiscount: z.coerce.number().optional(),
   maxExpiryMonths: z.coerce.number().optional(),
   minExpiryMonths: z.coerce.number().optional(),
+  pharmacyId: z.string().uuid().optional(),
   sortBy: z.enum(['createdAt', 'price', 'expiry', 'discount']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   status: z.nativeEnum(ListingStatus).default(ListingStatus.ACTIVE),

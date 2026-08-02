@@ -78,6 +78,10 @@ export function createApp(): express.Application {
   app.use('/api/orders', orderRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/notifications', notificationRoutes);
+  app.use('/api/reviews', reviewRoutes);
+  app.use('/api/reports', reportRoutes);
+  app.use('/api/upload', uploadRoutes);
+  app.use('/api/analytics', analyticsRouter);
   app.use('/api/admin', adminRouter);
 
   app.use(notFoundHandler);

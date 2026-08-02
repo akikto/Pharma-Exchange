@@ -6,8 +6,8 @@
 
 | Suite | Framework | Tests | Status |
 |-------|-----------|-------|--------|
-| Backend unit + integration | Vitest + supertest | 15 | Pass |
-| Frontend unit | Vitest + Testing Library | 5 | Pass |
+| Backend unit + integration | Vitest + supertest | 16 | Pass |
+| Frontend unit | Vitest + Testing Library | 6 | Pass |
 | Integration | — | 0 | Not yet |
 | E2E | — | 0 | Not yet |
 

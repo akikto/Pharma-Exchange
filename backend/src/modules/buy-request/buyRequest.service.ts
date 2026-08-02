@@ -10,6 +10,10 @@ export class BuyRequestService {
     const skip = (page - 1) * limit;
     const pharmacy = role === 'seller' ? await prisma.pharmacy.findUnique({ where: { userId } }) : null;
 
+    if (role === 'seller' && !pharmacy) {
+      return { data: [], total: 0, page, limit };
+    }
+
     const where = role === 'seller' && pharmacy
       ? { sellerId: pharmacy.id, ...(status && { status }) }
       : { buyerId: userId, ...(status && { status }) };
@@ -50,6 +54,11 @@ export class BuyRequestService {
   }
 
   async create(buyerId: string, sellerId: string, items: { listingId: string; quantity: number }[], note?: string) {
+    const buyerPharmacy = await prisma.pharmacy.findUnique({ where: { userId: buyerId } });
+    if (buyerPharmacy && buyerPharmacy.id === sellerId) {
+      throw AppError.badRequest('Cannot create buy request for your own pharmacy');
+    }
+
     const listings = await prisma.listing.findMany({
       where: { id: { in: items.map((i) => i.listingId) }, pharmacyId: sellerId, status: ListingStatus.ACTIVE },
       include: { medicine: true },
@@ -134,10 +143,13 @@ export class BuyRequestService {
       });
 
       for (const item of buyRequest.items) {
-        await tx.listing.update({
-          where: { id: item.listingId },
+        const updated = await tx.listing.updateMany({
+          where: { id: item.listingId, availableQty: { gte: item.quantity } },
           data: { availableQty: { decrement: item.quantity } },
         });
+        if (updated.count === 0) {
+          throw AppError.badRequest(`Insufficient stock for ${item.listing.medicine.name}`);
+        }
       }
 
       const order = await tx.order.create({

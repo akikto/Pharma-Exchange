@@ -21,8 +21,11 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setUnauthorizedHandler(() => logout());
     initialize();
+  }, [initialize, logout]);
+
+  useEffect(() => {
     setTheme(theme);
-  }, [initialize, logout, setTheme, theme]);
+  }, [theme, setTheme]);
 
   return <>{children}</>;
 }

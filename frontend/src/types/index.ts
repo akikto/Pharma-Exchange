@@ -55,6 +55,7 @@ export interface Pharmacy {
   rating: number;
   ratingCount?: number;
   verificationStatus: string;
+  userId?: string;
   logoUrl?: string;
   latitude?: number;
   longitude?: number;

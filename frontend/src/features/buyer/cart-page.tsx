@@ -1,29 +1,53 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, MessageCircle } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
-import { useCart, useOrders, useBuyRequests } from '@/hooks/use-api';
+import { useCart, useOrders, useBuyRequests, useRemoveFromCart, useStartConversation } from '@/hooks/use-api';
+import { usePageRole } from '@/hooks/use-page-role';
 import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import type { CartItem } from '@/types';
 
 export function CartPage() {
-  const { data, isLoading } = useCart();
+  const { data, isLoading, isError } = useCart();
+  const removeItem = useRemoveFromCart();
+  const startChat = useStartConversation();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [sending, setSending] = useState<string | null>(null);
   const grouped = data?.groupedBySeller ?? {};
 
   const sendBuyRequest = async (sellerId: string, items: CartItem[]) => {
-    await apiClient.post('/buy-requests', {
-      sellerId,
-      listingIds: items.map((i) => ({ listingId: i.listing.id, quantity: i.quantity })),
-    });
-    qc.invalidateQueries({ queryKey: ['cart'] });
+    setError('');
+    setSending(sellerId);
+    try {
+      await apiClient.post('/buy-requests', {
+        sellerId,
+        listingIds: items.map((i) => ({ listingId: i.listing.id, quantity: i.quantity })),
+      });
+      qc.invalidateQueries({ queryKey: ['cart'] });
+      navigate('/buy-requests');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSending(null);
+    }
+  };
+
+  const handleChat = async (items: CartItem[]) => {
+    const userId = items[0]?.listing.pharmacy.userId;
+    if (!userId) return;
+    const conv = await startChat.mutateAsync({ participantId: userId, listingId: items[0].listing.id });
+    navigate(`/chat/${conv.id}`);
   };
 
   if (isLoading) return <div className="p-4"><ListSkeleton /></div>;
+  if (isError) return <div className="p-4 text-center text-danger">Failed to load cart</div>;
 
   const sellerIds = Object.keys(grouped);
   if (sellerIds.length === 0) {
@@ -43,6 +67,7 @@ export function CartPage() {
     <div>
       <TopBar title="Cart" />
       <div className="p-4 space-y-4">
+        {error && <p className="text-sm text-danger text-center">{error}</p>}
         {sellerIds.map((sellerId) => {
           const items = grouped[sellerId];
           const subtotal = items.reduce((sum, i) => sum + Number(i.listing.finalPrice) * i.quantity, 0);
@@ -50,7 +75,9 @@ export function CartPage() {
             <div key={sellerId} className="rounded-[var(--radius-md)] border border-border-subtle overflow-hidden">
               <div className="flex items-center justify-between p-3 bg-surface-raised">
                 <span className="font-medium text-sm">{items[0].listing.pharmacy.name} ({items.length} items)</span>
-                <Button variant="ghost" size="sm"><MessageCircle className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="sm" aria-label="Message seller" onClick={() => handleChat(items)}>
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
               </div>
               {items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3 p-3 border-t border-border-subtle">
@@ -59,12 +86,20 @@ export function CartPage() {
                     <p className="text-sm font-medium truncate">{item.listing.medicine.name}</p>
                     <p className="text-xs text-text-secondary">Qty: {item.quantity} · {formatPrice(Number(item.listing.finalPrice) * item.quantity)}</p>
                   </div>
-                  <button className="p-2 text-text-secondary hover:text-danger"><Trash2 className="h-4 w-4" /></button>
+                  <button
+                    className="p-2 text-text-secondary hover:text-danger"
+                    aria-label="Remove item"
+                    onClick={() => removeItem.mutate(item.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
               <div className="flex items-center justify-between p-3 border-t border-border-subtle bg-surface-raised">
                 <span className="font-medium tabular-nums">Subtotal: {formatPrice(subtotal)}</span>
-                <Button size="sm" onClick={() => sendBuyRequest(sellerId, items)}>Send Buy Request →</Button>
+                <Button size="sm" loading={sending === sellerId} onClick={() => sendBuyRequest(sellerId, items)}>
+                  Send Buy Request →
+                </Button>
               </div>
             </div>
           );
@@ -75,17 +110,29 @@ export function CartPage() {
 }
 
 export function OrdersPage() {
-  const { data, isLoading } = useOrders('buyer');
+  const role = usePageRole();
+  const { data, isLoading, isError } = useOrders(role);
+  const title = role === 'seller' ? 'Seller Orders' : 'Order History';
+
   return (
     <div>
-      <TopBar title="Order History" showBack />
+      <TopBar title={title} showBack />
       <div className="p-4">
-        {isLoading ? <ListSkeleton /> : (
+        {isLoading ? <ListSkeleton /> : isError ? (
+          <p className="text-center text-danger py-12">Failed to load orders</p>
+        ) : data?.data.length === 0 ? (
+          <p className="text-center text-text-secondary py-12">No orders yet</p>
+        ) : (
           <div className="space-y-3">
             {data?.data.map((order) => (
               <Link key={order.id} to={`/orders/${order.id}`} className="block p-3 rounded-[var(--radius-md)] border border-border-subtle">
-                <div className="flex justify-between"><span className="font-medium text-sm">{order.orderNumber}</span><StatusChip label={order.status} variant={order.status === 'DELIVERED' ? 'success' : 'warning'} /></div>
-                <p className="text-sm text-text-secondary mt-1">{order.seller?.name} · {formatPrice(order.totalAmount)}</p>
+                <div className="flex justify-between">
+                  <span className="font-medium text-sm">{order.orderNumber}</span>
+                  <StatusChip label={order.status} variant={order.status === 'DELIVERED' ? 'success' : 'warning'} />
+                </div>
+                <p className="text-sm text-text-secondary mt-1">
+                  {role === 'seller' ? `${order.buyer?.firstName} ${order.buyer?.lastName}` : order.seller?.name} · {formatPrice(order.totalAmount)}
+                </p>
               </Link>
             ))}
           </div>
@@ -96,20 +143,33 @@ export function OrdersPage() {
 }
 
 export function BuyRequestsPage() {
-  const { data, isLoading } = useBuyRequests('buyer');
+  const role = usePageRole();
+  const { data, isLoading, isError } = useBuyRequests(role);
+  const title = role === 'seller' ? 'Incoming Requests' : 'Buy Requests';
+  const basePath = role === 'seller' ? '/seller/requests' : '/buy-requests';
+
   return (
     <div>
-      <TopBar title="Buy Requests" showBack />
+      <TopBar title={title} showBack />
       <div className="p-4">
-        {isLoading ? <ListSkeleton /> : data?.data.length === 0 ? (
-          <p className="text-center text-text-secondary py-12">You haven't sent any requests</p>
+        {isLoading ? <ListSkeleton /> : isError ? (
+          <p className="text-center text-danger py-12">Failed to load requests</p>
+        ) : data?.data.length === 0 ? (
+          <p className="text-center text-text-secondary py-12">
+            {role === 'seller' ? 'No incoming requests' : "You haven't sent any requests"}
+          </p>
         ) : (
           <div className="space-y-3">
             {data?.data.map((req) => (
-              <div key={req.id} className="p-3 rounded-[var(--radius-md)] border border-border-subtle">
-                <div className="flex justify-between"><span className="font-medium text-sm">{req.requestNumber}</span><StatusChip label={req.status} variant={req.status === 'ACCEPTED' ? 'success' : req.status === 'REJECTED' ? 'danger' : 'warning'} /></div>
-                <p className="text-sm text-text-secondary">{req.seller?.name} · {formatPrice(req.totalAmount)}</p>
-              </div>
+              <Link key={req.id} to={`${basePath}/${req.id}`} className="block p-3 rounded-[var(--radius-md)] border border-border-subtle">
+                <div className="flex justify-between">
+                  <span className="font-medium text-sm">{req.requestNumber}</span>
+                  <StatusChip label={req.status} variant={req.status === 'ACCEPTED' ? 'success' : req.status === 'REJECTED' ? 'danger' : 'warning'} />
+                </div>
+                <p className="text-sm text-text-secondary">
+                  {role === 'seller' ? `${req.buyer?.firstName} ${req.buyer?.lastName}` : req.seller?.name} · {formatPrice(req.totalAmount)}
+                </p>
+              </Link>
             ))}
           </div>
         )}
@@ -117,4 +177,3 @@ export function BuyRequestsPage() {
     </div>
   );
 }
-

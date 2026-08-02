@@ -1,4 +1,4 @@
-import { ListingStatus } from '@prisma/client';
+import { ListingStatus, VerificationStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
@@ -8,7 +8,7 @@ export class ListingService {
   async search(query: Record<string, unknown>) {
     const { page, limit, skip } = parsePagination(query);
     const {
-      q, composition, company, category, city, district,
+      q, composition, company, category, city, district, pharmacyId,
       minPrice, maxPrice, minDiscount, maxExpiryMonths, minExpiryMonths,
       sortBy = 'createdAt', sortOrder = 'desc', status = ListingStatus.ACTIVE,
     } = query;
@@ -28,7 +28,15 @@ export class ListingService {
 
     const where: Record<string, unknown> = {
       status: status as ListingStatus,
+      pharmacy: {
+        verificationStatus: VerificationStatus.APPROVED,
+        isActive: true,
+        ...(city ? { city: { equals: String(city), mode: 'insensitive' } } : {}),
+        ...(district ? { district: { equals: String(district), mode: 'insensitive' } } : {}),
+      },
     };
+
+    if (pharmacyId) where.pharmacyId = String(pharmacyId);
 
     if (Object.keys(expiryFilter).length) where.expiryDate = expiryFilter;
     if (minPrice || maxPrice) {
@@ -38,8 +46,6 @@ export class ListingService {
       };
     }
     if (minDiscount) where.discountPercent = { gte: Number(minDiscount) };
-    if (city) where.pharmacy = { city: { equals: String(city), mode: 'insensitive' } };
-    if (district) where.pharmacy = { ...(where.pharmacy as object || {}), district: { equals: String(district), mode: 'insensitive' } };
 
     if (q || composition || company || category) {
       const medicineWhere: Record<string, unknown> = { isActive: true };
@@ -66,7 +72,7 @@ export class ListingService {
         where: where as never, skip, take: limit, orderBy,
         include: {
           medicine: { select: { id: true, name: true, company: true, dosageForm: true, packSize: true, category: true, composition: true } },
-          pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, verificationStatus: true, latitude: true, longitude: true } },
+          pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, verificationStatus: true, latitude: true, longitude: true, userId: true } },
         },
       }),
       prisma.listing.count({ where: where as never }),
@@ -80,7 +86,7 @@ export class ListingService {
       where: { id },
       include: {
         medicine: true,
-        pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, ratingCount: true, verificationStatus: true, logoUrl: true } },
+        pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, ratingCount: true, verificationStatus: true, logoUrl: true, userId: true } },
       },
     });
     if (!listing) throw AppError.notFound('Listing not found');

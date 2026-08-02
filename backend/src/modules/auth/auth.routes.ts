@@ -5,7 +5,7 @@ import { validate } from '../../shared/middleware/validate.middleware';
 import { authRateLimiter, otpRateLimiter } from '../../shared/middleware/rateLimit.middleware';
 import {
   registerSchema, loginSchema, firebaseAuthSchema,
-  otpVerifySchema, refreshTokenSchema, fcmTokenSchema,
+  otpVerifySchema, sendOtpSchema, refreshTokenSchema, fcmTokenSchema,
 } from './auth.validation';
 
 const router = Router();
@@ -37,6 +37,7 @@ router.post('/login', authRateLimiter, validate(loginSchema), authController.log
  */
 router.post('/firebase', authRateLimiter, validate(firebaseAuthSchema), authController.firebaseAuth.bind(authController));
 
+router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
 router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authController.verifyOtp.bind(authController));
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));
 router.post('/logout', authenticate, authController.logout.bind(authController));

@@ -32,6 +32,13 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
+  async sendOtp(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.sendOtp(req.body);
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async refreshToken(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.refreshToken(req.body.refreshToken);

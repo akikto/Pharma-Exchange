@@ -27,6 +27,12 @@ export const otpVerifySchema = z.object({
   purpose: z.enum(['registration', 'login', 'password_reset']),
 });
 
+export const sendOtpSchema = z.object({
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  purpose: z.enum(['login', 'password_reset']).default('login'),
+}).refine((d) => d.phone || d.email, { message: 'Phone or email is required' });
+
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1),
 });

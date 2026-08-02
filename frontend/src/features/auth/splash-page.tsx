@@ -7,12 +7,12 @@ export function SplashPage() {
   const { isAuthenticated, isLoading, hasSeenOnboarding } = useAuthStore();
 
   useEffect(() => {
+    if (isLoading) return;
     const timer = setTimeout(() => {
-      if (isLoading) return;
       if (isAuthenticated) navigate('/', { replace: true });
       else if (!hasSeenOnboarding) navigate('/onboarding', { replace: true });
       else navigate('/login', { replace: true });
-    }, 1500);
+    }, 800);
     return () => clearTimeout(timer);
   }, [isAuthenticated, isLoading, hasSeenOnboarding, navigate]);
 
@@ -21,6 +21,7 @@ export function SplashPage() {
       <div className="text-white text-center">
         <div className="text-5xl font-bold mb-2">PharmEx</div>
         <p className="text-primary-subtle text-sm">B2B Pharmacy Marketplace</p>
+        {isLoading && <p className="text-xs mt-4 opacity-75">Loading...</p>}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, AppMode } from '@/types';
+import { disconnectSocket } from '@/lib/socket';
 import { apiClient, setTokens, clearTokens, loadRefreshToken } from '@/lib/api';
 
 interface AuthState {
@@ -12,6 +13,7 @@ interface AuthState {
   login: (emailOrPhone: string, password: string, isEmail: boolean) => Promise<void>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
   register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string }>;
+  sendOtp: (data: { phone?: string; email?: string }) => Promise<{ devOtp?: string }>;
   verifyOtp: (data: { phone?: string; email?: string; code: string; purpose: string }) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
@@ -49,6 +51,10 @@ export const useAuthStore = create<AuthState>()(
         return result;
       },
 
+      sendOtp: async (data) => {
+        return apiClient.post<{ devOtp?: string }>('/auth/send-otp', { ...data, purpose: 'login' });
+      },
+
       verifyOtp: async (data) => {
         const result = await apiClient.post<{ accessToken?: string; refreshToken?: string; user?: User }>('/auth/verify-otp', data);
         if (result.accessToken && result.refreshToken) {
@@ -59,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try { await apiClient.post('/auth/logout'); } catch { /* ignore */ }
+        disconnectSocket();
         clearTokens();
         set({ user: null, isAuthenticated: false });
       },

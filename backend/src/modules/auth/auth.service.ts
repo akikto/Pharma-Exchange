@@ -55,6 +55,30 @@ export class AuthService {
     return { user, ...(env.OTP_DEV_MODE && { devOtp: otp }) };
   }
 
+  async sendOtp(data: { phone?: string; email?: string; purpose: 'login' | 'password_reset' }) {
+    const user = await prisma.user.findFirst({
+      where: data.phone ? { phone: data.phone } : { email: data.email },
+    });
+    if (!user) throw AppError.notFound('No account found with this contact');
+    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+
+    const otp = generateOtp();
+    await prisma.otpToken.create({
+      data: {
+        userId: user.id,
+        phone: data.phone,
+        email: data.email,
+        code: otp,
+        purpose: data.purpose,
+        expiresAt: new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000),
+      },
+    });
+
+    if (env.OTP_DEV_MODE) logger.info(`[DEV OTP] ${data.purpose}: ${otp}`);
+
+    return { message: 'OTP sent', ...(env.OTP_DEV_MODE && { devOtp: otp }) };
+  }
+
   async login(data: { email?: string; phone?: string; password: string }) {
     const user = await prisma.user.findFirst({
       where: data.email ? { email: data.email } : { phone: data.phone },

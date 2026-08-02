@@ -5,15 +5,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
-import { useSellerAnalytics, useBuyRequests } from '@/hooks/use-api';
-import { useListings } from '@/hooks/use-listings';
+import { useSellerAnalytics, useBuyRequests, useSellerInventory } from '@/hooks/use-api';
 import { formatPrice } from '@/lib/utils';
 
 export function SellerDashboardPage() {
-  const { data: analytics, isLoading } = useSellerAnalytics();
+  const { data: analytics, isLoading, isError } = useSellerAnalytics();
   const { data: requests } = useBuyRequests('seller');
 
   if (isLoading) return <div className="p-4"><ListSkeleton count={3} /></div>;
+  if (isError) return <div className="p-4 text-center text-danger">Failed to load dashboard</div>;
 
   return (
     <div>
@@ -39,12 +39,16 @@ export function SellerDashboardPage() {
             <h2 className="font-semibold">Pending Buy Requests</h2>
             <Link to="/seller/requests" className="text-sm text-primary">View all</Link>
           </div>
-          {requests?.data.slice(0, 3).map((req) => (
-            <Link key={req.id} to={`/seller/requests/${req.id}`} className="block p-3 mb-2 rounded-[var(--radius-md)] border border-border-subtle">
-              <div className="flex justify-between"><span className="font-medium text-sm">{req.requestNumber}</span><StatusChip label={req.status} variant="warning" /></div>
-              <p className="text-sm text-text-secondary mt-1">{formatPrice(req.totalAmount)} · {req.items.length} items</p>
-            </Link>
-          ))}
+          {requests?.data.length === 0 ? (
+            <p className="text-sm text-text-secondary">No pending requests</p>
+          ) : (
+            requests?.data.slice(0, 3).map((req) => (
+              <Link key={req.id} to={`/seller/requests/${req.id}`} className="block p-3 mb-2 rounded-[var(--radius-md)] border border-border-subtle">
+                <div className="flex justify-between"><span className="font-medium text-sm">{req.requestNumber}</span><StatusChip label={req.status} variant="warning" /></div>
+                <p className="text-sm text-text-secondary mt-1">{formatPrice(req.totalAmount)} · {req.items.length} items</p>
+              </Link>
+            ))
+          )}
         </section>
 
         <div className="grid grid-cols-2 gap-3">
@@ -59,14 +63,16 @@ export function SellerDashboardPage() {
 }
 
 export function SellerInventoryPage() {
-  const { data, isLoading } = useListings({});
-  const listings = data?.pages.flatMap((p) => p.data) ?? [];
+  const { data, isLoading, isError } = useSellerInventory();
+  const listings = data?.data ?? [];
 
   return (
     <div>
       <TopBar title="Inventory" showBack actions={<Link to="/seller/listing/new"><Button size="sm"><Plus className="h-4 w-4" /></Button></Link>} />
       <div className="p-4">
-        {isLoading ? <ListSkeleton /> : listings.length === 0 ? (
+        {isLoading ? <ListSkeleton /> : isError ? (
+          <p className="text-center text-danger py-12">Failed to load inventory</p>
+        ) : listings.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-text-secondary">No listings yet</p>
             <Link to="/seller/listing/new"><Button className="mt-4">Add Your First Listing</Button></Link>
@@ -89,4 +95,3 @@ export function SellerInventoryPage() {
     </div>
   );
 }
-

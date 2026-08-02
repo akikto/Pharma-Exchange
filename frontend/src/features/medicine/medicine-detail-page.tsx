@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Minus, Plus, MessageCircle } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
@@ -9,14 +9,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ListingCard } from '@/components/listing-card';
 import { apiClient } from '@/lib/api';
 import { formatPrice, getExpiryStatus, getExpiryLabel } from '@/lib/utils';
-import { useAddToCart } from '@/hooks/use-api';
+import { useAddToCart, useStartConversation } from '@/hooks/use-api';
 import { useListings } from '@/hooks/use-listings';
 import type { Listing } from '@/types';
 
 export function MedicineDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
+  const startChat = useStartConversation();
 
   const { data: listing, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -31,6 +33,13 @@ export function MedicineDetailPage() {
 
   const handleAddToCart = () => {
     addToCart.mutate({ listingId: listing.id, quantity });
+  };
+
+  const handleChat = async () => {
+    const userId = listing.pharmacy.userId;
+    if (!userId) return;
+    const conv = await startChat.mutateAsync({ participantId: userId, listingId: listing.id });
+    navigate(`/chat/${conv.id}`);
   };
 
   return (
@@ -85,7 +94,7 @@ export function MedicineDetailPage() {
           <button className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
         </div>
         <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isPending}>Add to Cart</Button>
-        <Button variant="secondary" size="icon"><MessageCircle className="h-5 w-5" /></Button>
+        <Button variant="secondary" size="icon" aria-label="Message seller" onClick={handleChat}><MessageCircle className="h-5 w-5" /></Button>
       </div>
     </div>
   );
@@ -98,8 +107,8 @@ export function PharmacyProfilePage() {
     queryFn: () => apiClient.get<{ id: string; name: string; city: string; rating: number }>(`/pharmacies/${id}`),
     enabled: !!id,
   });
-  const { data: listingsData } = useListings({});
-  const listings = listingsData?.pages.flatMap((p) => p.data).filter((l) => l.pharmacy.id === id) ?? [];
+  const { data: listingsData, isLoading: listingsLoading } = useListings({ pharmacyId: id });
+  const listings = listingsData?.pages.flatMap((p) => p.data) ?? [];
 
   if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>;
 
@@ -115,11 +124,17 @@ export function PharmacyProfilePage() {
           <p className="text-text-secondary">⭐ {pharmacy?.rating} · {pharmacy?.city}</p>
         </div>
         <h2 className="font-semibold">Listings</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {listings.map((l) => (
-            <ListingCard key={l.id} listing={l} />
-          ))}
-        </div>
+        {listingsLoading ? (
+          <Skeleton className="h-32 w-full" />
+        ) : listings.length === 0 ? (
+          <p className="text-text-secondary text-sm">No active listings</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {listings.map((l) => (
+              <ListingCard key={l.id} listing={l} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

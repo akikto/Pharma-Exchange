@@ -28,6 +28,11 @@ export class CartService {
   async addItem(userId: string, listingId: string, quantity: number) {
     const listing = await prisma.listing.findUnique({ where: { id: listingId } });
     if (!listing || listing.status !== 'ACTIVE') throw AppError.notFound('Listing not available');
+
+    const buyerPharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
+    if (buyerPharmacy && listing.pharmacyId === buyerPharmacy.id) {
+      throw AppError.badRequest('Cannot add your own listings to cart');
+    }
     if (quantity < listing.moq) throw AppError.badRequest(`Minimum order quantity is ${listing.moq}`);
     if (quantity > listing.availableQty) throw AppError.badRequest('Insufficient stock');
 
@@ -46,6 +51,8 @@ export class CartService {
     });
     if (!existing) throw AppError.notFound('Cart item not found');
     if (quantity < existing.listing.moq) throw AppError.badRequest(`Minimum order quantity is ${existing.listing.moq}`);
+    if (existing.listing.status !== 'ACTIVE') throw AppError.badRequest('Listing is no longer available');
+    if (quantity > existing.listing.availableQty) throw AppError.badRequest('Insufficient stock');
 
     return prisma.cartItem.update({
       where: { id: cartItemId },
