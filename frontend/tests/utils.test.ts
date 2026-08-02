@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { formatPrice, getExpiryStatus, getExpiryLabel } from '@/lib/utils';
 
 describe('formatPrice', () => {
-  it('formats BDT currency', () => {
-    expect(formatPrice(120)).toBe('৳120.00');
-    expect(formatPrice(1500.5)).toBe('৳1,500.50');
+  it('formats amounts without currency symbol', () => {
+    expect(formatPrice(120)).toBe('120.00');
+    expect(formatPrice(1500.5)).toBe('1,500.50');
   });
 });
 
