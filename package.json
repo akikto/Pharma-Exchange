@@ -1,0 +1,20 @@
+{
+  "name": "pharma-exchange",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PharmEx — B2B pharmacy marketplace for Bangladesh",
+  "workspaces": [
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=backend",
+    "build": "npm run build --workspace=backend",
+    "db:generate": "npm run db:generate --workspace=backend",
+    "db:migrate": "npm run db:migrate --workspace=backend",
+    "db:push": "npm run db:push --workspace=backend",
+    "db:seed": "npm run db:seed --workspace=backend"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
