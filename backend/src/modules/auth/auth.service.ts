@@ -52,7 +52,14 @@ export class AuthService {
 
     if (env.OTP_DEV_MODE) logger.info(`[DEV OTP] Registration: ${otp}`);
 
-    return { user, ...(env.OTP_DEV_MODE && { devOtp: otp }) };
+    const fullUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+
+    // No SMS/email OTP provider yet — skip OTP step in production and sign in immediately
+    if (!env.OTP_DEV_MODE) {
+      return this.issueTokens(fullUser);
+    }
+
+    return { user, devOtp: otp };
   }
 
   async sendOtp(data: { phone?: string; email?: string; purpose: 'login' | 'password_reset' }) {

@@ -6,7 +6,10 @@ export class AuthController {
   async register(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.register(req.body);
-      res.status(201).json({ message: 'Registration successful. Please verify OTP.', ...result });
+      const message = 'accessToken' in result
+        ? 'Registration successful'
+        : 'Registration successful. Please verify OTP.';
+      res.status(201).json({ message, ...result });
     } catch (err) { next(err); }
   }
 

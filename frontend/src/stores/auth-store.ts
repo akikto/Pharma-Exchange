@@ -12,7 +12,7 @@ interface AuthState {
   hasSeenOnboarding: boolean;
   login: (emailOrPhone: string, password: string, isEmail: boolean) => Promise<void>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
-  register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string }>;
+  register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string; accessToken?: string; refreshToken?: string; user?: User }>;
   sendOtp: (data: { phone?: string; email?: string }) => Promise<{ devOtp?: string }>;
   verifyOtp: (data: { phone?: string; email?: string; code: string; purpose: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -47,7 +47,16 @@ export const useAuthStore = create<AuthState>()(
       },
 
       register: async (data) => {
-        const result = await apiClient.post<{ devOtp?: string }>('/auth/register', data);
+        const result = await apiClient.post<{
+          devOtp?: string;
+          accessToken?: string;
+          refreshToken?: string;
+          user?: User;
+        }>('/auth/register', data);
+        if (result.accessToken && result.refreshToken && result.user) {
+          setTokens(result.accessToken, result.refreshToken);
+          set({ user: result.user, isAuthenticated: true });
+        }
         return result;
       },
 
