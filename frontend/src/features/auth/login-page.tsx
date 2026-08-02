@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiError } from '@/lib/api';
+import { Logo } from '@/components/brand/logo';
 
 const schema = z.object({
   identifier: z.string().min(1, 'Required'),
@@ -48,9 +49,9 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto">
       <div className="flex-1 flex flex-col justify-center gap-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary">PharmEx</h1>
-          <p className="text-text-secondary mt-1">Sign in to your account</p>
+        <div className="text-center flex flex-col items-center gap-3">
+          <Logo size="xl" className="justify-center" />
+          <p className="text-text-secondary">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth-store';
+import { Logo } from '@/components/brand/logo';
 
 const slides = [
   { title: 'Trade medicines with trusted pharmacies', desc: 'Connect with verified pharmacies across Bangladesh for bulk medicine trading.' },
@@ -22,7 +23,7 @@ export function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col p-6">
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
-        <div className="h-48 w-48 rounded-full bg-primary-subtle flex items-center justify-center text-6xl">💊</div>
+        <Logo size="xl" className="justify-center" />
         <h1 className="text-2xl font-bold">{slides[step].title}</h1>
         <p className="text-text-secondary max-w-sm">{slides[step].desc}</p>
         <div className="flex gap-2">

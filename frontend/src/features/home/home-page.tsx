@@ -24,7 +24,7 @@ export function HomePage() {
 
   return (
     <div>
-      <TopBar title="PharmEx" large actions={
+      <TopBar showLogo title="Home" large actions={
         <Link to="/search" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised">
           <Search className="h-5 w-5" />
         </Link>
