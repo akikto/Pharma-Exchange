@@ -2,6 +2,13 @@
 
 Deploy the API as a **separate Vercel project** with root directory set to `backend`.
 
+## Quick setup checklist
+
+1. Vercel project → **Settings → General → Root Directory** → `backend`
+2. Vercel project → **Settings → Environment Variables** → add all required vars below
+3. **Deployments** → Redeploy latest `main` branch
+4. Verify: `curl https://pharma-exchange-backend.vercel.app/health`
+
 ## Required environment variables
 
 Set these in Vercel → Project → Settings → Environment Variables:
