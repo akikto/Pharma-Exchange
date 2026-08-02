@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import type { Express } from 'express';
+import type { Application } from 'express';
 
-let app: Express | null = null;
+let app: Application | null = null;
 let bootstrapError: Error | null = null;
 
-async function getApp(): Promise<Express> {
+async function getApp(): Promise<Application> {
   if (bootstrapError) throw bootstrapError;
   if (app) return app;
   try {
