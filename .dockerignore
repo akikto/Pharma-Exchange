@@ -1,0 +1,22 @@
+# Root-level ignore for monorepo Docker builds
+
+node_modules
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+
+.git
+.github
+.idea
+.vscode
+*.md
+!docs/docker-deployment.md
+
+**/tests
+**/coverage
+**/*.test.ts
+**/*.test.tsx
+
+frontend/tsconfig.tsbuildinfo

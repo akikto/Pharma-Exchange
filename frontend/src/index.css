@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Inter", "Noto Sans Bengali", system-ui, sans-serif;
+
+  --color-primary: #0F766E;
+  --color-primary-hover: #0B5A54;
+  --color-primary-subtle: #E6F4F2;
+  --color-secondary: #1E3A5F;
+
+  --color-success: #15803D;
+  --color-warning: #B45309;
+  --color-danger: #B91C1C;
+  --color-info: #1D4ED8;
+
+  --color-surface-base: #FFFFFF;
+  --color-surface-raised: #F8FAF9;
+  --color-surface-sunken: #F1F4F3;
+  --color-border-subtle: #E2E8E6;
+  --color-border-strong: #CBD5D3;
+  --color-text-primary: #0F1B19;
+  --color-text-secondary: #4B5D5A;
+  --color-text-disabled: #96A6A3;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+.dark {
+  --color-surface-base: #0F1416;
+  --color-surface-raised: #171D1F;
+  --color-surface-sunken: #0A0D0E;
+  --color-border-subtle: #2A3234;
+  --color-border-strong: #3A4547;
+  --color-text-primary: #EDF2F1;
+  --color-text-secondary: #A6B5B2;
+  --color-text-disabled: #5C6A67;
+  --color-success: #34D399;
+}
+
+@layer base {
+  * { @apply border-border-subtle; }
+  body {
+    @apply bg-surface-base text-text-primary font-sans antialiased;
+    font-feature-settings: "tnum";
+  }
+}
+
+@layer utilities {
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}

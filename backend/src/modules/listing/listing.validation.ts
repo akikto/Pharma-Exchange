@@ -1,0 +1,51 @@
+import { z } from 'zod';
+import { ListingStatus } from '@prisma/client';
+
+export const createListingSchema = z.object({
+  medicineId: z.string().uuid(),
+  batchNumber: z.string().min(1),
+  mfgDate: z.string().datetime(),
+  expiryDate: z.string().datetime(),
+  purchasePrice: z.number().positive(),
+  sellingPrice: z.number().positive(),
+  discountPercent: z.number().min(0).max(100).default(0),
+  availableQty: z.number().int().positive(),
+  moq: z.number().int().positive().default(1),
+  unit: z.string().default('strip'),
+  imageUrl: z.string().url().optional(),
+  status: z.nativeEnum(ListingStatus).default(ListingStatus.DRAFT),
+});
+
+export const updateListingSchema = createListingSchema.partial();
+
+export const updatePriceSchema = z.object({
+  sellingPrice: z.number().positive().optional(),
+  discountPercent: z.number().min(0).max(100).optional(),
+});
+
+export const updateQuantitySchema = z.object({
+  availableQty: z.number().int().positive(),
+});
+
+export const marketplaceSearchSchema = z.object({
+  q: z.string().optional(),
+  composition: z.string().optional(),
+  company: z.string().optional(),
+  category: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  minDiscount: z.coerce.number().optional(),
+  maxExpiryMonths: z.coerce.number().optional(),
+  minExpiryMonths: z.coerce.number().optional(),
+  pharmacyId: z.string().uuid().optional(),
+  sortBy: z.enum(['createdAt', 'price', 'expiry', 'discount']).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  status: z.nativeEnum(ListingStatus).default(ListingStatus.ACTIVE),
+  page: z.coerce.number().default(1),
+  limit: z.coerce.number().default(20),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
+  radiusKm: z.coerce.number().default(50),
+});
