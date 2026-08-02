@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build output (rebuilt inside container)
+dist
+
+# Tests
+tests
+coverage
+*.test.ts
+vitest.config.ts
+
+# IDE & OS
+.idea
+.vscode
+*.swp
+.DS_Store
+
+# Environment (never bake secrets into images)
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Docs & misc
+README.md
+*.md
+
+# Prisma local DB (if any)
+*.db
+*.db-journal
