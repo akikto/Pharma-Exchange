@@ -52,7 +52,7 @@ export function RegisterPage() {
       navigate('/');
     } catch (err) {
       if (err instanceof ApiError && err.code === 'CONFLICT') {
-        setError('এই ইমেইল বা ফোন নম্বর ইতিমধ্যে রেজিস্টার করা। লগইন করুন।');
+        setError('এই ইমেইল বা ফোন নম্বর ইতিমধ্যে রেজিস্টার করা। পাসওয়ার্ড রিসেট করুন বা লগইন করুন।');
       } else {
         setError(err instanceof Error ? err.message : 'রেজিস্ট্রেশন ব্যর্থ হয়েছে');
       }
@@ -108,6 +108,8 @@ export function RegisterPage() {
         </form>
         <p className="text-center text-sm text-text-secondary">
           Already have an account? <Link to="/login" className="text-primary font-medium">Log in</Link>
+          {' · '}
+          <Link to="/forgot-password" className="text-primary font-medium">পাসওয়ার্ড রিসেট</Link>
         </p>
       </div>
     </div>

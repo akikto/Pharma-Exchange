@@ -42,6 +42,13 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
+  async resetPassword(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.resetPassword(req.body);
+      res.json({ message: 'Password updated', ...result });
+    } catch (err) { next(err); }
+  }
+
   async refreshToken(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.refreshToken(req.body.refreshToken);

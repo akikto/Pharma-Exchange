@@ -37,6 +37,11 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
+export const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  newPassword: z.string().min(8),
+});
+
 export const fcmTokenSchema = z.object({
   token: z.string().min(1),
   deviceId: z.string().optional(),

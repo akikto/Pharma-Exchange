@@ -86,6 +86,20 @@ export class AuthService {
     return { message: 'OTP sent', ...(env.OTP_DEV_MODE && { devOtp: otp }) };
   }
 
+  async resetPassword(data: { email: string; newPassword: string }) {
+    const user = await prisma.user.findUnique({ where: { email: data.email } });
+    if (!user) throw AppError.notFound('No account found with this email');
+    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+
+    const passwordHash = await bcrypt.hash(data.newPassword, 12);
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    return this.issueTokens(updated);
+  }
+
   async login(data: { email?: string; phone?: string; password: string }) {
     const user = await prisma.user.findFirst({
       where: data.email ? { email: data.email } : { phone: data.phone },
@@ -224,6 +238,7 @@ export class AuthService {
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
     await prisma.refreshToken.create({
       data: {
         userId: user.id,
