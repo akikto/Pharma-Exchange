@@ -9,6 +9,7 @@ const OnboardingPage = lazy(() => import('@/features/auth/onboarding-page').then
 const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.RegisterPage })));
 const OtpLoginPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.OtpLoginPage })));
+const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })));
 const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
 const SearchPage = lazy(() => import('@/features/home/search-page').then(m => ({ default: m.SearchPage })));
 const MedicineDetailPage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.MedicineDetailPage })));
@@ -71,6 +72,7 @@ export function AppRouter() {
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/otp" element={<OtpLoginPage />} />
 
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

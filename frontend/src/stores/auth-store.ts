@@ -15,6 +15,7 @@ interface AuthState {
   register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string; accessToken?: string; refreshToken?: string; user?: User }>;
   sendOtp: (data: { phone?: string; email?: string }) => Promise<{ devOtp?: string }>;
   verifyOtp: (data: { phone?: string; email?: string; code: string; purpose: string }) => Promise<void>;
+  resetPassword: (email: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setMode: (mode: AppMode) => void;
@@ -70,6 +71,12 @@ export const useAuthStore = create<AuthState>()(
           setTokens(result.accessToken, result.refreshToken);
           await get().fetchProfile();
         }
+      },
+
+      resetPassword: async (email, newPassword) => {
+        const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/reset-password', { email, newPassword });
+        setTokens(data.accessToken, data.refreshToken);
+        set({ user: data.user, isAuthenticated: true });
       },
 
       logout: async () => {

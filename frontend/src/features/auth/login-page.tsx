@@ -87,6 +87,10 @@ export function LoginPage() {
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
+          <p className="text-right text-sm">
+            <Link to="/forgot-password" className="text-primary font-medium">পাসওয়ার্ড ভুলে গেছেন?</Link>
+          </p>
+
           <Button type="submit" className="w-full" size="lg" loading={loading}>Log In</Button>
         </form>
 
