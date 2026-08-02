@@ -3,6 +3,7 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
+import { getSocketCorsOrigins } from '../config/cors';
 import { chatService } from '../modules/chat/chat.service';
 import { logger } from '../shared/utils/logger';
 import prisma from '../config/database';
@@ -21,7 +22,7 @@ interface SocketUser {
 
 export function initializeSocket(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
-    cors: { origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',') },
+    cors: { origin: getSocketCorsOrigins() },
     path: '/socket.io',
   });
 
