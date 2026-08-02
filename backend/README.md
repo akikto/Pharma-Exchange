@@ -1,99 +1,119 @@
-# PharmEx Backend API
+# PharmEx Backend API v1.0
 
-REST API for the PharmEx B2B pharmacy marketplace.
+Production-ready REST API for the PharmEx B2B pharmacy marketplace.
 
-## Endpoints
+## Architecture
 
-### Auth (`/api/auth`)
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/register` | Register new user |
-| POST | `/login` | Login with email/phone + password |
-| POST | `/verify-otp` | Verify OTP code |
-| GET | `/me` | Get current user profile |
+```
+src/
+├── config/          # Environment, database, Firebase
+├── shared/          # Errors, middleware, utils
+├── modules/         # Domain modules (clean architecture)
+│   ├── auth/
+│   ├── pharmacy/
+│   ├── medicine/
+│   ├── listing/
+│   ├── cart/
+│   ├── buy-request/
+│   ├── order/
+│   ├── chat/
+│   ├── notification/
+│   ├── review/
+│   ├── report/
+│   ├── analytics/
+│   ├── admin/
+│   └── upload/
+├── jobs/            # Background cron jobs
+├── socket/          # Socket.IO real-time chat
+├── docs/            # Swagger/OpenAPI
+├── app.ts           # Express app factory
+└── server.ts        # HTTP + WebSocket bootstrap
+```
 
-### Pharmacies (`/api/pharmacies`)
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/register` | Register pharmacy (authenticated) |
-| POST | `/documents` | Upload verification document |
-| GET | `/me` | Get own pharmacy |
-| GET | `/:id` | Get pharmacy public profile |
+Each module follows: `routes → controller → service → prisma`
 
-### Medicines (`/api/medicines`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Search medicine catalog |
-| GET | `/:id` | Get medicine details |
-| POST | `/` | Add medicine to catalog |
+## Tech Stack
 
-### Listings (`/api/listings`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Search listings (filters: q, category, price, city, sort) |
-| GET | `/:id` | Get listing details |
-| POST | `/` | Create listing (seller) |
-| PATCH | `/:id` | Update listing (seller) |
-| DELETE | `/:id` | Pause listing (seller) |
+- **Runtime**: Node.js 20+, TypeScript
+- **Framework**: Express 4
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: JWT + Firebase Authentication (Google, OTP, Email)
+- **Storage**: Firebase Storage (with dev fallback)
+- **Push**: Firebase Cloud Messaging
+- **Real-time**: Socket.IO (chat, typing, read receipts)
+- **Jobs**: node-cron (expiry alerts, cleanup)
+- **Docs**: Swagger UI at `/api/docs`
 
-### Cart (`/api/cart`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Get cart (grouped by seller) |
-| POST | `/` | Add item to cart |
-| PATCH | `/:id` | Update quantity |
-| DELETE | `/:id` | Remove item |
+## API Endpoints (v1)
 
-### Buy Requests (`/api/buy-requests`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | List buy requests (role=buyer\|seller) |
-| GET | `/:id` | Get buy request detail |
-| POST | `/` | Create buy request from cart items |
-| POST | `/:id/respond` | Accept or reject (seller) |
+Base URL: `/api/v1`
 
-### Orders (`/api/orders`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | List orders (role=buyer\|seller) |
-| GET | `/:id` | Get order detail with status history |
-| PATCH | `/:id/status` | Update order status (seller) |
+| Module | Endpoints |
+|--------|-----------|
+| **Auth** | `POST /auth/register`, `/login`, `/firebase`, `/verify-otp`, `/refresh`, `/logout`, `GET /me`, `POST /fcm-token` |
+| **Pharmacies** | `POST /pharmacies/register`, `/documents`, `GET /me`, `/:id` |
+| **Medicines** | `GET /medicines`, `POST /`, `PATCH /:id` |
+| **Listings** | `GET /listings/search`, `/inventory`, `POST /`, `PATCH /:id`, `/price`, `/quantity`, `/pause`, `/activate` |
+| **Cart** | `GET /cart`, `POST /`, `PATCH /:id`, `DELETE /:id` |
+| **Buy Requests** | `GET /buy-requests`, `POST /`, `POST /:id/respond` |
+| **Orders** | `GET /orders`, `PATCH /:id/status`, `POST /:id/cancel` |
+| **Chat** | `GET /chat/conversations`, `POST /conversations`, messages, read receipts |
+| **Notifications** | `GET /notifications`, `PATCH /:id/read`, `POST /read-all` |
+| **Reviews** | `POST /reviews`, `GET /reviews/pharmacy/:id` |
+| **Reports** | `POST /reports` |
+| **Upload** | `POST /upload/document`, `/image`, `/voice` |
+| **Analytics** | `GET /analytics/seller` |
+| **Admin** | `GET /admin/dashboard`, `/verifications`, `/reports`, `/users` |
 
-### Chat (`/api/chat`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/conversations` | List conversations |
-| POST | `/conversations` | Start conversation |
-| GET | `/conversations/:id/messages` | Get messages |
-| POST | `/conversations/:id/messages` | Send message |
+Legacy aliases at `/api/*` (without `/v1`) are also supported.
 
-### Notifications (`/api/notifications`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | List notifications |
-| PATCH | `/:id/read` | Mark as read |
-| POST | `/read-all` | Mark all as read |
+## WebSocket Events
 
-### Admin (`/api/admin`) — requires ADMIN role
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/dashboard` | Platform KPIs |
-| GET | `/verifications` | Pharmacy verification queue |
-| POST | `/verifications/:id` | Approve/reject pharmacy |
-| GET | `/reports` | Reports queue |
-| POST | `/reports/:id/resolve` | Resolve report |
-| GET | `/users` | User management |
+Connect to `ws://localhost:3000/socket.io` with `auth: { token: <jwt> }`.
+
+| Event | Direction | Description |
+|-------|-----------|-------------|
+| `join:conversation` | Client → Server | Join conversation room |
+| `message:send` | Client → Server | Send real-time message |
+| `message:new` | Server → Client | New message broadcast |
+| `message:read` | Both | Read receipt |
+| `typing:start/stop` | Both | Typing indicators |
+
+## Background Jobs
+
+| Schedule | Job |
+|----------|-----|
+| Daily 8 AM | Short expiry alerts to sellers |
+| Hourly | Expire pending buy requests |
+| Daily midnight | Mark expired listings |
+
+## Setup
+
+```bash
+cp .env.example .env
+npm install
+npm run db:generate
+npm run db:push    # or db:migrate
+npm run db:seed
+npm run dev
+```
+
+## Testing
+
+```bash
+npm test
+npm run lint
+```
 
 ## Authentication
 
-All protected endpoints require a Bearer token in the `Authorization` header:
-
+All protected endpoints require:
 ```
 Authorization: Bearer <accessToken>
 ```
 
-Obtain tokens via `POST /api/auth/login`.
+Firebase clients authenticate via `POST /api/v1/auth/firebase` with `{ idToken }`.
 
 ## Environment Variables
 
-See `.env.example` for required configuration.
+See `.env.example` for full list. Firebase credentials are optional in development.

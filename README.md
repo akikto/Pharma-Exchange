@@ -1,6 +1,6 @@
 # PharmEx — B2B Pharmacy Marketplace
 
-PharmEx is a B2B pharmacy marketplace for Bangladesh, connecting pharmacies as buyers and sellers of medicines. The platform supports buy-request negotiation, order management, real-time chat, and an admin verification panel.
+PharmEx is a B2B pharmacy marketplace for Bangladesh, connecting pharmacies as buyers and sellers of medicines.
 
 ## Project Structure
 
@@ -8,11 +8,9 @@ PharmEx is a B2B pharmacy marketplace for Bangladesh, connecting pharmacies as b
 Pharma-Exchange/
 ├── docs/
 │   └── design-system.md    # Task 3: UI/UX design system
-├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma   # Task 1: Database schema
-│   │   └── seed.ts
-│   └── src/                # Task 2: REST API
+├── backend/                # Task 4: Production backend API
+│   ├── prisma/             # Task 1: Database schema
+│   └── src/                # Modular clean architecture
 └── package.json
 ```
 
@@ -21,64 +19,56 @@ Pharma-Exchange/
 | Task | Description | Status |
 |------|-------------|--------|
 | 1 | Database schema (PostgreSQL + Prisma) | ✅ |
-| 2 | Backend REST API (Express + TypeScript) | ✅ |
-| 3 | UI/UX design system | ✅ (see `docs/design-system.md`) |
+| 2 | API design | ✅ |
+| 3 | UI/UX design system | ✅ |
+| 4 | Production backend implementation | ✅ |
 
 ## Tech Stack
 
-- **Database**: PostgreSQL 16
-- **ORM**: Prisma
-- **API**: Node.js 20, Express, TypeScript
-- **Auth**: JWT + OTP verification
+- **Database**: PostgreSQL 16 + Prisma ORM
+- **API**: Node.js 20, Express, TypeScript (clean architecture)
+- **Auth**: JWT + Firebase Authentication (Google, OTP, Email)
+- **Storage**: Firebase Storage
+- **Push**: Firebase Cloud Messaging
+- **Real-time**: Socket.IO (chat, typing, read receipts)
+- **Jobs**: node-cron (expiry alerts, cleanup)
+- **Docs**: Swagger UI at `/api/docs`
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 20+
-- PostgreSQL 16+
-
-### Setup
-
 ```bash
-# Install dependencies
 npm install
-
-# Copy environment file and configure
 cp backend/.env.example backend/.env
-
-# Generate Prisma client
 npm run db:generate
-
-# Run migrations
-npm run db:migrate
-
-# Seed sample data
+npm run db:push
 npm run db:seed
-
-# Start development server
 npm run dev
 ```
 
-The API runs at `http://localhost:3000` by default.
+API: `http://localhost:3000/api/v1`  
+Docs: `http://localhost:3000/api/docs`  
+WebSocket: `ws://localhost:3000/socket.io`
 
-## API Overview
+## Backend Modules
 
-| Domain | Endpoints |
-|--------|-----------|
-| Auth | Register, login, OTP verify, refresh token |
-| Pharmacies | Registration, document upload, verification status |
-| Medicines | Catalog search, create (seller) |
-| Listings | CRUD, search with filters |
-| Cart | Add/update/remove items |
-| Buy Requests | Create, accept/reject (seller) |
-| Orders | List, detail, status updates |
-| Chat | Conversations, messages |
-| Notifications | List, mark read |
-| Admin | Verification queue, reports, user management |
+1. **Authentication** — Email/phone login, Firebase auth (Google/OTP), JWT, FCM tokens
+2. **Pharmacy Verification** — License/GST upload, admin workflow
+3. **Medicine Master** — Catalog CRUD and search
+4. **Medicine Listings** — CRUD, pause, price/discount/quantity updates
+5. **Marketplace Search** — Name, composition, company, location, expiry, discount filters
+6. **Cart** — Grouped by seller
+7. **Buy Requests** — Per-seller negotiation with accept/reject
+8. **Orders** — Status lifecycle with history
+9. **Chat** — REST + Socket.IO real-time messaging with read receipts
+10. **Notifications** — In-app + FCM push
+11. **Reviews** — Post-delivery ratings
+12. **Reports** — User submission + admin moderation
+13. **Analytics** — Seller dashboard + platform KPIs
+14. **Admin APIs** — Verification queue, reports, users
+15. **Background Jobs** — Expiry alerts, buy request expiry, listing cleanup
 
-See `backend/README.md` for full API documentation.
+See [`backend/README.md`](backend/README.md) for full API documentation.
 
 ## Design System
 
-The UI/UX design system (Task 3) is documented in [`docs/design-system.md`](docs/design-system.md). It covers design tokens, component library, screen wireframes, navigation, accessibility, and UX guidelines for Android, iOS (PWA), and Web platforms.
+The UI/UX design system is documented in [`docs/design-system.md`](docs/design-system.md).
