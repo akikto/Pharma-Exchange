@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TopBar } from '@/components/layout/top-bar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,9 +34,11 @@ export function AdminDashboardPage() {
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Total Orders (30d)</p><p className="text-xl font-bold">{data?.totalOrders ?? 0}</p></CardContent></Card>
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Active Listings</p><p className="text-xl font-bold">{data?.activeListings ?? 0}</p></CardContent></Card>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Link to="/admin/verifications"><Button>Verification Queue</Button></Link>
           <Link to="/admin/reports"><Button variant="secondary">Reports</Button></Link>
+          <Link to="/admin/users"><Button variant="secondary">Users</Button></Link>
+          <Link to="/admin/analytics"><Button variant="secondary">Analytics</Button></Link>
         </div>
       </div>
     </div>
@@ -44,15 +47,21 @@ export function AdminDashboardPage() {
 
 export function AdminVerificationsPage() {
   const qc = useQueryClient();
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'verifications'],
     queryFn: () => apiClient.get<{ data: { id: string; name: string; city: string; verificationStatus: string }[] }>('/admin/verifications'),
   });
 
   const verify = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: 'approve' | 'reject' }) =>
-      apiClient.post(`/admin/verifications/${id}`, { action }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'verifications'] }),
+    mutationFn: ({ id, action, rejectionReason }: { id: string; action: 'approve' | 'reject'; rejectionReason?: string }) =>
+      apiClient.post(`/admin/verifications/${id}`, { action, rejectionReason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'verifications'] });
+      setRejectId(null);
+      setRejectReason('');
+    },
   });
 
   return (
@@ -60,16 +69,31 @@ export function AdminVerificationsPage() {
       <TopBar title="Verifications" showBack />
       <div className="p-4 space-y-3 max-w-3xl mx-auto">
         {isLoading ? <ListSkeleton /> : data?.data.map((p) => (
-          <div key={p.id} className="p-3 border border-border-subtle rounded-[var(--radius-md)] flex justify-between items-center">
+          <div key={p.id} className="p-3 border border-border-subtle rounded-[var(--radius-md)] flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <div>
               <p className="font-medium">{p.name}</p>
               <p className="text-sm text-text-secondary">{p.city} · {p.verificationStatus}</p>
             </div>
             {p.verificationStatus === 'PENDING' && (
-              <div className="flex gap-2">
-                <Button size="sm" variant="destructive" onClick={() => verify.mutate({ id: p.id, action: 'reject' })}>Reject</Button>
-                <Button size="sm" onClick={() => verify.mutate({ id: p.id, action: 'approve' })}>Approve</Button>
-              </div>
+              rejectId === p.id ? (
+                <div className="flex flex-col gap-2 w-full sm:w-auto">
+                  <input
+                    className="text-sm border border-border-subtle rounded px-2 py-1"
+                    placeholder="Rejection reason"
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="destructive" onClick={() => verify.mutate({ id: p.id, action: 'reject', rejectionReason: rejectReason })}>Confirm Reject</Button>
+                    <Button size="sm" variant="secondary" onClick={() => setRejectId(null)}>Cancel</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button size="sm" variant="destructive" onClick={() => setRejectId(p.id)}>Reject</Button>
+                  <Button size="sm" onClick={() => verify.mutate({ id: p.id, action: 'approve' })}>Approve</Button>
+                </div>
+              )
             )}
           </div>
         ))}
@@ -107,6 +131,72 @@ export function AdminReportsPage() {
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+export function AdminUsersPage() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'users'],
+    queryFn: () => apiClient.get<{ data: { id: string; firstName: string; lastName: string; email?: string; phone?: string; role: string; pharmacy?: { name: string; verificationStatus: string } }[] }>('/admin/users'),
+  });
+
+  return (
+    <div className="min-h-screen bg-surface-raised">
+      <TopBar title="User Management" showBack />
+      <div className="p-4 space-y-3 max-w-3xl mx-auto">
+        {isLoading ? <ListSkeleton /> : data?.data.map((u) => (
+          <div key={u.id} className="p-3 border border-border-subtle rounded-[var(--radius-md)]">
+            <p className="font-medium">{u.firstName} {u.lastName}</p>
+            <p className="text-sm text-text-secondary">{u.email || u.phone} · {u.role}</p>
+            {u.pharmacy && <p className="text-xs text-text-secondary">{u.pharmacy.name} — {u.pharmacy.verificationStatus}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function AdminAnalyticsPage() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'dashboard'],
+    queryFn: () => apiClient.get<{
+      topMedicines: { medicineName: string; _sum: { quantity: number | null } }[];
+      ordersOverTime: { date: string; count: number }[];
+    }>('/admin/dashboard'),
+  });
+
+  return (
+    <div className="min-h-screen bg-surface-raised">
+      <TopBar title="Platform Analytics" showBack />
+      <div className="p-4 space-y-6 max-w-3xl mx-auto">
+        {isLoading ? <ListSkeleton /> : (
+          <>
+            <section>
+              <h2 className="font-semibold mb-3">Top Medicines (30d)</h2>
+              <div className="space-y-2">
+                {data?.topMedicines?.map((m, i) => (
+                  <div key={i} className="flex justify-between p-3 border border-border-subtle rounded-[var(--radius-md)] text-sm">
+                    <span>{m.medicineName}</span>
+                    <span className="tabular-nums font-medium">{m._sum.quantity ?? 0} units</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section>
+              <h2 className="font-semibold mb-3">Orders Over Time</h2>
+              <div className="space-y-2">
+                {(data?.ordersOverTime as { date: string; count: number }[] | undefined)?.map((row) => (
+                  <div key={String(row.date)} className="flex justify-between p-3 border border-border-subtle rounded-[var(--radius-md)] text-sm">
+                    <span>{new Date(row.date).toLocaleDateString()}</span>
+                    <span className="font-medium">{row.count} orders</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

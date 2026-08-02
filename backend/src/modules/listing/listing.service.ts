@@ -1,7 +1,7 @@
 import { ListingStatus, VerificationStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
-import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
+import { computeFinalPrice, haversineKm, parsePagination } from '../../shared/utils/helpers';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 
 export class ListingService {
@@ -10,6 +10,7 @@ export class ListingService {
     const {
       q, composition, company, category, city, district, pharmacyId,
       minPrice, maxPrice, minDiscount, maxExpiryMonths, minExpiryMonths,
+      latitude, longitude, radiusKm,
       sortBy = 'createdAt', sortOrder = 'desc', status = ListingStatus.ACTIVE,
     } = query;
 
@@ -67,9 +68,10 @@ export class ListingService {
       : sortBy === 'discount' ? { discountPercent: sortOrder as 'asc' | 'desc' }
       : { createdAt: sortOrder as 'asc' | 'desc' };
 
-    const [data, total] = await Promise.all([
+    const [rawData, totalBeforeGeo] = await Promise.all([
       prisma.listing.findMany({
-        where: where as never, skip, take: limit, orderBy,
+        where: where as never, skip: latitude && longitude && radiusKm ? 0 : skip,
+        take: latitude && longitude && radiusKm ? 500 : limit, orderBy,
         include: {
           medicine: { select: { id: true, name: true, company: true, dosageForm: true, packSize: true, category: true, composition: true } },
           pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, verificationStatus: true, latitude: true, longitude: true, userId: true } },
@@ -77,6 +79,23 @@ export class ListingService {
       }),
       prisma.listing.count({ where: where as never }),
     ]);
+
+    let data = rawData;
+    let total = totalBeforeGeo;
+
+    if (latitude && longitude && radiusKm) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      const radius = Number(radiusKm);
+      const filtered = rawData.filter((listing) => {
+        const pLat = listing.pharmacy.latitude;
+        const pLng = listing.pharmacy.longitude;
+        if (pLat == null || pLng == null) return false;
+        return haversineKm(lat, lng, pLat, pLng) <= radius;
+      });
+      total = filtered.length;
+      data = filtered.slice(skip, skip + limit);
+    }
 
     return { data, total, page, limit };
   }

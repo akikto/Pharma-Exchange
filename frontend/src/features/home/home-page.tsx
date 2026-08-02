@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
@@ -11,7 +11,17 @@ import { useInfiniteScroll } from '@/hooks/use-chat';
 const quickFilters = ['All', 'Nearby', 'New', 'Discounted'];
 
 export function HomePage() {
-  const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage } = useListings({ sortBy: 'createdAt' });
+  const [activeFilter, setActiveFilter] = useState('All');
+  const filterParams: Record<string, string | number | undefined> = { sortBy: 'createdAt' };
+  if (activeFilter === 'New') filterParams.sortBy = 'createdAt';
+  if (activeFilter === 'Discounted') filterParams.minDiscount = 1;
+  if (activeFilter === 'Nearby') {
+    filterParams.latitude = 23.8103;
+    filterParams.longitude = 90.4125;
+    filterParams.radiusKm = 50;
+  }
+
+  const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage } = useListings(filterParams);
   const listings = data?.pages.flatMap((p) => p.data) ?? [];
 
   const loadMore = useCallback(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -39,7 +49,14 @@ export function HomePage() {
 
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {quickFilters.map((f) => (
-            <button key={f} className="shrink-0 rounded-full border border-border-subtle px-4 py-1.5 text-sm hover:bg-primary-subtle hover:border-primary hover:text-primary">
+            <button
+              key={f}
+              type="button"
+              onClick={() => setActiveFilter(f)}
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm ${
+                activeFilter === f ? 'bg-primary-subtle border-primary text-primary font-medium' : 'border-border-subtle hover:bg-primary-subtle hover:border-primary hover:text-primary'
+              }`}
+            >
               {f}
             </button>
           ))}

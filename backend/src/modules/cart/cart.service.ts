@@ -9,7 +9,7 @@ export class CartService {
         listing: {
           include: {
             medicine: { select: { id: true, name: true, company: true, packSize: true } },
-            pharmacy: { select: { id: true, name: true, city: true } },
+            pharmacy: { select: { id: true, name: true, city: true, userId: true } },
           },
         },
       },
