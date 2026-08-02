@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Settings, Moon, Sun, LogOut, Store, ShoppingBag, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Settings, Moon, Sun, LogOut, Store, ShoppingBag, ChevronRight, Pencil } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
+import { useUpdateProfile } from '@/hooks/use-api';
 
 export function ProfilePage() {
   const { user, mode, setMode, logout } = useAuthStore();
@@ -11,11 +13,17 @@ export function ProfilePage() {
   const navigate = useNavigate();
   const isVerified = user?.pharmacy?.verificationStatus === 'APPROVED';
   const hasPharmacy = Boolean(user?.pharmacy);
+  const isPending = user?.pharmacy && !isVerified;
 
   return (
     <div>
       <TopBar title="Profile" />
       <div className="p-4 space-y-6">
+        {isPending && (
+          <Link to="/pharmacy/pending" className="block p-3 rounded-[var(--radius-md)] bg-warning/10 border border-warning/20 text-sm">
+            Pharmacy verification: <strong>{user?.pharmacy?.verificationStatus}</strong> — tap for details
+          </Link>
+        )}
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 rounded-full bg-primary-subtle flex items-center justify-center text-2xl font-bold text-primary">
             {user?.firstName?.[0]}
@@ -42,6 +50,9 @@ export function ProfilePage() {
         )}
 
         <div className="space-y-1">
+          <Link to="/profile/edit" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
+            <span className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Edit Profile</span><ChevronRight className="h-4 w-4 text-text-secondary" />
+          </Link>
           <Link to="/orders" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
             <span>Order History</span><ChevronRight className="h-4 w-4 text-text-secondary" />
           </Link>
@@ -66,16 +77,44 @@ export function ProfilePage() {
 }
 
 export function SettingsPage() {
-  const { user } = useAuthStore();
+  const { user, fetchProfile } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
+  const updateProfile = useUpdateProfile();
+  const [language, setLanguage] = useState(user?.language || 'en');
+  const [saved, setSaved] = useState(false);
+
+  const saveSettings = async () => {
+    await updateProfile.mutateAsync({ language, theme });
+    await fetchProfile();
+    setTheme(theme);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   return (
     <div>
       <TopBar title="Settings" showBack />
       <div className="p-4 space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Language</label>
-          <select className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle px-3 text-sm" defaultValue={user?.language || 'en'}>
+          <select
+            className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle px-3 text-sm"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+          >
             <option value="en">English</option>
             <option value="bn">বাংলা</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Theme</label>
+          <select
+            className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle px-3 text-sm"
+            value={theme}
+            onChange={(e) => setTheme(e.target.value as 'light' | 'dark')}
+          >
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
           </select>
         </div>
         <div className="space-y-2">
@@ -89,6 +128,13 @@ export function SettingsPage() {
             ))}
           </div>
         </div>
+        <button
+          type="button"
+          className="w-full h-10 rounded-[var(--radius-md)] bg-primary text-white font-medium"
+          onClick={saveSettings}
+        >
+          {saved ? 'Saved!' : 'Save Settings'}
+        </button>
       </div>
     </div>
   );

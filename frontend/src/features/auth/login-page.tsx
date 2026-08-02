@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { AppLogo } from '@/components/brand/app-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { brand } from '@/config/brand';
 import { useAuthStore } from '@/stores/auth-store';
 
 const schema = z.object({
@@ -43,8 +45,9 @@ export function LoginPage() {
     <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto">
       <div className="flex-1 flex flex-col justify-center gap-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary">PharmEx</h1>
-          <p className="text-text-secondary mt-1">Sign in to your account</p>
+          <AppLogo variant="logo" size="lg" className="mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-primary">Welcome back</h1>
+          <p className="text-text-secondary mt-1">Sign in to {brand.name}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

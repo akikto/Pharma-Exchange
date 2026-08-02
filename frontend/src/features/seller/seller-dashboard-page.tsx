@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Plus, Package, Inbox, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Plus, Package, Inbox, TrendingUp, AlertTriangle, Pause, Play, Trash2 } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
+import { brand } from '@/config/brand';
 import { useSellerAnalytics, useBuyRequests, useSellerInventory } from '@/hooks/use-api';
+import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function SellerDashboardPage() {
   const { data: analytics, isLoading, isError } = useSellerAnalytics();
@@ -17,7 +20,7 @@ export function SellerDashboardPage() {
 
   return (
     <div>
-      <TopBar title="PharmEx Seller" />
+      <TopBar title={`${brand.name} Seller`} />
       <div className="p-4 space-y-6">
         <div className="grid grid-cols-2 gap-3">
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Sales (30d)</p><p className="text-lg font-bold tabular-nums">{formatPrice(analytics?.todaySales ?? 0)}</p></CardContent></Card>
@@ -64,7 +67,19 @@ export function SellerDashboardPage() {
 
 export function SellerInventoryPage() {
   const { data, isLoading, isError } = useSellerInventory();
+  const qc = useQueryClient();
   const listings = data?.data ?? [];
+
+  const toggleListing = async (id: string, action: 'pause' | 'activate') => {
+    await apiClient.post(`/listings/${id}/${action}`);
+    qc.invalidateQueries({ queryKey: ['seller-inventory'] });
+  };
+
+  const deleteListing = async (id: string) => {
+    if (!confirm('Delete this listing?')) return;
+    await apiClient.delete(`/listings/${id}`);
+    qc.invalidateQueries({ queryKey: ['seller-inventory'] });
+  };
 
   return (
     <div>
@@ -80,14 +95,24 @@ export function SellerInventoryPage() {
         ) : (
           <div className="space-y-3">
             {listings.map((l) => (
-              <Link key={l.id} to={`/seller/listing/${l.id}`} className="flex gap-3 p-3 rounded-[var(--radius-md)] border border-border-subtle">
-                <div className="h-14 w-14 rounded bg-surface-sunken flex items-center justify-center">💊</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{l.medicine.name}</p>
-                  <p className="text-xs text-text-secondary">{formatPrice(l.finalPrice)} · Qty {l.availableQty}</p>
-                  <StatusChip label={l.status} variant={l.status === 'ACTIVE' ? 'success' : 'neutral'} className="mt-1" />
+              <div key={l.id} className="flex gap-3 p-3 rounded-[var(--radius-md)] border border-border-subtle">
+                <Link to={`/seller/listing/${l.id}`} className="flex gap-3 flex-1 min-w-0">
+                  <div className="h-14 w-14 rounded bg-surface-sunken flex items-center justify-center shrink-0">💊</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{l.medicine.name}</p>
+                    <p className="text-xs text-text-secondary">{formatPrice(l.finalPrice)} · Qty {l.availableQty}</p>
+                    <StatusChip label={l.status} variant={l.status === 'ACTIVE' ? 'success' : 'neutral'} className="mt-1" />
+                  </div>
+                </Link>
+                <div className="flex flex-col gap-1">
+                  {l.status === 'ACTIVE' ? (
+                    <button className="p-2 text-text-secondary hover:text-warning" aria-label="Pause listing" onClick={() => toggleListing(l.id, 'pause')}><Pause className="h-4 w-4" /></button>
+                  ) : (
+                    <button className="p-2 text-text-secondary hover:text-success" aria-label="Activate listing" onClick={() => toggleListing(l.id, 'activate')}><Play className="h-4 w-4" /></button>
+                  )}
+                  <button className="p-2 text-text-secondary hover:text-danger" aria-label="Delete listing" onClick={() => deleteListing(l.id)}><Trash2 className="h-4 w-4" /></button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}

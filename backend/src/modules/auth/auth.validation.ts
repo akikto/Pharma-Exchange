@@ -42,3 +42,10 @@ export const fcmTokenSchema = z.object({
   deviceId: z.string().optional(),
   platform: z.enum(['ios', 'android', 'web']).optional(),
 });
+
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  language: z.enum(['en', 'bn']).optional(),
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+});

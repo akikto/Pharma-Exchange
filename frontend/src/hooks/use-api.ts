@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import type { CartItem, PaginatedResponse, Order, BuyRequest, Notification, SellerAnalytics, Listing, Medicine } from '@/types';
+import type { CartItem, PaginatedResponse, Order, BuyRequest, Notification, SellerAnalytics, Listing, Medicine, User } from '@/types';
 
 export function useCart() {
   return useQuery({
@@ -103,4 +103,18 @@ export function useStartConversation() {
       apiClient.post<{ id: string }>('/chat/conversations', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['conversations'] }),
   });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { firstName?: string; lastName?: string; language?: string; theme?: string }) =>
+      apiClient.patch<User>('/auth/me', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
+export function useCartCount() {
+  const { data } = useCart();
+  return data?.items?.length ?? 0;
 }

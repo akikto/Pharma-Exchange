@@ -212,6 +212,24 @@ export class AuthService {
     return { message: 'FCM token removed' };
   }
 
+  async updateProfile(userId: string, data: { firstName?: string; lastName?: string; language?: string; theme?: string }) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(data.firstName !== undefined ? { firstName: data.firstName } : {}),
+        ...(data.lastName !== undefined ? { lastName: data.lastName } : {}),
+        ...(data.language !== undefined ? { language: data.language } : {}),
+        ...(data.theme !== undefined ? { theme: data.theme } : {}),
+      },
+      select: {
+        id: true, email: true, phone: true, firstName: true, lastName: true,
+        role: true, language: true, theme: true, authProvider: true,
+        pharmacy: { select: { id: true, name: true, verificationStatus: true, rating: true } },
+      },
+    });
+    return user;
+  }
+
   private async issueTokens(user: User) {
     const payload = { userId: user.id, role: user.role };
     const accessToken = signAccessToken(payload);

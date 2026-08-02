@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Minus, Plus, MessageCircle } from 'lucide-react';
+import { Minus, Plus, MessageCircle, Flag } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
@@ -42,9 +42,20 @@ export function MedicineDetailPage() {
     navigate(`/chat/${conv.id}`);
   };
 
+  const handleReport = async () => {
+    const reason = prompt('Why are you reporting this listing?');
+    if (!reason) return;
+    await apiClient.post('/reports', { targetType: 'LISTING', targetId: listing.id, reason });
+    alert('Report submitted. We will review within 24 hours.');
+  };
+
   return (
     <div className="pb-24">
-      <TopBar showBack />
+      <TopBar showBack actions={
+        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised" aria-label="Report listing" onClick={handleReport}>
+          <Flag className="h-5 w-5" />
+        </button>
+      } />
       <div className="aspect-square bg-surface-sunken">
         {listing.imageUrl ? (
           <img src={listing.imageUrl} alt={listing.medicine.name} className="h-full w-full object-cover" />
@@ -104,7 +115,12 @@ export function PharmacyProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { data: pharmacy, isLoading } = useQuery({
     queryKey: ['pharmacy', id],
-    queryFn: () => apiClient.get<{ id: string; name: string; city: string; rating: number }>(`/pharmacies/${id}`),
+    queryFn: () => apiClient.get<{ id: string; name: string; city: string; rating: number; verificationStatus: string }>(`/pharmacies/${id}`),
+    enabled: !!id,
+  });
+  const { data: reviews } = useQuery({
+    queryKey: ['reviews', id],
+    queryFn: () => apiClient.get<{ data: { id: string; rating: number; comment?: string; createdAt: string; user: { firstName: string; lastName: string } }[] }>(`/reviews/pharmacy/${id}`),
     enabled: !!id,
   });
   const { data: listingsData, isLoading: listingsLoading } = useListings({ pharmacyId: id });
@@ -122,7 +138,23 @@ export function PharmacyProfilePage() {
           </div>
           <h1 className="text-xl font-bold">{pharmacy?.name}</h1>
           <p className="text-text-secondary">⭐ {pharmacy?.rating} · {pharmacy?.city}</p>
+          {pharmacy?.verificationStatus === 'APPROVED' && (
+            <p className="text-xs text-success mt-1">✓ Verified Pharmacy</p>
+          )}
         </div>
+        {reviews?.data && reviews.data.length > 0 && (
+          <div>
+            <h2 className="font-semibold mb-2">Reviews</h2>
+            <div className="space-y-2">
+              {reviews.data.slice(0, 5).map((r) => (
+                <div key={r.id} className="p-3 border border-border-subtle rounded-[var(--radius-md)] text-sm">
+                  <p className="font-medium">{'⭐'.repeat(r.rating)} {r.user.firstName}</p>
+                  {r.comment && <p className="text-text-secondary mt-1">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <h2 className="font-semibold">Listings</h2>
         {listingsLoading ? (
           <Skeleton className="h-32 w-full" />

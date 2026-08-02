@@ -125,7 +125,11 @@ export function OrdersPage() {
         ) : (
           <div className="space-y-3">
             {data?.data.map((order) => (
-              <Link key={order.id} to={`/orders/${order.id}`} className="block p-3 rounded-[var(--radius-md)] border border-border-subtle">
+              <Link
+                key={order.id}
+                to={role === 'seller' ? `/seller/orders/${order.id}` : `/orders/${order.id}`}
+                className="block p-3 rounded-[var(--radius-md)] border border-border-subtle"
+              >
                 <div className="flex justify-between">
                   <span className="font-medium text-sm">{order.orderNumber}</span>
                   <StatusChip label={order.status} variant={order.status === 'DELIVERED' ? 'success' : 'warning'} />

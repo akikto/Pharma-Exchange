@@ -31,6 +31,10 @@ const SettingsPage = lazy(() => import('@/features/profile/profile-page').then(m
 const AdminDashboardPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminDashboardPage })));
 const AdminVerificationsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminVerificationsPage })));
 const AdminReportsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminReportsPage })));
+const AdminUsersPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminUsersPage })));
+const AdminAnalyticsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminAnalyticsPage })));
+const PharmacyPendingPage = lazy(() => import('@/features/seller/pharmacy-pending-page').then(m => ({ default: m.PharmacyPendingPage })));
+const ProfileEditPage = lazy(() => import('@/features/profile/profile-edit-page').then(m => ({ default: m.ProfileEditPage })));
 
 function PageLoader() {
   return (
@@ -87,13 +91,16 @@ export function AppRouter() {
             <Route path="/chat/:id" element={<ChatPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/pharmacy/register" element={<PharmacyRegisterPage />} />
+            <Route path="/pharmacy/pending" element={<PharmacyPendingPage />} />
             <Route path="/seller" element={<SellerRoute><SellerDashboardPage /></SellerRoute>} />
             <Route path="/seller/inventory" element={<SellerRoute><SellerInventoryPage /></SellerRoute>} />
             <Route path="/seller/requests" element={<SellerRoute><BuyRequestsPage /></SellerRoute>} />
             <Route path="/seller/requests/:id" element={<SellerRoute><BuyRequestDetailPage /></SellerRoute>} />
             <Route path="/seller/orders" element={<SellerRoute><OrdersPage /></SellerRoute>} />
+            <Route path="/seller/orders/:id" element={<SellerRoute><OrderDetailPage /></SellerRoute>} />
             <Route path="/seller/analytics" element={<SellerRoute><SellerAnalyticsPage /></SellerRoute>} />
             <Route path="/seller/listing/new" element={<SellerRoute><ListingFormPage /></SellerRoute>} />
             <Route path="/seller/listing/:id" element={<SellerRoute><ListingFormPage /></SellerRoute>} />
@@ -102,6 +109,8 @@ export function AppRouter() {
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboardPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerificationsPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/admin/reports" element={<ProtectedRoute><AdminRoute><AdminReportsPage /></AdminRoute></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute><AdminRoute><AdminUsersPage /></AdminRoute></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute><AdminRoute><AdminAnalyticsPage /></AdminRoute></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/splash" replace />} />
         </Routes>
       </Suspense>

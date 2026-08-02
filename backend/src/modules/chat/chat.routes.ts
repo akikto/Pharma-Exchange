@@ -7,6 +7,7 @@ import { authenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
 import { chatService } from './chat.service';
 import { paginationMeta } from '../../shared/utils/helpers';
+import { getSocketServer } from '../../socket/io';
 
 const createConvSchema = z.object({
   participantId: z.string().uuid(),
@@ -43,7 +44,9 @@ class ChatController {
   async sendMessage(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { content, type, mediaUrl } = req.body;
-      res.status(201).json(await chatService.sendMessage(req.user!.userId, req.params.id as string, content, type, mediaUrl));
+      const message = await chatService.sendMessage(req.user!.userId, req.params.id as string, content, type, mediaUrl);
+      getSocketServer()?.to(`conversation:${req.params.id}`).emit('message:new', message);
+      res.status(201).json(message);
     } catch (err) { next(err); }
   }
 

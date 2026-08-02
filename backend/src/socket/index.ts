@@ -6,6 +6,7 @@ import { env } from '../config/env';
 import { chatService } from '../modules/chat/chat.service';
 import { logger } from '../shared/utils/logger';
 import prisma from '../config/database';
+import { setSocketServer } from './io';
 
 async function verifyConversationMember(userId: string, conversationId: string): Promise<boolean> {
   const member = await prisma.conversationMember.findUnique({
@@ -104,5 +105,6 @@ export function initializeSocket(httpServer: HttpServer): Server {
     });
   });
 
+  setSocketServer(io);
   return io;
 }
