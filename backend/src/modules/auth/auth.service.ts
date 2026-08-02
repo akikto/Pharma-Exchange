@@ -172,10 +172,14 @@ export class AuthService {
   }
 
   async registerFcmToken(userId: string, token: string, deviceId?: string, platform?: string) {
+    const existing = await prisma.fcmToken.findUnique({ where: { token } });
+    if (existing && existing.userId !== userId) {
+      throw AppError.forbidden('FCM token belongs to another account');
+    }
     return prisma.fcmToken.upsert({
       where: { token },
       create: { userId, token, deviceId, platform },
-      update: { userId, deviceId, platform },
+      update: { deviceId, platform },
     });
   }
 

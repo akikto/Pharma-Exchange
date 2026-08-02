@@ -7,9 +7,8 @@ export class UploadController {
   async uploadDocument(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       if (!req.file) throw AppError.badRequest('No file uploaded');
-      const folder = (req.query.folder as string) || 'documents';
       const result = await storageService.uploadFile(
-        req.file.buffer, req.file.originalname, req.file.mimetype, folder
+        req.file.buffer, req.file.originalname, req.file.mimetype, 'documents'
       );
       res.status(201).json(result);
     } catch (err) { next(err); }

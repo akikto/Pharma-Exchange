@@ -21,7 +21,7 @@ class OrderController {
   }
 
   async getById(req: AuthRequest, res: Response, next: NextFunction) {
-    try { res.json(await orderService.getById(req.params.id as string)); } catch (err) { next(err); }
+    try { res.json(await orderService.getById(req.params.id as string, req.user!.userId)); } catch (err) { next(err); }
   }
 
   async updateStatus(req: AuthRequest, res: Response, next: NextFunction) {

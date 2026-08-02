@@ -3,9 +3,7 @@ import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { parsePagination } from '../../shared/utils/helpers';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
-import { NotificationService } from '../notification/notification.service';
-
-const notificationService = new NotificationService();
+import { notificationService } from '../notification';
 
 export class OrderService {
   async list(userId: string, role: string, status?: OrderStatus, page = 1, limit = 20) {
@@ -31,18 +29,24 @@ export class OrderService {
     return { data, total, page, limit };
   }
 
-  async getById(id: string) {
+  async getById(id: string, userId: string) {
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
         items: { include: { listing: { include: { medicine: true } } } },
-        seller: { select: { id: true, name: true, city: true, user: { select: { phone: true } } } },
-        buyer: { select: { id: true, firstName: true, lastName: true, phone: true } },
+        seller: { select: { id: true, name: true, city: true, userId: true } },
+        buyer: { select: { id: true, firstName: true, lastName: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
         review: true,
       },
     });
     if (!order) throw AppError.notFound('Order not found');
+
+    const pharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
+    const isBuyer = order.buyerId === userId;
+    const isSeller = pharmacy && order.sellerId === pharmacy.id;
+    if (!isBuyer && !isSeller) throw AppError.forbidden('Access denied');
+
     return order;
   }
 

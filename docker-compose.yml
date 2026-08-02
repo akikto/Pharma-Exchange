@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pharma
+      POSTGRES_PASSWORD: pharma
+      POSTGRES_DB: pharma_exchange
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://pharma:pharma@postgres:5432/pharma_exchange
+      JWT_SECRET: dev-jwt-secret-min-32-characters-long
+      CORS_ORIGIN: http://localhost:5173
+      OTP_DEV_MODE: 'true'
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:

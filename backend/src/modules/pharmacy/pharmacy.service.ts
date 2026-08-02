@@ -1,9 +1,7 @@
 import { VerificationStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
-import { NotificationService } from '../notification/notification.service';
-
-const notificationService = new NotificationService();
+import { notificationService } from '../notification';
 
 export class PharmacyService {
   async register(userId: string, data: {

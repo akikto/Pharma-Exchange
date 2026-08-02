@@ -31,7 +31,7 @@ class BuyRequestController {
   }
 
   async getById(req: AuthRequest, res: Response, next: NextFunction) {
-    try { res.json(await buyRequestService.getById(req.params.id as string)); } catch (err) { next(err); }
+    try { res.json(await buyRequestService.getById(req.params.id as string, req.user!.userId)); } catch (err) { next(err); }
   }
 
   async create(req: AuthRequest, res: Response, next: NextFunction) {

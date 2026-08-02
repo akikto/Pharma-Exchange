@@ -1,23 +1,52 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { AppLayout } from '@/components/layout/app-layout';
-import { SplashPage } from '@/features/auth/splash-page';
-import { OnboardingPage } from '@/features/auth/onboarding-page';
-import { LoginPage } from '@/features/auth/login-page';
-import { RegisterPage, OtpLoginPage } from '@/features/auth/register-page';
-import { HomePage } from '@/features/home/home-page';
-import { SearchPage } from '@/features/home/search-page';
-import { MedicineDetailPage, PharmacyProfilePage } from '@/features/medicine/medicine-detail-page';
-import { SellerDashboardPage, SellerInventoryPage } from '@/features/seller/seller-dashboard-page';
-import { CartPage, OrdersPage, BuyRequestsPage } from '@/features/buyer/cart-page';
-import { ChatListPage, ChatPage } from '@/features/chat/chat-page';
-import { NotificationsPage } from '@/features/notifications/notifications-page';
-import { ProfilePage, SettingsPage } from '@/features/profile/profile-page';
-import { AdminDashboardPage } from '@/features/admin/admin-dashboard-page';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const SplashPage = lazy(() => import('@/features/auth/splash-page').then(m => ({ default: m.SplashPage })));
+const OnboardingPage = lazy(() => import('@/features/auth/onboarding-page').then(m => ({ default: m.OnboardingPage })));
+const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.RegisterPage })));
+const OtpLoginPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.OtpLoginPage })));
+const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
+const SearchPage = lazy(() => import('@/features/home/search-page').then(m => ({ default: m.SearchPage })));
+const MedicineDetailPage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.MedicineDetailPage })));
+const PharmacyProfilePage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.PharmacyProfilePage })));
+const SellerDashboardPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerDashboardPage })));
+const SellerInventoryPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerInventoryPage })));
+const CartPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.CartPage })));
+const OrdersPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.OrdersPage })));
+const BuyRequestsPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.BuyRequestsPage })));
+const ChatListPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatListPage })));
+const ChatPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatPage })));
+const NotificationsPage = lazy(() => import('@/features/notifications/notifications-page').then(m => ({ default: m.NotificationsPage })));
+const ProfilePage = lazy(() => import('@/features/profile/profile-page').then(m => ({ default: m.ProfilePage })));
+const SettingsPage = lazy(() => import('@/features/profile/profile-page').then(m => ({ default: m.SettingsPage })));
+const AdminDashboardPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminDashboardPage })));
+
+function PageLoader() {
+  return (
+    <div className="p-4 space-y-3">
+      <Skeleton className="h-8 w-1/2" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { isAuthenticated, isLoading } = useAuthStore();
+  if (isLoading) return <PageLoader />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function SellerRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  if (user?.pharmacy?.verificationStatus !== 'APPROVED') {
+    return <Navigate to="/profile" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -30,36 +59,37 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/splash" element={<SplashPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/otp" element={<OtpLoginPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/splash" element={<SplashPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/otp" element={<OtpLoginPage />} />
 
-        <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/medicine/:id" element={<MedicineDetailPage />} />
-          <Route path="/pharmacy/:id" element={<PharmacyProfilePage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/buy-requests" element={<BuyRequestsPage />} />
-          <Route path="/chat" element={<ChatListPage />} />
-          <Route path="/chat/:id" element={<ChatPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/seller" element={<SellerDashboardPage />} />
-          <Route path="/seller/inventory" element={<SellerInventoryPage />} />
-          <Route path="/seller/requests" element={<BuyRequestsPage />} />
-          <Route path="/seller/orders" element={<OrdersPage />} />
-        </Route>
+          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/medicine/:id" element={<MedicineDetailPage />} />
+            <Route path="/pharmacy/:id" element={<PharmacyProfilePage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/buy-requests" element={<BuyRequestsPage />} />
+            <Route path="/chat" element={<ChatListPage />} />
+            <Route path="/chat/:id" element={<ChatPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/seller" element={<SellerRoute><SellerDashboardPage /></SellerRoute>} />
+            <Route path="/seller/inventory" element={<SellerRoute><SellerInventoryPage /></SellerRoute>} />
+            <Route path="/seller/requests" element={<SellerRoute><BuyRequestsPage /></SellerRoute>} />
+            <Route path="/seller/orders" element={<SellerRoute><OrdersPage /></SellerRoute>} />
+          </Route>
 
-        <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboardPage /></AdminRoute></ProtectedRoute>} />
-
-        <Route path="*" element={<Navigate to="/splash" replace />} />
-      </Routes>
+          <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboardPage /></AdminRoute></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/splash" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

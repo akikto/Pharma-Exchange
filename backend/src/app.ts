@@ -28,18 +28,27 @@ export function createApp(): express.Application {
 
   const app = express();
 
-  app.use(helmet());
-  app.use(cors({ origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',') }));
+  app.set('trust proxy', 1);
+  app.use(helmet({
+    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+    hsts: env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+  }));
+  app.use(cors({
+    origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim()),
+    credentials: env.CORS_ORIGIN !== '*',
+  }));
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: '2mb' }));
   app.use(globalRateLimiter);
 
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'pharma-exchange-api', version: '1.0.0', env: env.NODE_ENV });
+    res.json({ status: 'ok', service: 'pharma-exchange-api', version: '1.0.0' });
   });
 
-  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-  app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
+  if (env.NODE_ENV !== 'production') {
+    app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
+  }
 
   const v1 = express.Router();
   v1.use('/auth', authRoutes);

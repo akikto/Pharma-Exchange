@@ -291,6 +291,8 @@ model Listing {
   @@index([status])
   @@index([expiryDate])
   @@index([finalPrice])
+  @@index([status, expiryDate])
+  @@index([status, finalPrice])
 }
 
 // ─── Cart ────────────────────────────────────────────────────────────────────
@@ -334,6 +336,8 @@ model BuyRequest {
   @@index([buyerId])
   @@index([sellerId])
   @@index([status])
+  @@index([buyerId, status])
+  @@index([sellerId, status])
 }
 
 model BuyRequestItem {
@@ -379,6 +383,8 @@ model Order {
   @@index([buyerId])
   @@index([sellerId])
   @@index([status])
+  @@index([buyerId, status])
+  @@index([sellerId, status])
 }
 
 model OrderItem {

@@ -1,10 +1,18 @@
+import { MessageType } from '@prisma/client';
 import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { chatService } from '../modules/chat/chat.service';
 import { logger } from '../shared/utils/logger';
-import { MessageType } from '@prisma/client';
+import prisma from '../config/database';
+
+async function verifyConversationMember(userId: string, conversationId: string): Promise<boolean> {
+  const member = await prisma.conversationMember.findUnique({
+    where: { conversationId_userId: { conversationId, userId } },
+  });
+  return !!member;
+}
 
 interface SocketUser {
   userId: string;
@@ -36,7 +44,12 @@ export function initializeSocket(httpServer: HttpServer): Server {
 
     socket.join(`user:${user.userId}`);
 
-    socket.on('join:conversation', (conversationId: string) => {
+    socket.on('join:conversation', async (conversationId: string) => {
+      const isMember = await verifyConversationMember(user.userId, conversationId);
+      if (!isMember) {
+        socket.emit('error', { message: 'Not a member of this conversation' });
+        return;
+      }
       socket.join(`conversation:${conversationId}`);
     });
 

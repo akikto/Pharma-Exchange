@@ -2,9 +2,7 @@ import cron from 'node-cron';
 import { ListingStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { logger } from '../shared/utils/logger';
-import { NotificationService } from '../modules/notification/notification.service';
-
-const notificationService = new NotificationService();
+import { notificationService } from '../modules/notification';
 
 export function startBackgroundJobs() {
   // Short expiry alerts — daily at 8 AM

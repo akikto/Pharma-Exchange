@@ -70,7 +70,9 @@ export function ChatPage() {
 
   const sendMessage = useMutation({
     mutationFn: (content: string) => apiClient.post(`/chat/conversations/${id}/messages`, { content }),
-    onSuccess: (msg) => setMessages((prev) => [...prev, msg as Message]),
+    onSuccess: () => {
+      apiClient.post(`/chat/conversations/${id}/read`);
+    },
   });
 
   const handleSend = () => {

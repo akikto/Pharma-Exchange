@@ -11,6 +11,8 @@ Pharma-Exchange/
 ├── backend/                # Task 4: Production backend API
 │   ├── prisma/             # Task 1: Database schema
 │   └── src/                # Modular clean architecture
+├── frontend/               # Task 5: Production React PWA
+│   └── src/                # Feature-based frontend
 └── package.json
 ```
 
@@ -23,6 +25,38 @@ Pharma-Exchange/
 | 3 | UI/UX design system | ✅ |
 | 4 | Production backend implementation | ✅ |
 | 5 | Production frontend (React PWA) | ✅ |
+| 6 | Production readiness, security, CI/CD | ✅ |
+
+## Production Readiness (Task 6)
+
+- Security hardening (IDOR fixes, auth, CORS, uploads, Socket.IO)
+- Performance: lazy routes, code splitting, DB composite indexes
+- CI/CD: `.github/workflows/ci.yml`
+- Docker: `backend/Dockerfile`, `docker-compose.yml`
+- PWA icons and manifest validation
+- Unit tests: 18+ passing (backend + frontend)
+
+### Documentation
+
+| Document | Path |
+|----------|------|
+| Production Readiness Report | [`docs/production-readiness-report.md`](docs/production-readiness-report.md) |
+| Security Report | [`docs/security-report.md`](docs/security-report.md) |
+| Performance Report | [`docs/performance-report.md`](docs/performance-report.md) |
+| Testing Report | [`docs/testing-report.md`](docs/testing-report.md) |
+| Deployment Guide | [`docs/deployment-guide.md`](docs/deployment-guide.md) |
+| Play Store Checklist | [`docs/play-store-checklist.md`](docs/play-store-checklist.md) |
+| Maintenance Guide | [`docs/maintenance-guide.md`](docs/maintenance-guide.md) |
+
+## Quick Commands
+
+```bash
+npm install
+npm run build          # Build backend + frontend
+npm test               # Run all tests
+npm run db:migrate     # Apply Prisma migrations
+docker-compose up      # Local full stack
+```
 
 ## Tech Stack
 
@@ -40,15 +74,15 @@ Pharma-Exchange/
 ```bash
 npm install
 cp backend/.env.example backend/.env
-npm run db:generate
-npm run db:push
-npm run db:seed
-npm run dev
+cp frontend/.env.example frontend/.env
+npm run db:generate && npm run db:push && npm run db:seed
+npm run dev:backend   # Terminal 1 — API on :3000
+npm run dev           # Terminal 2 — Frontend on :5173
 ```
 
-API: `http://localhost:3000/api/v1`  
-Docs: `http://localhost:3000/api/docs`  
-WebSocket: `ws://localhost:3000/socket.io`
+- API: `http://localhost:3000/api/v1`
+- Frontend: `http://localhost:5173`
+- API Docs: `http://localhost:3000/api/docs`
 
 ## Backend Modules
 

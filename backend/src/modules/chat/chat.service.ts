@@ -2,9 +2,7 @@ import { MessageType, NotificationType } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { parsePagination } from '../../shared/utils/helpers';
-import { NotificationService } from '../notification/notification.service';
-
-const notificationService = new NotificationService();
+import { notificationService } from '../notification';
 
 export class ChatService {
   async getConversations(userId: string) {

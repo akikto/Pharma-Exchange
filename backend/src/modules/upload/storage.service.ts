@@ -25,10 +25,13 @@ export class StorageService {
 
     await file.save(buffer, {
       metadata: { contentType: mimeType },
-      public: true,
+      public: false,
     });
 
-    const url = `https://storage.googleapis.com/${env.FIREBASE_STORAGE_BUCKET}/${fileName}`;
+    const [url] = await file.getSignedUrl({
+      action: 'read',
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    });
     return { url, fileName: originalName };
   }
 

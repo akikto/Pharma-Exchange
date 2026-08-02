@@ -3,9 +3,7 @@ import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { generateOrderNumber, generateRequestNumber, parsePagination } from '../../shared/utils/helpers';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
-import { NotificationService } from '../notification/notification.service';
-
-const notificationService = new NotificationService();
+import { notificationService } from '../notification';
 
 export class BuyRequestService {
   async list(userId: string, role: string, status?: BuyRequestStatus, page = 1, limit = 20) {
@@ -31,17 +29,23 @@ export class BuyRequestService {
     return { data, total, page, limit };
   }
 
-  async getById(id: string) {
+  async getById(id: string, userId: string) {
     const request = await prisma.buyRequest.findUnique({
       where: { id },
       include: {
         items: { include: { listing: { include: { medicine: true } } } },
-        buyer: { select: { id: true, firstName: true, lastName: true, phone: true } },
+        buyer: { select: { id: true, firstName: true, lastName: true } },
         seller: { select: { id: true, name: true, city: true, userId: true } },
         order: true,
       },
     });
     if (!request) throw AppError.notFound('Buy request not found');
+
+    const pharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
+    const isBuyer = request.buyerId === userId;
+    const isSeller = pharmacy && request.sellerId === pharmacy.id;
+    if (!isBuyer && !isSeller) throw AppError.forbidden('Access denied');
+
     return request;
   }
 
