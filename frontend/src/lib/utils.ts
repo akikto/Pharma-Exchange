@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPrice(amount: number | string): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  return `৳${num.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return num.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function formatDate(date: string | Date): string {
