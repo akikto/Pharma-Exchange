@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.png', 'icons/*.png', 'brand/*'],
       manifest: {
-        name: 'MedLink B2B — Pharmacy Marketplace',
-        short_name: 'MedLink',
+        name: 'Pharma-Exchange — B2B Pharmacy Marketplace',
+        short_name: 'Pharma-Exchange',
         description: 'B2B Pharmacy Marketplace for Bangladesh',
         theme_color: '#0F766E',
         background_color: '#FFFFFF',

@@ -9,7 +9,7 @@
  */
 
 export const brand = {
-  name: 'MedLink B2B',
+  name: 'Pharma-Exchange',
   tagline: 'B2B Pharmacy Marketplace',
 
   /** Square icon – PWA, favicon, app icon */
