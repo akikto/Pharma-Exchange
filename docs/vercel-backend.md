@@ -33,7 +33,7 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `JWT_SECRET` | ✅ | 32+ random characters |
 | `NODE_ENV` | ✅ | `production` |
 | `OTP_DEV_MODE` | ✅ | `false` |
-| `CORS_ORIGIN` | ✅ | `https://your-frontend.vercel.app` |
+| `CORS_ORIGIN` | ✅ | `https://pharma-exchange-frontend.vercel.app` |
 | `FIREBASE_PROJECT_ID` | — | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | — | Service account email |
 | `FIREBASE_PRIVATE_KEY` | — | Service account private key |

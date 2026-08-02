@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
+import { getCorsOriginConfig } from './config/cors';
 import { initializeFirebase } from './config/firebase';
 import { errorHandler, notFoundHandler } from './shared/errors/errorHandler';
 import { globalRateLimiter } from './shared/middleware/rateLimit.middleware';
@@ -35,7 +36,7 @@ export function createApp(): express.Application {
     hsts: env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
   }));
   app.use(cors({
-    origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim()),
+    origin: getCorsOriginConfig(),
     credentials: env.CORS_ORIGIN !== '*',
   }));
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
