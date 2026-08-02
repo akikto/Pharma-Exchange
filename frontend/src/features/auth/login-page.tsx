@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/auth-store';
+import { ApiError } from '@/lib/api';
 
 const schema = z.object({
   identifier: z.string().min(1, 'Required'),
@@ -30,10 +31,15 @@ export function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      await login(data.identifier, data.password, isEmail);
+      const useEmail = isEmail || data.identifier.includes('@');
+      await login(data.identifier.trim(), data.password, useEmail);
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      if (err instanceof ApiError && err.message === 'Invalid credentials') {
+        setError('ইমেইল/ফোন বা পাসওয়ার্ড ভুল। পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।');
+      } else {
+        setError(err instanceof Error ? err.message : 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -55,14 +61,27 @@ export function LoginPage() {
 
           <div className="space-y-2">
             <Label htmlFor="identifier">{isEmail ? 'Email' : 'Phone'}</Label>
-            <Input id="identifier" type={isEmail ? 'email' : 'tel'} placeholder={isEmail ? 'you@pharmacy.com' : '+8801XXXXXXXXX'} {...register('identifier')} />
+            <Input
+              id="identifier"
+              type={isEmail ? 'email' : 'tel'}
+              autoComplete={isEmail ? 'email' : 'tel'}
+              placeholder={isEmail ? 'admin@pharmex.bd' : '+8801XXXXXXXXX'}
+              {...register('identifier')}
+            />
             {errors.identifier && <p className="text-xs text-danger">{errors.identifier.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register('password')} />
-            {errors.password && <p className="text-xs text-danger">{errors.password.message}</p>}
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              minLength={8}
+              placeholder="কমপক্ষে ৮ অক্ষর"
+              {...register('password')}
+            />
+            {errors.password && <p className="text-xs text-danger">পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে</p>}
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}
@@ -78,6 +97,10 @@ export function LoginPage() {
         <Button variant="secondary" className="w-full" onClick={() => navigate('/otp')}>
           Continue with OTP
         </Button>
+
+        <p className="text-center text-xs text-text-secondary">
+          সঠিক সাইট: pharma-exchange-frontend.vercel.app
+        </p>
 
         <p className="text-center text-sm text-text-secondary">
           New pharmacy? <Link to="/register" className="text-primary font-medium">Create account</Link>
