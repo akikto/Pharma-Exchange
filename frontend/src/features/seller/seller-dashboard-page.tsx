@@ -17,7 +17,7 @@ export function SellerDashboardPage() {
 
   return (
     <div>
-      <TopBar title="PharmEx Seller" />
+      <TopBar showLogo title="Seller" />
       <div className="p-4 space-y-6">
         <div className="grid grid-cols-2 gap-3">
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Sales (30d)</p><p className="text-lg font-bold tabular-nums">{formatPrice(analytics?.todaySales ?? 0)}</p></CardContent></Card>

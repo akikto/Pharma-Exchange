@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Bell, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/brand/logo';
 
 interface TopBarProps {
   title?: string;
   showBack?: boolean;
   large?: boolean;
+  showLogo?: boolean;
   actions?: React.ReactNode;
 }
 
-export function TopBar({ title, showBack, large, actions }: TopBarProps) {
+export function TopBar({ title, showBack, large, showLogo, actions }: TopBarProps) {
   return (
     <header className={cn(
       'sticky top-0 z-40 border-b border-border-subtle bg-surface-base/95 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80',
@@ -20,6 +22,7 @@ export function TopBar({ title, showBack, large, actions }: TopBarProps) {
           <ArrowLeft className="h-5 w-5" />
         </Link>
       )}
+      {showLogo && <Logo size="sm" />}
       {title && (
         <h1 className={cn('font-bold flex-1', large ? 'text-2xl' : 'text-base')}>{title}</h1>
       )}

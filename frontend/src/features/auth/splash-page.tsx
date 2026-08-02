@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
+import { Logo } from '@/components/brand/logo';
 
 export function SplashPage() {
   const navigate = useNavigate();
@@ -17,12 +18,10 @@ export function SplashPage() {
   }, [isAuthenticated, isLoading, hasSeenOnboarding, navigate]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-primary">
-      <div className="text-white text-center">
-        <div className="text-5xl font-bold mb-2">PharmEx</div>
-        <p className="text-primary-subtle text-sm">B2B Pharmacy Marketplace</p>
-        {isLoading && <p className="text-xs mt-4 opacity-75">Loading...</p>}
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-[#0F4C6E] via-[#0F766E] to-[#166534] px-6">
+      <Logo size="hero" className="justify-center" />
+      <p className="text-white/85 text-sm mt-6">B2B Pharmacy Marketplace</p>
+      {isLoading && <p className="text-xs mt-4 text-white/70">Loading...</p>}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/auth-store';
+import { Logo } from '@/components/brand/logo';
 
 const registerSchema = z.object({
   firstName: z.string().min(1),
@@ -49,6 +50,7 @@ export function RegisterPage() {
   if (step === 'otp') {
     return (
       <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto justify-center gap-6">
+        <Logo size="lg" className="justify-center" />
         <h1 className="text-xl font-bold text-center">Verify OTP</h1>
         <p className="text-text-secondary text-center text-sm">Enter the 6-digit code sent to your {contact.email || contact.phone}</p>
         {devOtp && <p className="text-center text-sm text-warning">Dev OTP: {devOtp}</p>}
@@ -63,7 +65,8 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto">
       <div className="flex-1 flex flex-col justify-center gap-4">
-        <h1 className="text-2xl font-bold">Create Pharmacy Account</h1>
+        <Logo size="lg" className="justify-center mb-2" />
+        <h1 className="text-2xl font-bold text-center">Create Pharmacy Account</h1>
         <form onSubmit={regForm.handleSubmit(onRegister)} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div><Label>First Name</Label><Input {...regForm.register('firstName')} /></div>
@@ -118,7 +121,8 @@ export function OtpLoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto justify-center gap-6">
-      <h1 className="text-xl font-bold">OTP Login</h1>
+      <Logo size="lg" className="justify-center" />
+      <h1 className="text-xl font-bold text-center">OTP Login</h1>
       {step === 'phone' ? (
         <>
           <Input type="tel" placeholder="+8801XXXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} />
