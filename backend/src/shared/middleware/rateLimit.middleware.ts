@@ -1,26 +1,51 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { type Options } from 'express-rate-limit';
 import { env } from '../../config/env';
 
-export const globalRateLimiter = rateLimit({
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
-  max: env.RATE_LIMIT_MAX,
+const isAuthPath = (path: string) => /\/auth(\/|$)/.test(path);
+
+const rateLimitMessage = (bn: string, en: string) => ({
+  error: bn,
+  errorEn: en,
+  code: 'RATE_LIMIT_EXCEEDED',
+});
+
+const baseOptions = {
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
+} satisfies Partial<Options>;
+
+export const globalRateLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  max: env.NODE_ENV === 'production' ? 500 : env.RATE_LIMIT_MAX,
+  skip: (req) => isAuthPath(req.path) || isAuthPath(req.originalUrl),
+  message: rateLimitMessage(
+    'অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+    'Too many requests',
+  ),
 });
 
 export const authRateLimiter = rateLimit({
+  ...baseOptions,
   windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many auth attempts', code: 'RATE_LIMIT_EXCEEDED' },
+  max: env.NODE_ENV === 'production' ? 60 : 100,
+  keyGenerator: (req) => {
+    const body = req.body as { email?: string; phone?: string } | undefined;
+    const identity = body?.email || body?.phone;
+    return identity ? `auth:${identity}` : `auth-ip:${req.ip}`;
+  },
+  message: rateLimitMessage(
+    'অনেকবার লগইন চেষ্টা হয়েছে। ১৫ মিনিট পর আবার চেষ্টা করুন।',
+    'Too many auth attempts',
+  ),
 });
 
 export const otpRateLimiter = rateLimit({
+  ...baseOptions,
   windowMs: 60 * 1000,
-  max: 3,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many OTP requests', code: 'RATE_LIMIT_EXCEEDED' },
+  max: 5,
+  message: rateLimitMessage(
+    'অনেকবার OTP চেয়েছেন। ১ মিনিট পর আবার চেষ্টা করুন।',
+    'Too many OTP requests',
+  ),
 });

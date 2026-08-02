@@ -36,8 +36,10 @@ export function LoginPage() {
       await login(data.identifier.trim(), data.password, useEmail);
       navigate('/');
     } catch (err) {
-      if (err instanceof ApiError && err.message === 'Invalid credentials') {
-        setError('ইমেইল/ফোন বা পাসওয়ার্ড ভুল। পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।');
+      if (err instanceof ApiError && err.code === 'RATE_LIMIT_EXCEEDED') {
+        setError(err.message);
+      } else if (err instanceof ApiError && err.message === 'Invalid credentials') {
+        setError('ইমেইল/ফোন বা পাসওয়ার্ড ভুল। পাসওয়ার্ড ভুলে গেলে রিসেট করুন।');
       } else {
         setError(err instanceof Error ? err.message : 'Login failed');
       }

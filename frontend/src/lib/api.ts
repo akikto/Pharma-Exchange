@@ -98,7 +98,10 @@ export async function api<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new ApiError(res.status, err.error || 'Request failed', err.code);
+    const message = err.code === 'RATE_LIMIT_EXCEEDED' && err.error
+      ? err.error
+      : err.error || 'Request failed';
+    throw new ApiError(res.status, message, err.code);
   }
 
   if (res.status === 204) return undefined as T;
