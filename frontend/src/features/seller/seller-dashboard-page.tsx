@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
+import { brand } from '@/config/brand';
 import { useSellerAnalytics, useBuyRequests, useSellerInventory } from '@/hooks/use-api';
 import { formatPrice } from '@/lib/utils';
 
@@ -17,7 +18,7 @@ export function SellerDashboardPage() {
 
   return (
     <div>
-      <TopBar title="PharmEx Seller" />
+      <TopBar title={`${brand.name} Seller`} />
       <div className="p-4 space-y-6">
         <div className="grid grid-cols-2 gap-3">
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Sales (30d)</p><p className="text-lg font-bold tabular-nums">{formatPrice(analytics?.todaySales ?? 0)}</p></CardContent></Card>

@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { ListingCard } from '@/components/listing-card';
 import { ListingCardSkeleton } from '@/components/ui/skeleton';
+import { brand } from '@/config/brand';
 import { useListings } from '@/hooks/use-listings';
 import { useInfiniteScroll } from '@/hooks/use-chat';
 
@@ -24,7 +25,7 @@ export function HomePage() {
 
   return (
     <div>
-      <TopBar title="PharmEx" large actions={
+      <TopBar title={brand.name} large actions={
         <Link to="/search" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised">
           <Search className="h-5 w-5" />
         </Link>

@@ -10,10 +10,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      includeAssets: ['favicon.svg', 'favicon.png', 'icons/*.png', 'brand/*'],
       manifest: {
-        name: 'PharmEx — B2B Pharmacy Marketplace',
-        short_name: 'PharmEx',
+        name: 'MedLink B2B — Pharmacy Marketplace',
+        short_name: 'MedLink',
         description: 'B2B Pharmacy Marketplace for Bangladesh',
         theme_color: '#0F766E',
         background_color: '#FFFFFF',

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { AppLogo } from '@/components/brand/app-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { brand } from '@/config/brand';
 import { useAuthStore } from '@/stores/auth-store';
 
 const registerSchema = z.object({
@@ -63,7 +65,11 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto">
       <div className="flex-1 flex flex-col justify-center gap-4">
-        <h1 className="text-2xl font-bold">Create Pharmacy Account</h1>
+        <div className="text-center mb-2">
+          <AppLogo variant="logo" size="md" className="mx-auto mb-3" />
+          <h1 className="text-2xl font-bold">Create Pharmacy Account</h1>
+          <p className="text-text-secondary text-sm mt-1">Join {brand.name}</p>
+        </div>
         <form onSubmit={regForm.handleSubmit(onRegister)} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div><Label>First Name</Label><Input {...regForm.register('firstName')} /></div>
