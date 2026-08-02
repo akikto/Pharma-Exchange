@@ -9,7 +9,21 @@ Deploy the API as a **separate Vercel project** with root directory set to `back
 3. **Deployments** → Redeploy latest `main` branch
 4. Verify: `curl https://pharma-exchange-backend.vercel.app/health`
 
-## Required environment variables
+## Frontend (Vercel)
+
+Set in your **frontend** Vercel project:
+
+| Variable | Value |
+|----------|-------|
+| `VITE_FIREBASE_API_KEY` | Firebase web config `apiKey` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+| `VITE_FIREBASE_PROJECT_ID` | `projectId` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+| `VITE_FIREBASE_APP_ID` | `appId` |
+| `VITE_API_BASE_URL` | `https://pharma-exchange-backend.vercel.app/api/v1` |
+
+## Backend (Vercel)
 
 Set these in Vercel → Project → Settings → Environment Variables:
 
