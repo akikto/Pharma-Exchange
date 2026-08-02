@@ -8,14 +8,63 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0F4C6E" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pharma-Exchange" />
     <meta name="description" content="Pharma-Exchange — B2B Pharmacy Marketplace for Bangladesh" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>Pharma-Exchange</title>
+    <style>
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        background: linear-gradient(135deg, #0f4c6e 0%, #0f766e 50%, #166534 100%);
+      }
+      #app-splash img {
+        width: 7rem;
+        height: 7rem;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      }
+      #app-splash p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.85);
+        font-family: Inter, system-ui, sans-serif;
+        font-size: 0.875rem;
+      }
+    </style>
   </head>
   <body>
+    <div id="app-splash" aria-hidden="true">
+      <img src="/icons/icon-192.png" alt="Pharma-Exchange" width="192" height="192" />
+      <p>B2B Pharmacy Marketplace</p>
+    </div>
     <div id="root"></div>
+    <script>
+      (function () {
+        var root = document.getElementById('root');
+        var splash = document.getElementById('app-splash');
+        function hideSplash() {
+          if (splash) splash.remove();
+        }
+        if (root) {
+          new MutationObserver(function () {
+            if (root.childNodes.length) hideSplash();
+          }).observe(root, { childList: true });
+        }
+        window.addEventListener('load', function () {
+          setTimeout(hideSplash, 1500);
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

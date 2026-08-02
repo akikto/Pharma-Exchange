@@ -51,8 +51,10 @@ async function main() {
   console.log('Wrote', maskable);
 
   const faviconIco = join(publicDir, 'favicon.ico');
-  await sharp(source).resize(32, 32).png().toFile(faviconIco.replace('.ico', '-tmp.png'));
-  writeFileSync(faviconIco, readFileSync(faviconIco.replace('.ico', '-tmp.png')));
+  const faviconTmp = faviconIco.replace('.ico', '-tmp.png');
+  await sharp(source).resize(32, 32).png().toFile(faviconTmp);
+  writeFileSync(faviconIco, readFileSync(faviconTmp));
+  try { (await import('fs')).unlinkSync(faviconTmp); } catch { /* ignore */ }
   console.log('Wrote', faviconIco, '(32px PNG as .ico fallback)');
 }
 
