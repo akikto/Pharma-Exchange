@@ -37,7 +37,8 @@ export function createApp(): express.Application {
   }));
   app.use(cors({
     origin: getCorsOriginConfig(),
-    credentials: env.CORS_ORIGIN !== '*',
+    // JWT bearer auth — no cookies; omit credentials to avoid mobile CORS issues
+    credentials: false,
   }));
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
   app.use(express.json({ limit: '2mb' }));

@@ -1,6 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(public status: number, message: string, public code?: string) {
     super(message);
     this.name = 'ApiError';
@@ -63,13 +63,30 @@ export async function api<T>(
 
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  let res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  } catch {
+    throw new ApiError(
+      0,
+      'সার্ভারে সংযোগ করা যায়নি। ইন্টারনেট চেক করুন অথবা পেজ রিফ্রেশ করুন।',
+      'NETWORK_ERROR',
+    );
+  }
 
   if (res.status === 401 && refreshToken) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       headers.Authorization = `Bearer ${accessToken}`;
-      res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+      try {
+        res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+      } catch {
+        throw new ApiError(
+          0,
+          'সার্ভারে সংযোগ করা যায়নি। ইন্টারনেট চেক করুন অথবা পেজ রিফ্রেশ করুন।',
+          'NETWORK_ERROR',
+        );
+      }
     }
   }
 
