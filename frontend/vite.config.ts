@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon-*.png', 'logo.png', 'icons/*.png'],
       manifest: {
+        id: '/',
         name: 'Pharma-Exchange — B2B Pharmacy Marketplace',
         short_name: 'Pharma-Exchange',
         description: 'B2B Pharmacy Marketplace for Bangladesh',
@@ -36,6 +37,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
