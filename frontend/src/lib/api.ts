@@ -1,4 +1,13 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+import { buildApiUrl, resolveApiBase } from '@/lib/api-base';
+
+const API_BASE = resolveApiBase(
+  import.meta.env.VITE_API_BASE_URL,
+  import.meta.env.VITE_API_URL,
+);
+
+function apiUrl(path: string): string {
+  return buildApiUrl(API_BASE, path);
+}
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public code?: string) {
@@ -38,7 +47,7 @@ async function refreshAccessToken(): Promise<boolean> {
   const token = refreshToken || localStorage.getItem('pharmex_refresh');
   if (!token) return false;
   try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
+    const res = await fetch(apiUrl('/auth/refresh'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: token }),
@@ -65,7 +74,7 @@ export async function api<T>(
 
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    res = await fetch(apiUrl(path), { ...options, headers });
   } catch {
     throw new ApiError(
       0,
@@ -79,7 +88,7 @@ export async function api<T>(
     if (refreshed) {
       headers.Authorization = `Bearer ${accessToken}`;
       try {
-        res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+        res = await fetch(apiUrl(path), { ...options, headers });
       } catch {
         throw new ApiError(
           0,
@@ -112,7 +121,7 @@ async function apiText(path: string): Promise<string> {
   const headers: Record<string, string> = {};
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { headers });
+  const res = await fetch(apiUrl(path), { headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
     throw new ApiError(res.status, err.error || 'Request failed', err.code);
