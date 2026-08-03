@@ -16,6 +16,7 @@ import medicineRoutes from './modules/medicine/medicine.routes';
 import listingRoutes from './modules/listing/listing.routes';
 import cartRoutes from './modules/cart/cart.routes';
 import buyRequestRoutes from './modules/buy-request/buyRequest.routes';
+import bulkRequestRoutes from './modules/bulk-request/bulkRequest.routes';
 import orderRoutes from './modules/order/order.routes';
 import chatRoutes from './modules/chat/chat.routes';
 import notificationRoutes from './modules/notification/notification.routes';
@@ -71,6 +72,7 @@ export function createApp(): express.Application {
   v1.use('/listings', listingRoutes);
   v1.use('/cart', cartRoutes);
   v1.use('/buy-requests', buyRequestRoutes);
+  v1.use('/bulk-requests', bulkRequestRoutes);
   v1.use('/orders', orderRoutes);
   v1.use('/chat', chatRoutes);
   v1.use('/notifications', notificationRoutes);
@@ -89,6 +91,7 @@ export function createApp(): express.Application {
   app.use('/api/listings', listingRoutes);
   app.use('/api/cart', cartRoutes);
   app.use('/api/buy-requests', buyRequestRoutes);
+  app.use('/api/bulk-requests', bulkRequestRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/notifications', notificationRoutes);
