@@ -34,6 +34,24 @@ export class MedicineService {
     return medicine;
   }
 
+  async getAlternatives(id: string) {
+    const medicine = await prisma.medicine.findUnique({ where: { id } });
+    if (!medicine) throw AppError.notFound('Medicine not found');
+    if (!medicine.genericName) return { data: [], total: 0 };
+
+    const data = await prisma.medicine.findMany({
+      where: {
+        isActive: true,
+        id: { not: id },
+        genericName: { equals: medicine.genericName, mode: 'insensitive' },
+      },
+      orderBy: { name: 'asc' },
+      take: 20,
+    });
+
+    return { data, total: data.length };
+  }
+
   async create(data: Record<string, unknown>) {
     return prisma.medicine.create({ data: data as never });
   }

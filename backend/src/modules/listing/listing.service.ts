@@ -2,20 +2,33 @@ import { ListingStatus, VerificationStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
+import { haversineKm } from '../../shared/utils/geo';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 
+type SearchQuery = Record<string, unknown>;
+
 export class ListingService {
-  async search(query: Record<string, unknown>) {
+  async search(query: SearchQuery) {
     const { page, limit, skip } = parsePagination(query);
     const {
       q, composition, company, category, city, district, pharmacyId,
-      minPrice, maxPrice, minDiscount, maxExpiryMonths, minExpiryMonths,
+      minPrice, maxPrice, minDiscount, maxExpiryMonths, minExpiryMonths, maxExpiryDays,
+      dosageForm, minRating, verifiedOnly, inStockOnly, minAvailableQty,
       sortBy = 'createdAt', sortOrder = 'desc', status = ListingStatus.ACTIVE,
+      latitude, longitude, radiusKm = 2,
     } = query;
+
+    const userLat = latitude !== undefined ? Number(latitude) : undefined;
+    const userLng = longitude !== undefined ? Number(longitude) : undefined;
+    const radius = Number(radiusKm);
 
     const now = new Date();
     const expiryFilter: Record<string, Date> = {};
-    if (maxExpiryMonths) {
+    if (maxExpiryDays) {
+      const maxDate = new Date(now);
+      maxDate.setDate(maxDate.getDate() + Number(maxExpiryDays));
+      expiryFilter.lte = maxDate;
+    } else if (maxExpiryMonths) {
       const maxDate = new Date(now);
       maxDate.setMonth(maxDate.getMonth() + Number(maxExpiryMonths));
       expiryFilter.lte = maxDate;
@@ -26,18 +39,41 @@ export class ListingService {
       expiryFilter.gte = minDate;
     }
 
+    let nearbyPharmacyIds: string[] | undefined;
+    if (userLat !== undefined && userLng !== undefined && !Number.isNaN(userLat) && !Number.isNaN(userLng)) {
+      const pharmacies = await prisma.pharmacy.findMany({
+        where: {
+          verificationStatus: VerificationStatus.APPROVED,
+          isActive: true,
+          latitude: { not: null },
+          longitude: { not: null },
+        },
+        select: { id: true, latitude: true, longitude: true },
+      });
+      nearbyPharmacyIds = pharmacies
+        .filter((p) => haversineKm(userLat, userLng, Number(p.latitude), Number(p.longitude)) <= radius)
+        .map((p) => p.id);
+      if (nearbyPharmacyIds.length === 0) {
+        return { data: [], total: 0, page, limit };
+      }
+    }
+
+    const pharmacyWhere: Record<string, unknown> = {
+      verificationStatus: VerificationStatus.APPROVED,
+      isActive: true,
+      ...(city ? { city: { equals: String(city), mode: 'insensitive' } } : {}),
+      ...(district ? { district: { equals: String(district), mode: 'insensitive' } } : {}),
+      ...(minRating ? { rating: { gte: Number(minRating) } } : {}),
+      ...(verifiedOnly ? { verificationStatus: VerificationStatus.APPROVED } : {}),
+      ...(nearbyPharmacyIds ? { id: { in: nearbyPharmacyIds } } : {}),
+    };
+
     const where: Record<string, unknown> = {
       status: status as ListingStatus,
-      pharmacy: {
-        verificationStatus: VerificationStatus.APPROVED,
-        isActive: true,
-        ...(city ? { city: { equals: String(city), mode: 'insensitive' } } : {}),
-        ...(district ? { district: { equals: String(district), mode: 'insensitive' } } : {}),
-      },
+      pharmacy: pharmacyWhere,
     };
 
     if (pharmacyId) where.pharmacyId = String(pharmacyId);
-
     if (Object.keys(expiryFilter).length) where.expiryDate = expiryFilter;
     if (minPrice || maxPrice) {
       where.finalPrice = {
@@ -46,37 +82,74 @@ export class ListingService {
       };
     }
     if (minDiscount) where.discountPercent = { gte: Number(minDiscount) };
+    if (inStockOnly) where.availableQty = { gt: 0 };
+    if (minAvailableQty) where.availableQty = { gte: Number(minAvailableQty) };
 
-    if (q || composition || company || category) {
-      const medicineWhere: Record<string, unknown> = { isActive: true };
-      if (q) {
-        medicineWhere.OR = [
-          { name: { contains: String(q), mode: 'insensitive' } },
-          { genericName: { contains: String(q), mode: 'insensitive' } },
-          { brandName: { contains: String(q), mode: 'insensitive' } },
-        ];
-      }
-      if (composition) medicineWhere.composition = { contains: String(composition), mode: 'insensitive' };
-      if (company) medicineWhere.company = { contains: String(company), mode: 'insensitive' };
-      if (category) medicineWhere.category = String(category);
-      where.medicine = medicineWhere;
+    const medicineWhere: Record<string, unknown> = { isActive: true };
+    let hasMedicineFilter = false;
+
+    if (q) {
+      hasMedicineFilter = true;
+      medicineWhere.OR = [
+        { name: { contains: String(q), mode: 'insensitive' } },
+        { genericName: { contains: String(q), mode: 'insensitive' } },
+        { brandName: { contains: String(q), mode: 'insensitive' } },
+      ];
     }
+    if (composition) {
+      hasMedicineFilter = true;
+      medicineWhere.composition = { contains: String(composition), mode: 'insensitive' };
+    }
+    if (company) {
+      hasMedicineFilter = true;
+      medicineWhere.company = { contains: String(company), mode: 'insensitive' };
+    }
+    if (category) {
+      hasMedicineFilter = true;
+      medicineWhere.category = { contains: String(category), mode: 'insensitive' };
+    }
+    if (dosageForm) {
+      hasMedicineFilter = true;
+      medicineWhere.dosageForm = dosageForm;
+    }
+    if (hasMedicineFilter) where.medicine = medicineWhere;
 
-    const orderBy = sortBy === 'price' ? { finalPrice: sortOrder as 'asc' | 'desc' }
+    const orderBy =
+      sortBy === 'price' ? { finalPrice: sortOrder as 'asc' | 'desc' }
       : sortBy === 'expiry' ? { expiryDate: sortOrder as 'asc' | 'desc' }
       : sortBy === 'discount' ? { discountPercent: sortOrder as 'asc' | 'desc' }
+      : sortBy === 'rating' ? { pharmacy: { rating: sortOrder as 'asc' | 'desc' } }
+      : sortBy === 'recommended' ? [{ discountPercent: 'desc' as const }, { pharmacy: { rating: 'desc' as const } }, { createdAt: 'desc' as const }]
       : { createdAt: sortOrder as 'asc' | 'desc' };
 
-    const [data, total] = await Promise.all([
-      prisma.listing.findMany({
-        where: where as never, skip, take: limit, orderBy,
-        include: {
-          medicine: { select: { id: true, name: true, company: true, dosageForm: true, packSize: true, category: true, composition: true } },
-          pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, verificationStatus: true, latitude: true, longitude: true, userId: true } },
-        },
-      }),
-      prisma.listing.count({ where: where as never }),
-    ]);
+    const include = {
+      medicine: { select: { id: true, name: true, company: true, dosageForm: true, packSize: true, category: true, composition: true, genericName: true, brandName: true } },
+      pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, verificationStatus: true, latitude: true, longitude: true, userId: true } },
+    };
+
+    let data = await prisma.listing.findMany({
+      where: where as never,
+      skip: sortBy === 'distance' ? 0 : skip,
+      take: sortBy === 'distance' ? 500 : limit,
+      orderBy: sortBy === 'distance' ? { createdAt: 'desc' } : orderBy,
+      include,
+    });
+
+    let total = await prisma.listing.count({ where: where as never });
+
+    if (sortBy === 'distance' && userLat !== undefined && userLng !== undefined) {
+      data = data
+        .map((listing) => ({
+          listing,
+          distanceKm: listing.pharmacy.latitude != null && listing.pharmacy.longitude != null
+            ? haversineKm(userLat, userLng, Number(listing.pharmacy.latitude), Number(listing.pharmacy.longitude))
+            : Number.POSITIVE_INFINITY,
+        }))
+        .sort((a, b) => (sortOrder === 'asc' ? a.distanceKm - b.distanceKm : b.distanceKm - a.distanceKm))
+        .map(({ listing, distanceKm }) => ({ ...listing, distanceKm: distanceKm === Number.POSITIVE_INFINITY ? null : distanceKm }));
+      total = data.length;
+      data = data.slice(skip, skip + limit);
+    }
 
     return { data, total, page, limit };
   }
