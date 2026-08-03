@@ -13,17 +13,17 @@ export function HomeAppBar() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border-subtle bg-surface-base/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80"
+      className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border-subtle bg-surface-base/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80"
       data-testid="home-app-bar"
     >
-      <div className="flex min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 flex-1 items-center gap-2.5 pr-2">
         <Logo size="sm" className="shrink-0" />
-        <span className="truncate text-base font-semibold tracking-tight text-text-primary">
+        <span className="min-w-0 truncate text-base font-semibold leading-none tracking-tight text-text-primary">
           {t('common.appName')}
         </span>
       </div>
 
-      <div className="flex shrink-0 items-center">
+      <div className="flex shrink-0 items-center gap-0">
         <HomeHeaderActions />
         <button
           type="button"
@@ -32,7 +32,7 @@ export function HomeAppBar() {
               ? t('shell.notificationsUnread', { count: badges.notifications })
               : t('shell.notifications')
           }
-          className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-raised"
           onClick={() => navigate('/notifications')}
         >
           <Bell className="h-5 w-5" />
