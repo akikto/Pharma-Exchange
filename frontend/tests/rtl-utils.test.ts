@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { getDocumentDirection } from '@/lib/rtl-utils';
 
 describe('rtl-utils', () => {
-  it('uses rtl for Bengali locales', () => {
-    expect(getDocumentDirection('bn')).toBe('rtl');
-    expect(getDocumentDirection('bn-BD')).toBe('rtl');
+  it('uses ltr for Bengali (Bengali script is left-to-right)', () => {
+    expect(getDocumentDirection('bn')).toBe('ltr');
+    expect(getDocumentDirection('bn-BD')).toBe('ltr');
   });
 
   it('uses ltr for English locales', () => {
