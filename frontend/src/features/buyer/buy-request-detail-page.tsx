@@ -56,7 +56,7 @@ export function BuyRequestDetailPage() {
     try {
       const conv = await startChat.mutateAsync({
         participantId: userId,
-        listingId: request?.items[0]?.listing.id,
+        listingId: request?.items[0]?.listing?.id,
         buyRequestId: request?.id,
       });
       navigate(`/chat/${conv.id}`);

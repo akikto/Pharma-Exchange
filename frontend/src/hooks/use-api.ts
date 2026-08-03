@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
+import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import type { CartItem, PaginatedResponse, Order, BuyRequest, Notification, SellerAnalytics, Listing, Medicine } from '@/types';
 
 export function useCart() {
@@ -42,6 +43,11 @@ export function useAddToCart() {
 
   const mutate = useCallback(
     (data: { listingId: string; quantity: number }, options?: Parameters<typeof mutation.mutate>[1]) => {
+      debugListingAction('add-to-cart:mutate', { data, hasListingId: Boolean(data?.listingId) });
+      if (!data?.listingId) {
+        warnInvalidListing('add-to-cart:mutate', { data });
+        return;
+      }
       addLoading(data.listingId);
       mutation.mutate(data, options);
     },
@@ -50,6 +56,11 @@ export function useAddToCart() {
 
   const mutateAsync = useCallback(
     (data: { listingId: string; quantity: number }, options?: Parameters<typeof mutation.mutateAsync>[1]) => {
+      debugListingAction('add-to-cart:mutateAsync', { data, hasListingId: Boolean(data?.listingId) });
+      if (!data?.listingId) {
+        warnInvalidListing('add-to-cart:mutateAsync', { data });
+        return Promise.reject(new Error('Listing unavailable'));
+      }
       addLoading(data.listingId);
       return mutation.mutateAsync(data, options);
     },
@@ -57,7 +68,7 @@ export function useAddToCart() {
   );
 
   const isAddingToCart = useCallback(
-    (listingId: string) => loadingIds.has(listingId),
+    (listingId?: string) => Boolean(listingId && loadingIds.has(listingId)),
     [loadingIds],
   );
 

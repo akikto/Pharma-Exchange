@@ -25,7 +25,11 @@ export class ChatService {
         conversation: {
           include: {
             ...memberInclude,
-            messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+            messages: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              include: { sender: { select: { id: true, firstName: true, lastName: true } } },
+            },
           },
         },
       },
@@ -44,7 +48,11 @@ export class ChatService {
       where: { id: conversationId },
       include: {
         ...memberInclude,
-        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: { sender: { select: { id: true, firstName: true, lastName: true } } },
+        },
       },
     });
     if (!conversation) throw AppError.notFound('Conversation not found');

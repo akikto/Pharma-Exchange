@@ -6,6 +6,7 @@ import { useAddToCart } from '@/hooks/use-api';
 import { formatPrice, cn } from '@/lib/utils';
 import { formatMatchScore, matchScoreVariant } from '@/lib/ai-match-utils';
 import { isRenderableListing } from '@/lib/catalog-groups';
+import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 
@@ -23,7 +24,13 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
 
   if (!isLoading && matches.length === 0) return null;
 
-  const handleAddToCart = (listingId: string, moq: number) => {
+  const handleAddToCart = (listingId: string | undefined, moq: number, listing: unknown) => {
+    debugListingAction('ai-match:add-to-cart', { listingId, moq, listing });
+    if (!listingId) {
+      warnInvalidListing('ai-match:add-to-cart', { listingId, moq, listing });
+      toast({ title: t('toast.error'), description: t('search.addToCartError'), variant: 'destructive' });
+      return;
+    }
     addToCart.mutate(
       { listingId, quantity: moq },
       {
@@ -102,8 +109,8 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => handleAddToCart(listing.id, listing.moq)}
-                    loading={addToCart.isAddingToCart(listing.id)}
+                    onClick={() => handleAddToCart(listing?.id, listing.moq, listing)}
+                    loading={addToCart.isAddingToCart(listing?.id)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-1" />
                     {t('aiMatch.addToCart')}

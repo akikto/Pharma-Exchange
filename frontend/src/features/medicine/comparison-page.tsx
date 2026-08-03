@@ -10,6 +10,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { useShellStore } from '@/stores/shell-store';
 import { formatPrice } from '@/lib/utils';
 import { calculateSavings } from '@/lib/offer-utils';
+import { isRenderableListing } from '@/lib/catalog-groups';
 import type { CompareSort } from '@/lib/offer-utils';
 import { cn } from '@/lib/utils';
 import { MessageCircle } from 'lucide-react';
@@ -72,7 +73,8 @@ export function ComparisonPage() {
     );
   }
 
-  const { medicine, listings, stats } = data;
+  const { medicine, listings: rawListings, stats } = data;
+  const listings = rawListings.filter(isRenderableListing);
   const bestPrice = stats.lowestPrice;
 
   return (
