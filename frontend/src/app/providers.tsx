@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { AppRouter } from '@/app/router';
@@ -7,13 +7,10 @@ import { useAuthStore } from '@/stores/auth-store';
 import { setUnauthorizedHandler } from '@/lib/api';
 import { useThemeStore } from '@/stores/theme-store';
 import { Toaster } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/query-client';
+import { prefetchCloudData } from '@/lib/cloud-sync';
+import { useOnlineStatus } from '@/hooks/use-online-status';
 import i18n from '@/i18n';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false },
-  },
-});
 
 function AppInitializer({ children }: { children: React.ReactNode }) {
   const initialize = useAuthStore((s) => s.initialize);
@@ -21,6 +18,9 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
   const setTheme = useThemeStore((s) => s.setTheme);
   const theme = useThemeStore((s) => s.theme);
   const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     setUnauthorizedHandler(() => logout());
@@ -36,6 +36,11 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
       void i18n.changeLanguage(user.language);
     }
   }, [user?.language]);
+
+  useEffect(() => {
+    if (isLoading || !isOnline) return;
+    void prefetchCloudData(queryClient, { isAuthenticated });
+  }, [isLoading, isAuthenticated, isOnline]);
 
   return <>{children}</>;
 }

@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
+import { QUERY_STALE_TIMES } from '@/lib/query-config';
 import type { Listing, PaginatedResponse } from '@/types';
 
 export function useListings(params: Record<string, string | number | undefined> = {}) {
@@ -15,5 +16,6 @@ export function useListings(params: Record<string, string | number | undefined> 
     getNextPageParam: (last) =>
       last.pagination.page < last.pagination.totalPages ? last.pagination.page + 1 : undefined,
     initialPageParam: 1,
+    staleTime: QUERY_STALE_TIMES.listings,
   });
 }
