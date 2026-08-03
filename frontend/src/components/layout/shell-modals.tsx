@@ -14,12 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAddToCart } from '@/hooks/use-api';
-import { useToast } from '@/hooks/use-toast';
-import { apiClient } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
-import { Minus, Plus } from 'lucide-react';
+import { BuyRequestDialog } from '@/components/buy-request/buy-request-dialog';
 
 function ComingSoonModal({
   open,
@@ -89,86 +84,16 @@ function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) 
 }
 
 function BuyRequestModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t } = useTranslation();
   const ctx = useShellStore((s) => s.buyRequestContext);
-  const addToCart = useAddToCart();
-  const { toast: showToast } = useToast();
   const navigate = useNavigate();
-  const [quantity, setQuantity] = useState(1);
-  const [note, setNote] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  if (!ctx) return null;
-
-  const total = ctx.finalPrice * quantity;
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      await apiClient.post('/buy-requests', {
-        sellerId: ctx.sellerId,
-        listingIds: [{ listingId: ctx.listingId, quantity }],
-        note: note || undefined,
-      });
-      showToast({ title: t('toast.success'), description: t('toast.buyRequestSent') });
-      onClose();
-      navigate('/buy-requests');
-    } catch (e) {
-      showToast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddToCart = () => {
-    addToCart.mutate(
-      { listingId: ctx.listingId, quantity },
-      {
-        onSuccess: () => {
-          showToast({ description: t('toast.addedToCart') });
-          onClose();
-        },
-        onError: (e) => showToast({ title: t('toast.error'), description: e.message, variant: 'destructive' }),
-      },
-    );
-  };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('buyRequest.modalTitle')}</DialogTitle>
-          <DialogDescription>{ctx.medicineName}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>{t('buyRequest.quantity')}</Label>
-            <div className="flex items-center gap-2 border border-border-subtle rounded-[var(--radius-md)]">
-              <button type="button" className="p-2" onClick={() => setQuantity(Math.max(ctx.moq, quantity - 1))}>
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="w-8 text-center tabular-nums">{quantity}</span>
-              <button type="button" className="p-2" onClick={() => setQuantity(Math.min(ctx.availableQty, quantity + 1))}>
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <p className="text-sm font-medium tabular-nums">{t('buyRequest.total', { amount: formatPrice(total) })}</p>
-          <div className="space-y-2">
-            <Label htmlFor="br-note">{t('cart.note')}</Label>
-            <Input id="br-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('cart.notePlaceholder')} />
-          </div>
-        </div>
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="secondary" onClick={handleAddToCart} loading={addToCart.isPending}>
-            {t('listing.addToCart')}
-          </Button>
-          <Button onClick={handleSubmit} loading={loading}>
-            {t('buyRequest.submit')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <BuyRequestDialog
+      open={open}
+      onClose={onClose}
+      context={ctx}
+      onSuccess={(requestId) => navigate(`/buy-requests/${requestId}`)}
+    />
   );
 }
 

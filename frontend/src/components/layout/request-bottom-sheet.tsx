@@ -90,7 +90,10 @@ export function RequestBottomSheet() {
             <Button size="sm" className="flex-1" variant="secondary" onClick={() => navigate('/cart')}>
               {t('shell.viewCart')}
             </Button>
-            <Button size="sm" className="flex-1" onClick={() => navigate('/buy-requests')}>
+            <Button size="sm" className="flex-1" variant="secondary" onClick={() => navigate('/cart?tab=orders')}>
+              {t('shell.viewOrders')}
+            </Button>
+            <Button size="sm" className="flex-1" onClick={() => navigate('/cart?tab=requests')}>
               {t('shell.viewRequests')}
             </Button>
           </div>

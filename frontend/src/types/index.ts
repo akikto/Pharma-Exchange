@@ -106,7 +106,7 @@ export interface Order {
   paymentStatus: string;
   totalAmount: string | number;
   createdAt: string;
-  items: { id: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
+  items: { id: string; listingId?: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
   seller?: Pharmacy;
   buyer?: { id: string; firstName: string; lastName: string };
   statusHistory?: { status: string; note?: string; createdAt: string }[];

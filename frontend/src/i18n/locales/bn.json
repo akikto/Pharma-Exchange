@@ -53,6 +53,7 @@
     "pendingRequests_one": "{{count}} অপেক্ষমাণ অনুরোধ",
     "pendingRequests_other": "{{count}} অপেক্ষমাণ অনুরোধ",
     "viewCart": "কার্ট দেখুন",
+    "viewOrders": "অর্ডার",
     "viewRequests": "অনুরোধ দেখুন",
     "moreCartItems": "আরও {{count}} আইটেম",
     "moreCartItems_one": "আরও {{count}} আইটেম",
@@ -314,6 +315,15 @@
     "quantityFor": "{{name}} এর পরিমাণ",
     "chatUnavailable": "বিক্রেতার যোগাযোগ উপলব্ধ নয়"
   },
+  "hub": {
+    "title": "কার্ট ও অর্ডার",
+    "titleSub": "Cart & Orders",
+    "tabs": {
+      "cart": "কার্ট",
+      "orders": "অর্ডার",
+      "requests": "অনুরোধ"
+    }
+  },
   "buyRequest": {
     "title": "ক্রয় অনুরোধ",
     "titleSub": "Buy Requests",
@@ -332,7 +342,23 @@
     "submit": "অনুরোধ পাঠান",
     "incomingTitle": "আগত অনুরোধ",
     "noSent": "আপনি কোনো অনুরোধ পাঠাননি",
-    "loadError": "অনুরোধ লোড করতে ব্যর্থ"
+    "loadError": "অনুরোধ লোড করতে ব্যর্থ",
+    "searchPlaceholder": "অনুরোধ খুঁজুন…",
+    "accepted": "অনুরোধ গৃহীত",
+    "rejected": "অনুরোধ প্রত্যাখ্যাত",
+    "filter": {
+      "all": "সব",
+      "pending": "অপেক্ষমাণ",
+      "accepted": "গৃহীত",
+      "rejected": "প্রত্যাখ্যাত",
+      "expired": "মেয়াদোত্তীর্ণ"
+    },
+    "steps": {
+      "pending": "পর্যালোচনাধীন",
+      "accepted": "গৃহীত",
+      "rejected": "প্রত্যাখ্যাত",
+      "expired": "মেয়াদোত্তীর্ণ"
+    }
   },
   "orders": {
     "title": "অর্ডার ইতিহাস",
@@ -345,7 +371,47 @@
     "notFound": "অর্ডার খুঁজে পাওয়া যায়নি",
     "back": "ফিরে যান",
     "noOrders": "এখনো কোনো অর্ডার নেই",
-    "loadError": "অর্ডার লোড করতে ব্যর্থ"
+    "loadError": "অর্ডার লোড করতে ব্যর্থ",
+    "searchPlaceholder": "অর্ডার খুঁজুন…",
+    "statsActive": "সক্রিয়",
+    "statsDelivered": "ডেলিভার্ড",
+    "statsTotal": "মোট অর্ডার",
+    "statsSpent": "মোট খরচ",
+    "reorder": "পুনরায় অর্ডার",
+    "reorderSuccess": "কার্টে যোগ হয়েছে",
+    "reorderUnavailable": "পুনরায় অর্ডার করা যাচ্ছে না",
+    "track": "ট্র্যাক",
+    "trackOrder": "শিপমেন্ট ট্র্যাক",
+    "receipt": "রসিদ",
+    "receiptTitle": "অর্ডার রসিদ",
+    "shareReceipt": "শেয়ার",
+    "downloadReceipt": "ডাউনলোড",
+    "status": "স্ট্যাটাস",
+    "total": "মোট",
+    "lineItems": "আইটেম",
+    "chatCounterparty": "মেসেজ",
+    "statusUpdated": "স্ট্যাটাস আপডেট",
+    "cancelled": "অর্ডার বাতিল",
+    "cancelledByBuyer": "ক্রেতা বাতিল করেছেন",
+    "trackingSimulated": "প্রিভিউর জন্য সিমুলেটেড ডেলিভারি ম্যাপ",
+    "inTransit": "ট্রানজিটে",
+    "estimatedDelivery": "আনুমানিক ~{{hours}} ঘণ্টায় ডেলিভারি",
+    "defaultCity": "ঢাকা",
+    "stepCurrent": "বর্তমান ধাপ",
+    "filter": {
+      "all": "সব",
+      "active": "সক্রিয়",
+      "delivered": "ডেলিভার্ড",
+      "cancelled": "বাতিল"
+    },
+    "steps": {
+      "created": "তৈরি",
+      "confirmed": "নিশ্চিত",
+      "packed": "প্যাকড",
+      "shipped": "শিপড",
+      "delivered": "ডেলিভার্ড",
+      "cancelled": "বাতিল"
+    }
   },
   "chat": {
     "title": "বার্তা",
