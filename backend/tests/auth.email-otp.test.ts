@@ -99,7 +99,8 @@ describe('Email OTP password reset', () => {
       .send({ resetToken: verify.body.resetToken, newPassword });
 
     expect(res.status).toBe(200);
-    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.message).toContain('Password updated');
+    expect(res.body.accessToken).toBeUndefined();
 
     const login = await request(app)
       .post('/api/v1/auth/login')

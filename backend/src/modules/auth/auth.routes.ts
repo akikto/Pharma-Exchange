@@ -25,7 +25,7 @@ router.post('/register', authRateLimiter, validate(registerSchema), authControll
  * /api/v1/auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Email or phone login
+ *     summary: Email or phone + password login (primary auth — unchanged)
  */
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login.bind(authController));
 
@@ -38,10 +38,16 @@ router.post('/login', authRateLimiter, validate(loginSchema), authController.log
  */
 router.post('/firebase', authRateLimiter, validate(firebaseAuthSchema), authController.firebaseAuth.bind(authController));
 
-router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
+/**
+ * Password reset only (EmailOtp + Resend) — does not replace login.
+ * Flow: forgot-password → verify-email-otp → reset-password → user logs in with email+password
+ */
 router.post('/forgot-password', otpRateLimiter, validate(forgotPasswordSchema), authController.forgotPassword.bind(authController));
 router.post('/verify-email-otp', emailOtpVerifyRateLimiter, validate(verifyEmailOtpSchema), authController.verifyEmailOtp.bind(authController));
 router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), authController.resetPassword.bind(authController));
+
+/** Legacy phone/login OTP (OtpToken) — separate from email password-reset OTP */
+router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
 router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authController.verifyOtp.bind(authController));
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));
 router.post('/logout', authenticate, authController.logout.bind(authController));

@@ -64,6 +64,9 @@ export class AuthService {
   }
 
   async sendOtp(data: { phone?: string; email?: string; purpose: 'login' | 'password_reset' }) {
+    if (data.purpose === 'password_reset') {
+      throw AppError.badRequest('Use POST /auth/forgot-password for password reset OTP');
+    }
     const user = await prisma.user.findFirst({
       where: data.phone ? { phone: data.phone } : { email: data.email },
     });
@@ -88,8 +91,8 @@ export class AuthService {
   }
 
   async resetPassword(data: { resetToken: string; newPassword: string }) {
-    const { user } = await emailOtpService.resetPasswordWithToken(data.resetToken, data.newPassword);
-    return this.issueTokens(user);
+    await emailOtpService.resetPasswordWithToken(data.resetToken, data.newPassword);
+    return { message: 'Password updated successfully' };
   }
 
   async login(data: { email?: string; phone?: string; password: string }) {
@@ -150,6 +153,9 @@ export class AuthService {
   }
 
   async verifyOtp(data: { phone?: string; email?: string; code: string; purpose: string }) {
+    if (data.purpose === 'password_reset') {
+      throw AppError.badRequest('Use POST /auth/verify-email-otp for password reset verification');
+    }
     const otpRecord = await prisma.otpToken.findFirst({
       where: {
         code: data.code,

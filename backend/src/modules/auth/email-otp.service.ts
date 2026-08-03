@@ -7,6 +7,11 @@ import { logger } from '../../shared/utils/logger';
 import { signPasswordResetToken, verifyPasswordResetToken } from '../../shared/middleware/auth.middleware';
 import { sendPasswordResetOtpEmail } from '../../shared/services/email.service';
 
+/**
+ * Email OTP service — password reset only.
+ * Does NOT handle login; users authenticate via POST /auth/login (email + password).
+ */
+
 const GENERIC_OTP_MESSAGE = 'If an account exists with this email, a verification code has been sent.';
 
 function normalizeEmail(email: string): string {

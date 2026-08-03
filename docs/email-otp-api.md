@@ -9,10 +9,16 @@ Secure email OTP flow for password reset on Pharma-Exchange.
 ## Flow Overview
 
 ```
-1. POST /forgot-password     → Send OTP to email
-2. POST /verify-email-otp    → Verify OTP, receive resetToken (15 min)
-3. POST /reset-password      → Set new password with resetToken
+Primary login (unchanged):  POST /login  { email, password }
+
+Password reset only:
+  1. POST /forgot-password     → Send OTP to email
+  2. POST /verify-email-otp    → Verify OTP, receive resetToken (15 min)
+  3. POST /reset-password      → Set new password with resetToken
+  4. POST /login               → User signs in with email + new password
 ```
+
+Email + password login is **not** replaced by OTP. OTP is used only for forgot/reset password.
 
 ---
 
@@ -106,12 +112,11 @@ Sets a new password using the reset token from step 2.
 **Response `200`:**
 ```json
 {
-  "message": "Password updated successfully",
-  "accessToken": "...",
-  "refreshToken": "...",
-  "user": { "id": "...", "email": "...", ... }
+  "message": "Password updated successfully"
 }
 ```
+
+Does **not** return login tokens. User must sign in via `POST /auth/login` with email + new password.
 
 **Side effects:**
 - All refresh tokens for the user are invalidated

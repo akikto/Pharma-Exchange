@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,7 +22,9 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const login = useAuthStore((s) => s.login);
+  const resetSuccess = (location.state as { message?: string } | null)?.message;
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -87,6 +89,7 @@ export function LoginPage() {
             {errors.password && <p className="text-xs text-danger">পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে</p>}
           </div>
 
+          {resetSuccess && <p className="text-sm text-success text-center">{resetSuccess}</p>}
           {error && <p className="text-sm text-danger">{error}</p>}
 
           <p className="text-right text-sm">
