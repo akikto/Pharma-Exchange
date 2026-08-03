@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Bell, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/brand/logo';
@@ -22,6 +23,7 @@ export function TopBar({
   showNotifications = true,
   actions,
 }: TopBarProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const badges = useNavBadges();
 
@@ -35,7 +37,7 @@ export function TopBar({
       {showBack && (
         <button
           type="button"
-          aria-label="Go back"
+          aria-label={t('common.goBack')}
           className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised"
           onClick={() => navigate(-1)}
         >
@@ -51,7 +53,7 @@ export function TopBar({
         {showNotifications && (
           <button
             type="button"
-            aria-label={`Notifications${badges.notifications ? `, ${badges.notifications} unread` : ''}`}
+            aria-label={badges.notifications ? t('shell.notificationsUnread', { count: badges.notifications }) : t('shell.notifications')}
             className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised"
             onClick={() => navigate('/notifications')}
           >

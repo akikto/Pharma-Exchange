@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Send, Paperclip, Mic } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
@@ -13,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
 
 export function ChatListPage() {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => apiClient.get<Conversation[]>('/chat/conversations'),
@@ -20,10 +22,10 @@ export function ChatListPage() {
 
   return (
     <div>
-      <TopBar title="Messages" />
+      <TopBar title={t('chat.title')} />
       <div className="p-4">
         {isLoading ? <ListSkeleton /> : !data?.length ? (
-          <p className="text-center text-text-secondary py-12">No conversations yet</p>
+          <p className="text-center text-text-secondary py-12">{t('chat.empty')}</p>
         ) : (
           <div className="space-y-2">
             {data.map((conv) => {
@@ -49,6 +51,7 @@ export function ChatListPage() {
 }
 
 export function ChatPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -94,7 +97,7 @@ export function ChatPage() {
             <div key={msg.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
               <div className={cn(
                 'max-w-[75%] rounded-[var(--radius-lg)] px-4 py-2 text-sm',
-                isOwn ? 'bg-primary text-white' : 'bg-surface-raised'
+                isOwn ? 'bg-primary text-white' : 'bg-surface-raised',
               )}>
                 {msg.type === 'IMAGE' && msg.mediaUrl ? (
                   <img src={msg.mediaUrl} alt="" className="rounded max-w-full" />
@@ -109,13 +112,12 @@ export function ChatPage() {
             </div>
           );
         })}
-        {false && <p className="text-xs text-text-secondary">Typing...</p>}
       </div>
       <div className="p-3 border-t border-border-subtle flex gap-2 items-center safe-bottom">
-        <Button variant="ghost" size="icon"><Paperclip className="h-5 w-5" /></Button>
-        <Button variant="ghost" size="icon"><Mic className="h-5 w-5" /></Button>
-        <Input className="flex-1" placeholder="Type a message..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
-        <Button size="icon" onClick={handleSend}><Send className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" aria-label={t('chat.attach')}><Paperclip className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" aria-label={t('chat.voice')}><Mic className="h-5 w-5" /></Button>
+        <Input className="flex-1" placeholder={t('chat.placeholder')} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
+        <Button size="icon" aria-label={t('chat.send')} onClick={handleSend}><Send className="h-5 w-5" /></Button>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Minus, Plus, MessageCircle } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
@@ -11,14 +12,19 @@ import { apiClient } from '@/lib/api';
 import { formatPrice, getExpiryStatus, getExpiryLabel } from '@/lib/utils';
 import { useAddToCart, useStartConversation } from '@/hooks/use-api';
 import { useListings } from '@/hooks/use-listings';
+import { useShellStore } from '@/stores/shell-store';
+import { useToast } from '@/hooks/use-toast';
 import type { Listing } from '@/types';
 
 export function MedicineDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
   const startChat = useStartConversation();
+  const openModal = useShellStore((s) => s.openModal);
+  const { toast } = useToast();
 
   const { data: listing, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -27,12 +33,28 @@ export function MedicineDetailPage() {
   });
 
   if (isLoading) return <div className="p-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-8 w-2/3 mt-4" /></div>;
-  if (!listing) return <div className="p-4 text-center text-text-secondary">Listing not found</div>;
+  if (!listing) return <div className="p-4 text-center text-text-secondary">{t('listing.notFound')}</div>;
 
   const expiryStatus = getExpiryStatus(listing.expiryDate);
 
   const handleAddToCart = () => {
-    addToCart.mutate({ listingId: listing.id, quantity });
+    addToCart.mutate(
+      { listingId: listing.id, quantity },
+      { onSuccess: () => toast({ description: t('toast.addedToCart') }) },
+    );
+  };
+
+  const handleBuyNow = () => {
+    openModal('buyRequest', {
+      buyRequest: {
+        listingId: listing.id,
+        medicineName: listing.medicine.name,
+        finalPrice: Number(listing.finalPrice),
+        moq: listing.moq,
+        availableQty: listing.availableQty,
+        sellerId: listing.pharmacy.userId ?? listing.pharmacy.id,
+      },
+    });
   };
 
   const handleChat = async () => {
@@ -66,8 +88,8 @@ export function MedicineDetailPage() {
           )}
         </div>
 
-        <p className="text-sm text-text-secondary">MOQ {listing.moq} · {listing.availableQty} available</p>
-        <StatusChip label={`Expiry: ${getExpiryLabel(listing.expiryDate)}`} variant={expiryStatus === 'safe' ? 'success' : expiryStatus} />
+        <p className="text-sm text-text-secondary">{t('listing.moq', { count: listing.moq })} · {t('listing.available', { count: listing.availableQty })}</p>
+        <StatusChip label={t('listing.expiry', { label: getExpiryLabel(listing.expiryDate) })} variant={expiryStatus === 'safe' ? 'success' : expiryStatus} />
 
         <Link to={`/pharmacy/${listing.pharmacy.id}`} className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] border border-border-subtle">
           <div className="h-10 w-10 rounded-full bg-primary-subtle flex items-center justify-center text-primary font-bold">
@@ -81,26 +103,28 @@ export function MedicineDetailPage() {
 
         {listing.medicine.composition && (
           <div>
-            <h3 className="font-semibold text-sm mb-1">Composition</h3>
+            <h3 className="font-semibold text-sm mb-1">{t('listing.composition')}</h3>
             <p className="text-sm text-text-secondary">{listing.medicine.composition}</p>
           </div>
         )}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-surface-base border-t border-border-subtle safe-bottom flex gap-3 items-center">
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-surface-base border-t border-border-subtle safe-bottom flex gap-2 items-center lg:left-60">
         <div className="flex items-center gap-2 border border-border-subtle rounded-[var(--radius-md)]">
-          <button className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))}><Minus className="h-4 w-4" /></button>
+          <button type="button" className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))}><Minus className="h-4 w-4" /></button>
           <span className="w-8 text-center tabular-nums font-medium">{quantity}</span>
-          <button className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
+          <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
         </div>
-        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isPending}>Add to Cart</Button>
-        <Button variant="secondary" size="icon" aria-label="Message seller" onClick={handleChat}><MessageCircle className="h-5 w-5" /></Button>
+        <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
+        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isPending}>{t('listing.addToCart')}</Button>
+        <Button variant="secondary" size="icon" aria-label={t('listing.messageSeller')} onClick={handleChat}><MessageCircle className="h-5 w-5" /></Button>
       </div>
     </div>
   );
 }
 
 export function PharmacyProfilePage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { data: pharmacy, isLoading } = useQuery({
     queryKey: ['pharmacy', id],
@@ -123,11 +147,11 @@ export function PharmacyProfilePage() {
           <h1 className="text-xl font-bold">{pharmacy?.name}</h1>
           <p className="text-text-secondary">⭐ {pharmacy?.rating} · {pharmacy?.city}</p>
         </div>
-        <h2 className="font-semibold">Listings</h2>
+        <h2 className="font-semibold">{t('listing.listings')}</h2>
         {listingsLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : listings.length === 0 ? (
-          <p className="text-text-secondary text-sm">No active listings</p>
+          <p className="text-text-secondary text-sm">{t('listing.noListings')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {listings.map((l) => (
@@ -139,4 +163,3 @@ export function PharmacyProfilePage() {
     </div>
   );
 }
-

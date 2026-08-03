@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Trash2, MessageCircle } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
@@ -10,14 +11,17 @@ import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import type { CartItem } from '@/types';
 
 export function CartPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useCart();
   const removeItem = useRemoveFromCart();
   const startChat = useStartConversation();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [error, setError] = useState('');
   const [sending, setSending] = useState<string | null>(null);
   const grouped = data?.groupedBySeller ?? {};
@@ -31,6 +35,7 @@ export function CartPage() {
         listingIds: items.map((i) => ({ listingId: i.listing.id, quantity: i.quantity })),
       });
       qc.invalidateQueries({ queryKey: ['cart'] });
+      toast({ description: t('toast.buyRequestSent') });
       navigate('/buy-requests');
     } catch (e) {
       setError((e as Error).message);
@@ -46,18 +51,24 @@ export function CartPage() {
     navigate(`/chat/${conv.id}`);
   };
 
+  const handleRemove = (id: string) => {
+    removeItem.mutate(id, {
+      onSuccess: () => toast({ description: t('toast.removedFromCart') }),
+    });
+  };
+
   if (isLoading) return <div className="p-4"><ListSkeleton /></div>;
-  if (isError) return <div className="p-4 text-center text-danger">Failed to load cart</div>;
+  if (isError) return <div className="p-4 text-center text-danger">{t('cart.loadError')}</div>;
 
   const sellerIds = Object.keys(grouped);
   if (sellerIds.length === 0) {
     return (
       <div>
-        <TopBar title="Cart" />
+        <TopBar title={t('cart.title')} />
         <div className="text-center py-16 px-4">
-          <p className="text-lg font-medium">Your cart is empty</p>
-          <p className="text-text-secondary text-sm mt-1">Browse medicines to get started</p>
-          <Link to="/search"><Button className="mt-4">Browse Medicines</Button></Link>
+          <p className="text-lg font-medium">{t('cart.empty')}</p>
+          <p className="text-text-secondary text-sm mt-1">{t('cart.emptyHint')}</p>
+          <Link to="/search"><Button className="mt-4">{t('cart.browseMedicines')}</Button></Link>
         </div>
       </div>
     );
@@ -65,7 +76,7 @@ export function CartPage() {
 
   return (
     <div>
-      <TopBar title="Cart" />
+      <TopBar title={t('cart.title')} />
       <div className="p-4 space-y-4">
         {error && <p className="text-sm text-danger text-center">{error}</p>}
         {sellerIds.map((sellerId) => {
@@ -74,8 +85,8 @@ export function CartPage() {
           return (
             <div key={sellerId} className="rounded-[var(--radius-md)] border border-border-subtle overflow-hidden">
               <div className="flex items-center justify-between p-3 bg-surface-raised">
-                <span className="font-medium text-sm">{items[0].listing.pharmacy.name} ({items.length} items)</span>
-                <Button variant="ghost" size="sm" aria-label="Message seller" onClick={() => handleChat(items)}>
+                <span className="font-medium text-sm">{items[0].listing.pharmacy.name} ({t('common.items', { count: items.length })})</span>
+                <Button variant="ghost" size="sm" aria-label={t('cart.messageSeller')} onClick={() => handleChat(items)}>
                   <MessageCircle className="h-4 w-4" />
                 </Button>
               </div>
@@ -84,21 +95,21 @@ export function CartPage() {
                   <div className="h-12 w-12 rounded bg-surface-sunken flex items-center justify-center text-lg">💊</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.listing.medicine.name}</p>
-                    <p className="text-xs text-text-secondary">Qty: {item.quantity} · {formatPrice(Number(item.listing.finalPrice) * item.quantity)}</p>
+                    <p className="text-xs text-text-secondary">{item.quantity} · {formatPrice(Number(item.listing.finalPrice) * item.quantity)}</p>
                   </div>
                   <button
                     className="p-2 text-text-secondary hover:text-danger"
-                    aria-label="Remove item"
-                    onClick={() => removeItem.mutate(item.id)}
+                    aria-label={t('cart.removeItem')}
+                    onClick={() => handleRemove(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               ))}
               <div className="flex items-center justify-between p-3 border-t border-border-subtle bg-surface-raised">
-                <span className="font-medium tabular-nums">Subtotal: {formatPrice(subtotal)}</span>
+                <span className="font-medium tabular-nums">{t('cart.subtotal', { amount: formatPrice(subtotal) })}</span>
                 <Button size="sm" loading={sending === sellerId} onClick={() => sendBuyRequest(sellerId, items)}>
-                  Send Buy Request →
+                  {t('cart.sendBuyRequest')} →
                 </Button>
               </div>
             </div>
@@ -110,18 +121,19 @@ export function CartPage() {
 }
 
 export function OrdersPage() {
+  const { t } = useTranslation();
   const role = usePageRole();
   const { data, isLoading, isError } = useOrders(role);
-  const title = role === 'seller' ? 'Seller Orders' : 'Order History';
+  const title = role === 'seller' ? t('orders.sellerTitle') : t('orders.title');
 
   return (
     <div>
       <TopBar title={title} showBack />
       <div className="p-4">
         {isLoading ? <ListSkeleton /> : isError ? (
-          <p className="text-center text-danger py-12">Failed to load orders</p>
+          <p className="text-center text-danger py-12">{t('orders.loadError')}</p>
         ) : data?.data.length === 0 ? (
-          <p className="text-center text-text-secondary py-12">No orders yet</p>
+          <p className="text-center text-text-secondary py-12">{t('orders.noOrders')}</p>
         ) : (
           <div className="space-y-3">
             {data?.data.map((order) => (
@@ -143,9 +155,10 @@ export function OrdersPage() {
 }
 
 export function BuyRequestsPage() {
+  const { t } = useTranslation();
   const role = usePageRole();
   const { data, isLoading, isError } = useBuyRequests(role);
-  const title = role === 'seller' ? 'Incoming Requests' : 'Buy Requests';
+  const title = role === 'seller' ? t('buyRequest.incomingTitle') : t('buyRequest.title');
   const basePath = role === 'seller' ? '/seller/requests' : '/buy-requests';
 
   return (
@@ -153,10 +166,10 @@ export function BuyRequestsPage() {
       <TopBar title={title} showBack />
       <div className="p-4">
         {isLoading ? <ListSkeleton /> : isError ? (
-          <p className="text-center text-danger py-12">Failed to load requests</p>
+          <p className="text-center text-danger py-12">{t('buyRequest.loadError')}</p>
         ) : data?.data.length === 0 ? (
           <p className="text-center text-text-secondary py-12">
-            {role === 'seller' ? 'No incoming requests' : "You haven't sent any requests"}
+            {role === 'seller' ? t('seller.noPending') : t('buyRequest.noSent')}
           </p>
         ) : (
           <div className="space-y-3">
