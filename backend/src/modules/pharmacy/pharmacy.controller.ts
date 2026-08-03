@@ -31,6 +31,12 @@ export class PharmacyController {
       res.json(pharmacy);
     } catch (err) { next(err); }
   }
+
+  async listDemoShops(_req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      res.json(await pharmacyService.listDemoShops());
+    } catch (err) { next(err); }
+  }
 }
 
 export const pharmacyController = new PharmacyController();

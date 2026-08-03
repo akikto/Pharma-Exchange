@@ -31,6 +31,12 @@ export function generateOrderNumber(): string {
   return `ORD-${year}-${seq}`;
 }
 
+export function generateBulkRequestNumber(): string {
+  const year = new Date().getFullYear();
+  const seq = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
+  return `BLK-${year}-${seq}`;
+}
+
 export function computeFinalPrice(sellingPrice: number, discountPercent: number): number {
   return Math.round(sellingPrice * (1 - discountPercent / 100) * 100) / 100;
 }

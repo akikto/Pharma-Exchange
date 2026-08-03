@@ -6,6 +6,7 @@ import { authRateLimiter, otpRateLimiter } from '../../shared/middleware/rateLim
 import {
   registerSchema, loginSchema, firebaseAuthSchema,
   otpVerifySchema, sendOtpSchema, refreshTokenSchema, fcmTokenSchema, resetPasswordSchema,
+  updateProfileSchema,
 } from './auth.validation';
 
 const router = Router();
@@ -27,6 +28,7 @@ router.post('/register', authRateLimiter, validate(registerSchema), authControll
  *     summary: Email or phone login
  */
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login.bind(authController));
+router.post('/demo-login', authRateLimiter, authController.demoLogin.bind(authController));
 
 /**
  * @openapi
@@ -43,6 +45,7 @@ router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authContro
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));
 router.post('/logout', authenticate, authController.logout.bind(authController));
 router.get('/me', authenticate, authController.getProfile.bind(authController));
+router.patch('/me', authenticate, validate(updateProfileSchema), authController.updateProfile.bind(authController));
 router.post('/fcm-token', authenticate, validate(fcmTokenSchema), authController.registerFcmToken.bind(authController));
 router.delete('/fcm-token', authenticate, validate(fcmTokenSchema), authController.removeFcmToken.bind(authController));
 

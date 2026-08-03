@@ -13,6 +13,10 @@ const firebaseConfig = {
 export const isFirebaseConfigured = (): boolean =>
   Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
 
+export const isPushConfigured = (): boolean =>
+  isFirebaseConfigured() &&
+  Boolean(firebaseConfig.messagingSenderId && import.meta.env.VITE_FIREBASE_VAPID_KEY);
+
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 
@@ -32,4 +36,26 @@ export function getFirebaseAuth(): Auth | null {
     auth = getAuth(firebaseApp);
   }
   return auth;
+}
+
+export async function signInWithGoogle(): Promise<string> {
+  const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+  const firebaseAuth = getFirebaseAuth();
+  if (!firebaseAuth) throw new Error('Firebase is not configured');
+
+  const result = await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
+  return result.user.getIdToken();
+}
+
+export async function getFirebaseMessaging() {
+  if (!isPushConfigured()) return null;
+
+  const { getMessaging, isSupported } = await import('firebase/messaging');
+  const supported = await isSupported();
+  if (!supported) return null;
+
+  const firebaseApp = getFirebaseApp();
+  if (!firebaseApp) return null;
+
+  return getMessaging(firebaseApp);
 }

@@ -108,13 +108,27 @@ export async function api<T>(
   return res.json();
 }
 
+async function apiText(path: string): Promise<string> {
+  const headers: Record<string, string> = {};
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new ApiError(res.status, err.error || 'Request failed', err.code);
+  }
+  return res.text();
+}
+
 export const apiClient = {
   get: <T>(path: string) => api<T>(path),
+  getText: (path: string) => apiText(path),
   post: <T>(path: string, body?: unknown) =>
     api<T>(path, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body) }),
   patch: <T>(path: string, body?: unknown) =>
     api<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
-  delete: <T>(path: string) => api<T>(path, { method: 'DELETE' }),
+  delete: <T>(path: string, body?: unknown) =>
+    api<T>(path, { method: 'DELETE', ...(body !== undefined ? { body: JSON.stringify(body) } : {}) }),
   upload: <T>(path: string, file: File) => {
     const form = new FormData();
     form.append('file', file);

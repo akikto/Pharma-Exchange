@@ -16,6 +16,9 @@ import medicineRoutes from './modules/medicine/medicine.routes';
 import listingRoutes from './modules/listing/listing.routes';
 import cartRoutes from './modules/cart/cart.routes';
 import buyRequestRoutes from './modules/buy-request/buyRequest.routes';
+import bulkRequestRoutes from './modules/bulk-request/bulkRequest.routes';
+import watchlistRoutes from './modules/watchlist/watchlist.routes';
+import priceAlertRoutes from './modules/watchlist/priceAlert.routes';
 import orderRoutes from './modules/order/order.routes';
 import chatRoutes from './modules/chat/chat.routes';
 import notificationRoutes from './modules/notification/notification.routes';
@@ -24,6 +27,7 @@ import reportRoutes from './modules/report/report.routes';
 import uploadRoutes from './modules/upload/upload.routes';
 import { analyticsRouter, adminRouter } from './modules/admin/admin.routes';
 import healthRoutes from './modules/health/health.routes';
+import aiMatchRoutes from './modules/ai-match/aiMatch.routes';
 
 export function createApp(): express.Application {
   initializeFirebase();
@@ -44,6 +48,16 @@ export function createApp(): express.Application {
   app.use(express.json({ limit: '2mb' }));
   app.use(globalRateLimiter);
 
+  app.get('/', (_req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'pharma-exchange-api',
+      version: '1.0.0',
+      health: '/health',
+      api: '/api/v1',
+    });
+  });
+
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'pharma-exchange-api', version: '1.0.0' });
   });
@@ -61,6 +75,9 @@ export function createApp(): express.Application {
   v1.use('/listings', listingRoutes);
   v1.use('/cart', cartRoutes);
   v1.use('/buy-requests', buyRequestRoutes);
+  v1.use('/bulk-requests', bulkRequestRoutes);
+  v1.use('/watchlist', watchlistRoutes);
+  v1.use('/price-alerts', priceAlertRoutes);
   v1.use('/orders', orderRoutes);
   v1.use('/chat', chatRoutes);
   v1.use('/notifications', notificationRoutes);
@@ -69,6 +86,7 @@ export function createApp(): express.Application {
   v1.use('/upload', uploadRoutes);
   v1.use('/analytics', analyticsRouter);
   v1.use('/admin', adminRouter);
+  v1.use('/ai-matches', aiMatchRoutes);
 
   app.use('/api/v1', v1);
 
@@ -79,6 +97,9 @@ export function createApp(): express.Application {
   app.use('/api/listings', listingRoutes);
   app.use('/api/cart', cartRoutes);
   app.use('/api/buy-requests', buyRequestRoutes);
+  app.use('/api/bulk-requests', bulkRequestRoutes);
+  app.use('/api/watchlist', watchlistRoutes);
+  app.use('/api/price-alerts', priceAlertRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/notifications', notificationRoutes);
@@ -87,6 +108,7 @@ export function createApp(): express.Application {
   app.use('/api/upload', uploadRoutes);
   app.use('/api/analytics', analyticsRouter);
   app.use('/api/admin', adminRouter);
+  app.use('/api/ai-matches', aiMatchRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

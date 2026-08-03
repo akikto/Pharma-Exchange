@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { User, AppMode } from '@/types';
 import { disconnectSocket } from '@/lib/socket';
 import { apiClient, setTokens, clearTokens, loadRefreshToken } from '@/lib/api';
+import { unregisterFcmTokenFromBackend } from '@/lib/push-notifications';
 
 interface AuthState {
   user: User | null;
@@ -11,6 +12,7 @@ interface AuthState {
   mode: AppMode;
   hasSeenOnboarding: boolean;
   login: (emailOrPhone: string, password: string, isEmail: boolean) => Promise<void>;
+  demoLogin: () => Promise<{ isDemo?: boolean }>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
   register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string; accessToken?: string; refreshToken?: string; user?: User }>;
   sendOtp: (data: { phone?: string; email?: string }) => Promise<{ devOtp?: string }>;
@@ -39,6 +41,14 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/login', body);
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+      },
+
+      demoLogin: async () => {
+        const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User; isDemo?: boolean }>('/auth/demo-login', {});
+        setTokens(data.accessToken, data.refreshToken);
+        set({ user: data.user, isAuthenticated: true });
+        await get().fetchProfile();
+        return { isDemo: data.isDemo };
       },
 
       loginWithFirebase: async (idToken, firstName, lastName) => {
@@ -80,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
+        await unregisterFcmTokenFromBackend();
         try { await apiClient.post('/auth/logout'); } catch { /* ignore */ }
         disconnectSocket();
         clearTokens();

@@ -7,6 +7,12 @@ export interface User {
   role: 'USER' | 'ADMIN';
   language?: string;
   theme?: string;
+  notificationPrefs?: {
+    buyRequests?: boolean;
+    orders?: boolean;
+    chat?: boolean;
+    promotions?: boolean;
+  };
   authProvider?: string;
   pharmacy?: {
     id: string;
@@ -59,6 +65,17 @@ export interface Pharmacy {
   logoUrl?: string;
   latitude?: number;
   longitude?: number;
+  user?: { id: string; phone?: string | null };
+}
+
+export interface PharmacyProfile extends Pharmacy {
+  address: string;
+  postalCode?: string | null;
+  description?: string | null;
+  licenseNumber: string;
+  dealsCompleted: number;
+  owner?: { id: string; name: string; phone?: string | null } | null;
+  createdAt: string;
 }
 
 export interface Listing {
@@ -72,10 +89,12 @@ export interface Listing {
   availableQty: number;
   moq: number;
   unit: string;
+  lowStockThreshold?: number | null;
   status: string;
   imageUrl?: string;
   medicine: Medicine;
   pharmacy: Pharmacy;
+  distanceKm?: number | null;
 }
 
 export interface CartItem {
@@ -104,7 +123,7 @@ export interface Order {
   paymentStatus: string;
   totalAmount: string | number;
   createdAt: string;
-  items: { id: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
+  items: { id: string; listingId?: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
   seller?: Pharmacy;
   buyer?: { id: string; firstName: string; lastName: string };
   statusHistory?: { status: string; note?: string; createdAt: string }[];
@@ -112,6 +131,9 @@ export interface Order {
 
 export interface Conversation {
   id: string;
+  orderId?: string | null;
+  buyRequestId?: string | null;
+  listingId?: string | null;
   updatedAt: string;
   members: { user: { id: string; firstName: string; lastName: string } }[];
   messages: Message[];

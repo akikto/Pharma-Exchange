@@ -3,6 +3,7 @@ import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { notificationService } from '../notification';
+import { chatSystemService } from '../chat/chatSystem.service';
 
 const SELLER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.CONFIRMED]: [OrderStatus.PACKED, OrderStatus.CANCELLED],
@@ -96,6 +97,12 @@ export class OrderService {
         data: { orderId, status },
       });
 
+      const seller = await tx.pharmacy.findUnique({ where: { id: order.sellerId } });
+      if (seller) {
+        await chatSystemService.ensureOrderConversation(orderId, order.buyerId, seller.userId);
+        await chatSystemService.postOrderStatusMessage(orderId, sellerUserId, status, order.orderNumber);
+      }
+
       return updated;
     });
   }
@@ -107,8 +114,8 @@ export class OrderService {
     });
     if (!order) throw AppError.badRequest('Order cannot be cancelled');
 
-    return prisma.$transaction(async (tx) => {
-      const updated = await tx.order.update({
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.update({
         where: { id: orderId },
         data: { status: OrderStatus.CANCELLED, cancelledAt: new Date(), cancelReason: reason },
       });
@@ -126,8 +133,16 @@ export class OrderService {
         });
       }
 
-      return updated;
+      return result;
     });
+
+    const seller = await prisma.pharmacy.findUnique({ where: { id: order.sellerId } });
+    if (seller) {
+      await chatSystemService.ensureOrderConversation(orderId, order.buyerId, seller.userId);
+      await chatSystemService.postOrderStatusMessage(orderId, buyerId, OrderStatus.CANCELLED, order.orderNumber);
+    }
+
+    return updated;
   }
 
   private async restoreInventory(

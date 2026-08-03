@@ -22,6 +22,7 @@ Set in your **frontend** Vercel project:
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
 | `VITE_FIREBASE_APP_ID` | `appId` |
 | `VITE_API_BASE_URL` | `https://pharma-exchange-backend.vercel.app/api/v1` |
+| `VITE_FIREBASE_VAPID_KEY` | Web Push certificate key (FCM) |
 
 ## Backend (Vercel)
 
@@ -38,6 +39,8 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `FIREBASE_CLIENT_EMAIL` | — | Service account email |
 | `FIREBASE_PRIVATE_KEY` | — | Service account private key |
 | `FIREBASE_STORAGE_BUCKET` | — | Storage bucket |
+| `GEMINI_API_KEY` | — | Google AI API key for AI match suggestions |
+| `GEMINI_MODEL` | — | Gemini model id (default: `gemini-2.0-flash`) |
 
 ## Vercel project settings
 
@@ -45,6 +48,20 @@ Set these in Vercel → Project → Settings → Environment Variables:
 - **Framework Preset:** Other
 - **Build Command:** `npx prisma generate && npm run build` (auto from `vercel.json`)
 - **Install Command:** `cd .. && npm ci` (auto from `vercel.json`)
+
+## Preview deployments
+
+Vercel can scope environment variables to **Production** only. Preview deployments (PR branches) need the same variables enabled for **Preview** (and optionally **Development**) in **Settings → Environment Variables**.
+
+| Variable | Preview value |
+|----------|---------------|
+| `DATABASE_URL` | Same as production (or a staging database) |
+| `JWT_SECRET` | Same as production |
+| `NODE_ENV` | `production` |
+| `OTP_DEV_MODE` | `false` (required when `NODE_ENV=production`) |
+| `CORS_ORIGIN` | Frontend preview URL or `https://pharma-exchange-frontend.vercel.app` |
+
+If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON. The lightweight probes `/`, `/health`, and the Vercel rewrite path `/api` still respond without loading Express.
 
 ## Verify deployment
 

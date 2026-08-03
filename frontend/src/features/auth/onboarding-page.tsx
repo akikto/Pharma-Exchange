@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth-store';
 import { Logo } from '@/components/brand/logo';
 
-const slides = [
-  { title: 'Trade medicines with trusted pharmacies', desc: 'Connect with verified pharmacies across Bangladesh for bulk medicine trading.' },
-  { title: 'Negotiate buy requests', desc: 'Send buy requests per seller and negotiate prices directly through chat.' },
-  { title: 'Track orders in real-time', desc: 'From confirmation to delivery — stay updated on every order status.' },
-];
-
 export function OnboardingPage() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const setOnboardingSeen = useAuthStore((s) => s.setOnboardingSeen);
+
+  const slides = [
+    { title: t('auth.onboardingSlide1Title'), desc: t('auth.onboardingSlide1Desc') },
+    { title: t('auth.onboardingSlide2Title'), desc: t('auth.onboardingSlide2Desc') },
+    { title: t('auth.onboardingSlide3Title'), desc: t('auth.onboardingSlide3Desc') },
+  ];
 
   const finish = () => {
     setOnboardingSeen();
@@ -21,7 +23,7 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col p-6">
+    <div className="flex min-h-screen flex-col p-6 edge-to-edge">
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
         <Logo size="xl" className="justify-center" />
         <h1 className="text-2xl font-bold">{slides[step].title}</h1>
@@ -32,12 +34,12 @@ export function OnboardingPage() {
           ))}
         </div>
       </div>
-      <div className="flex gap-3">
-        <Button variant="tertiary" className="flex-1" onClick={finish}>Skip</Button>
+      <div className="flex gap-3 safe-bottom">
+        <Button variant="tertiary" className="flex-1" onClick={finish}>{t('auth.skip')}</Button>
         {step < slides.length - 1 ? (
-          <Button className="flex-1" onClick={() => setStep(step + 1)}>Next</Button>
+          <Button className="flex-1" onClick={() => setStep(step + 1)}>{t('auth.next')}</Button>
         ) : (
-          <Button className="flex-1" onClick={finish}>Get Started</Button>
+          <Button className="flex-1" onClick={finish}>{t('auth.getStarted')}</Button>
         )}
       </div>
     </div>

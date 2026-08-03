@@ -23,6 +23,8 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   LOG_LEVEL: z.string().default('info'),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -47,3 +49,5 @@ export const env = loadEnv();
 
 export const isFirebaseConfigured = (): boolean =>
   Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+
+export const isGeminiConfigured = (): boolean => Boolean(env.GEMINI_API_KEY);

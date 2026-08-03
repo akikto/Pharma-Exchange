@@ -11,6 +11,13 @@ export class ListingController {
     } catch (err) { next(err); }
   }
 
+  async compare(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await listingService.compareByMedicine(req.query);
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async getById(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const listing = await listingService.getById(req.params.id as string);
@@ -72,6 +79,37 @@ export class ListingController {
     try {
       const { data, total, page, limit } = await listingService.getSellerListings(req.user!.userId, req.query);
       res.json({ data, pagination: paginationMeta(page, limit, total) });
+    } catch (err) { next(err); }
+  }
+
+  async getInventoryStats(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const stats = await listingService.getInventoryStats(req.user!.userId);
+      res.json(stats);
+    } catch (err) { next(err); }
+  }
+
+  async exportInventory(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const csv = await listingService.exportInventoryCsv(req.user!.userId);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="inventory.csv"');
+      res.send(csv);
+    } catch (err) { next(err); }
+  }
+
+  async restock(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const amount = req.body.amount ?? 50;
+      const listing = await listingService.restock(req.user!.userId, req.params.id as string, amount);
+      res.json(listing);
+    } catch (err) { next(err); }
+  }
+
+  async markSoldOut(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const listing = await listingService.markSoldOut(req.user!.userId, req.params.id as string);
+      res.json(listing);
     } catch (err) { next(err); }
   }
 }

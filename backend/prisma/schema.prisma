@@ -103,6 +103,33 @@ enum ReportTargetType {
   USER
 }
 
+enum BulkRequestUrgency {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum BulkExpiryPreset {
+  THREE_MONTHS
+  SIX_MONTHS
+  TWELVE_MONTHS
+  SHORT_EXPIRY_OK
+  CUSTOM
+}
+
+enum BulkRequestStatus {
+  OPEN
+  FULFILLED
+  CANCELLED
+}
+
+enum PriceTrend {
+  UP
+  DOWN
+  STABLE
+}
+
 // ─── Auth & Users ────────────────────────────────────────────────────────────
 
 model User {
@@ -118,6 +145,7 @@ model User {
   isActive      Boolean   @default(true)
   language      String    @default("en")
   theme         String    @default("light")
+  notificationPrefs Json?   @default("{}")
   lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -132,6 +160,9 @@ model User {
   conversations     ConversationMember[]
   sentMessages      Message[]
   notifications     Notification[]
+  watchlistItems    WatchlistItem[]
+  priceAlerts       PriceAlert[]
+  triggeredAlerts   TriggeredAlert[]
   reviewsGiven      Review[]           @relation("ReviewsGiven")
   reportsSubmitted  Report[]           @relation("ReportsSubmitted")
   reportsReviewed   Report[]           @relation("ReportsReviewed")
@@ -212,6 +243,7 @@ model Pharmacy {
   documents  PharmacyDocument[]
   listings   Listing[]
   buyRequestsReceived BuyRequest[] @relation("SellerRequests")
+  bulkRequests        BulkRequest[]
   ordersAsSeller      Order[]      @relation("SellerOrders")
   reviewsReceived     Review[]     @relation("ReviewsReceived")
 
@@ -253,6 +285,10 @@ model Medicine {
   updatedAt      DateTime   @updatedAt
 
   listings Listing[]
+  bulkRequests BulkRequest[]
+  watchlistItems WatchlistItem[]
+  priceAlerts PriceAlert[]
+  triggeredAlerts TriggeredAlert[]
 
   @@index([name])
   @@index([genericName])
@@ -277,6 +313,7 @@ model Listing {
   moq             Int           @default(1)
   unit            String        @default("strip")
   status          ListingStatus @default(DRAFT)
+  lowStockThreshold Int?
   imageUrl        String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -286,6 +323,8 @@ model Listing {
   cartItems       CartItem[]
   buyRequestItems BuyRequestItem[]
   orderItems      OrderItem[]
+  bulkRequest     BulkRequest?
+  triggeredAlerts TriggeredAlert[]
 
   @@index([pharmacyId])
   @@index([medicineId])
@@ -311,6 +350,38 @@ model CartItem {
 
   @@unique([userId, listingId])
   @@index([userId])
+}
+
+// ─── Bulk Procurement ────────────────────────────────────────────────────────
+
+model BulkRequest {
+  id                    String             @id @default(uuid())
+  requestNumber         String             @unique
+  pharmacyId            String
+  medicineId            String
+  quantity              Int
+  targetPrice           Decimal            @db.Decimal(12, 2)
+  urgency               BulkRequestUrgency @default(NORMAL)
+  deliveryAddress       String
+  phone                 String
+  requiresColdChain     Boolean            @default(false)
+  requiresVatInvoice    Boolean            @default(false)
+  requiresFactorySealed Boolean            @default(false)
+  expiryPreset          BulkExpiryPreset
+  customExpiryDays      Int?
+  note                  String?
+  status                BulkRequestStatus  @default(OPEN)
+  listingId             String?            @unique
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  pharmacy Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+  listing  Listing? @relation(fields: [listingId], references: [id])
+
+  @@index([pharmacyId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ─── Buy Requests ────────────────────────────────────────────────────────────
@@ -419,16 +490,19 @@ model OrderStatusHistory {
 // ─── Chat ────────────────────────────────────────────────────────────────────
 
 model Conversation {
-  id        String   @id @default(uuid())
-  orderId   String?
-  listingId String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  orderId       String?
+  buyRequestId  String?
+  listingId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   members  ConversationMember[]
   messages Message[]
 
   @@index([updatedAt])
+  @@index([orderId])
+  @@index([buyRequestId])
 }
 
 model ConversationMember {
@@ -476,6 +550,60 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// ─── Watchlist & Price Alerts ────────────────────────────────────────────────
+
+model WatchlistItem {
+  id         String   @id @default(uuid())
+  userId     String
+  medicineId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, medicineId])
+  @@index([userId])
+}
+
+model PriceAlert {
+  id         String   @id @default(uuid())
+  userId     String
+  medicineId String
+  maxPrice   Decimal  @db.Decimal(12, 2)
+  isEnabled  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicine        Medicine         @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  triggeredAlerts TriggeredAlert[]
+
+  @@unique([userId, medicineId])
+  @@index([userId])
+  @@index([medicineId, isEnabled])
+}
+
+model TriggeredAlert {
+  id           String   @id @default(uuid())
+  userId       String
+  priceAlertId String
+  medicineId   String
+  listingId    String?
+  listingPrice Decimal  @db.Decimal(12, 2)
+  maxPrice     Decimal  @db.Decimal(12, 2)
+  isDismissed  Boolean  @default(false)
+  isSimulated  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priceAlert PriceAlert @relation(fields: [priceAlertId], references: [id], onDelete: Cascade)
+  medicine   Medicine   @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  listing    Listing?   @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isDismissed])
   @@index([createdAt])
 }
 

@@ -5,6 +5,14 @@ import { createApp } from '../src/app';
 describe('Health endpoints', () => {
   const app = createApp();
 
+  it('GET / returns API metadata', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.service).toBe('pharma-exchange-api');
+    expect(res.body.api).toBe('/api/v1');
+  });
+
   it('GET /health returns liveness ok', async () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);

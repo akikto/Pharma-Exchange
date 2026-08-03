@@ -20,6 +20,13 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
+  async demoLogin(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.demoLogin();
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async firebaseAuth(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { idToken, firstName, lastName } = req.body;
@@ -66,6 +73,13 @@ export class AuthController {
   async getProfile(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const user = await authService.getProfile(req.user!.userId);
+      res.json(user);
+    } catch (err) { next(err); }
+  }
+
+  async updateProfile(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await authService.updateProfile(req.user!.userId, req.body);
       res.json(user);
     } catch (err) { next(err); }
   }

@@ -12,6 +12,7 @@ const createConvSchema = z.object({
   participantId: z.string().uuid(),
   orderId: z.string().uuid().optional(),
   listingId: z.string().uuid().optional(),
+  buyRequestId: z.string().uuid().optional(),
 });
 
 const sendMsgSchema = z.object({
@@ -22,13 +23,33 @@ const sendMsgSchema = z.object({
 
 class ChatController {
   async getConversations(req: AuthRequest, res: Response, next: NextFunction) {
-    try { res.json(await chatService.getConversations(req.user!.userId)); } catch (err) { next(err); }
+    try {
+      const { orderId, buyRequestId } = req.query;
+      res.json(await chatService.getConversations(req.user!.userId, {
+        orderId: orderId ? String(orderId) : undefined,
+        buyRequestId: buyRequestId ? String(buyRequestId) : undefined,
+      }));
+    } catch (err) { next(err); }
+  }
+
+  async getContextOptions(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      res.json(await chatService.getContextOptions(req.user!.userId));
+    } catch (err) { next(err); }
+  }
+
+  async getConversation(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      res.json(await chatService.getConversation(req.user!.userId, req.params.id as string));
+    } catch (err) { next(err); }
   }
 
   async createConversation(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { participantId, orderId, listingId } = req.body;
-      res.status(201).json(await chatService.createConversation(req.user!.userId, participantId, orderId, listingId));
+      const { participantId, orderId, listingId, buyRequestId } = req.body;
+      res.status(201).json(await chatService.createConversation(
+        req.user!.userId, participantId, orderId, listingId, buyRequestId,
+      ));
     } catch (err) { next(err); }
   }
 
@@ -56,6 +77,8 @@ const ctrl = new ChatController();
 const router = Router();
 
 router.get('/conversations', authenticate, ctrl.getConversations.bind(ctrl));
+router.get('/context-options', authenticate, ctrl.getContextOptions.bind(ctrl));
+router.get('/conversations/:id', authenticate, ctrl.getConversation.bind(ctrl));
 router.post('/conversations', authenticate, validate(createConvSchema), ctrl.createConversation.bind(ctrl));
 router.get('/conversations/:id/messages', authenticate, ctrl.getMessages.bind(ctrl));
 router.post('/conversations/:id/messages', authenticate, validate(sendMsgSchema), ctrl.sendMessage.bind(ctrl));

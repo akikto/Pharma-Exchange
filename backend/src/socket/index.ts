@@ -8,6 +8,12 @@ import { chatService } from '../modules/chat/chat.service';
 import { logger } from '../shared/utils/logger';
 import prisma from '../config/database';
 
+let socketIo: Server | null = null;
+
+export function getSocketIo(): Server | null {
+  return socketIo;
+}
+
 async function verifyConversationMember(userId: string, conversationId: string): Promise<boolean> {
   const member = await prisma.conversationMember.findUnique({
     where: { conversationId_userId: { conversationId, userId } },
@@ -21,12 +27,12 @@ interface SocketUser {
 }
 
 export function initializeSocket(httpServer: HttpServer): Server {
-  const io = new Server(httpServer, {
+  socketIo = new Server(httpServer, {
     cors: { origin: getSocketCorsOrigins() },
     path: '/socket.io',
   });
 
-  io.use((socket, next) => {
+  socketIo.use((socket, next) => {
     const token = socket.handshake.auth.token as string;
     if (!token) return next(new Error('Authentication required'));
 
@@ -39,7 +45,7 @@ export function initializeSocket(httpServer: HttpServer): Server {
     }
   });
 
-  io.on('connection', (socket: Socket) => {
+  socketIo.on('connection', (socket: Socket) => {
     const user = socket.data.user as SocketUser;
     logger.info(`Socket connected: ${user.userId}`);
 
@@ -73,7 +79,7 @@ export function initializeSocket(httpServer: HttpServer): Server {
           data.mediaUrl
         );
 
-        io.to(`conversation:${data.conversationId}`).emit('message:new', message);
+        socketIo!.to(`conversation:${data.conversationId}`).emit('message:new', message);
       } catch (err) {
         socket.emit('error', { message: (err as Error).message });
       }
@@ -105,5 +111,5 @@ export function initializeSocket(httpServer: HttpServer): Server {
     });
   });
 
-  return io;
+  return socketIo;
 }
