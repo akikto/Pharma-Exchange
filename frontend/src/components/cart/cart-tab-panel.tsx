@@ -33,7 +33,9 @@ export function CartTabPanel() {
     try {
       const result = await apiClient.post<{ id: string }>('/buy-requests', {
         sellerId,
-        listingIds: items.map((i) => ({ listingId: i.listing.id, quantity: i.quantity })),
+        listingIds: items
+          .filter((i) => i.listing?.id)
+          .map((i) => ({ listingId: i.listing!.id, quantity: i.quantity })),
         note: notes[sellerId]?.trim() || undefined,
       });
       qc.invalidateQueries({ queryKey: ['cart'] });
@@ -48,13 +50,14 @@ export function CartTabPanel() {
   };
 
   const handleChat = async (items: CartItem[]) => {
-    const userId = items[0]?.listing.pharmacy.userId;
-    if (!userId) {
+    const userId = items[0]?.listing?.pharmacy?.userId;
+    const listingId = items[0]?.listing?.id;
+    if (!userId || !listingId) {
       toast({ title: t('toast.error'), description: t('cart.chatUnavailable'), variant: 'destructive' });
       return;
     }
     try {
-      const conv = await startChat.mutateAsync({ participantId: userId, listingId: items[0].listing.id });
+      const conv = await startChat.mutateAsync({ participantId: userId, listingId });
       navigate(`/chat/${conv.id}`);
     } catch (e) {
       toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });

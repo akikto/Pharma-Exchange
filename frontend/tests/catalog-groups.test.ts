@@ -3,6 +3,7 @@ import {
   groupListingsByMedicine,
   filterListingsByQuery,
   filterListingsNearby,
+  isRenderableListing,
 } from '@/lib/catalog-groups';
 import type { Listing } from '@/types';
 
@@ -60,5 +61,14 @@ describe('catalog-groups', () => {
     const l1 = baseListing({ id: '1', medicineId: 'm1', medicineName: 'Napa', pharmacyId: 'p1', price: 120 });
     const l2 = { ...baseListing({ id: '2', medicineId: 'm2', medicineName: 'Ace', pharmacyId: 'p2', price: 80 }), pharmacy: { ...l1.pharmacy, id: 'p2', city: 'Chittagong' } };
     expect(filterListingsNearby([l1, l2], 'Dhaka')).toHaveLength(1);
+  });
+
+  it('skips listings missing medicine or pharmacy relations', () => {
+    const valid = baseListing({ id: '1', medicineId: 'm1', medicineName: 'Napa', pharmacyId: 'p1', price: 120 });
+    const missingMedicine = { ...valid, medicine: undefined } as unknown as Listing;
+    const missingPharmacy = { ...valid, pharmacy: undefined } as unknown as Listing;
+    expect(isRenderableListing(missingMedicine)).toBe(false);
+    expect(isRenderableListing(missingPharmacy)).toBe(false);
+    expect(groupListingsByMedicine([valid, missingMedicine, missingPharmacy])).toHaveLength(1);
   });
 });

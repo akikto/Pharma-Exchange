@@ -5,6 +5,7 @@ import { useAiMatches } from '@/hooks/use-ai-matches';
 import { useAddToCart } from '@/hooks/use-api';
 import { formatPrice, cn } from '@/lib/utils';
 import { formatMatchScore, matchScoreVariant } from '@/lib/ai-match-utils';
+import { isRenderableListing } from '@/lib/catalog-groups';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 
@@ -18,7 +19,7 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
   const { data, isLoading, isFetching, refetch } = useAiMatches(role);
   const addToCart = useAddToCart();
 
-  const matches = data?.data.filter((m) => m.listing) ?? [];
+  const matches = data?.data.filter((m) => isRenderableListing(m.listing)) ?? [];
 
   if (!isLoading && matches.length === 0) return null;
 
@@ -64,7 +65,8 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
       ) : (
         <div className="space-y-2">
           {matches.map((match) => {
-            const listing = match.listing!;
+            const listing = match.listing;
+            if (!listing) return null;
             const scoreVariant = matchScoreVariant(match.score);
             return (
               <div

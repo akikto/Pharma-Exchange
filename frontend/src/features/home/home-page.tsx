@@ -20,6 +20,7 @@ import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import {
   filterListingsByQuery,
   groupListingsByMedicine,
+  isRenderableListing,
 } from '@/lib/catalog-groups';
 import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
 import { useDemoShopStore } from '@/stores/demo-shop-store';
@@ -50,7 +51,7 @@ export function HomePage() {
   }, [activeFilter, coords, requestLocation, activeShopId]);
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, isFetching, refetch } = useListings(listingParams);
-  const rawListings = data?.pages.flatMap((p) => p.data) ?? [];
+  const rawListings = (data?.pages.flatMap((p) => p.data) ?? []).filter(isRenderableListing);
   const totalFromApi = data?.pages[0]?.pagination.total;
 
   const listings = useMemo(() => filterListingsByQuery(rawListings, searchQuery), [rawListings, searchQuery]);

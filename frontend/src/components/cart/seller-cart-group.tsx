@@ -70,13 +70,15 @@ export function SellerCartGroup({
 
       {expanded && (
         <>
-          {items.map((item) => (
+          {items.map((item) => {
+            if (!item.listing?.id) return null;
+            return (
             <div key={item.id} className="flex items-center gap-3 p-3 border-t border-border-subtle">
               <div className="h-12 w-12 rounded bg-surface-sunken flex items-center justify-center text-lg shrink-0">
                 💊
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.listing.medicine.name}</p>
+                <p className="text-sm font-medium truncate">{item.listing.medicine?.name ?? '—'}</p>
                 <p className="text-xs text-text-secondary tabular-nums">
                   {formatPrice(Number(item.listing.finalPrice))} × {item.quantity} = {formatPrice(Number(item.listing.finalPrice) * item.quantity)}
                 </p>
@@ -87,7 +89,7 @@ export function SellerCartGroup({
                 max={item.listing.availableQty}
                 onChange={(qty) => onQuantityChange(item.id, qty)}
                 disabled={updatingId === item.id}
-                aria-label={t('cart.quantityFor', { name: item.listing.medicine.name })}
+                aria-label={t('cart.quantityFor', { name: item.listing.medicine?.name ?? '' })}
               />
               <button
                 type="button"
@@ -98,7 +100,8 @@ export function SellerCartGroup({
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-          ))}
+            );
+          })}
 
           <div className="p-3 border-t border-border-subtle space-y-3 bg-surface-raised/50">
             <div className="space-y-2">
