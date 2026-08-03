@@ -92,6 +92,8 @@ export function createApp(): express.Application {
 
   // Legacy route aliases
   app.use('/api/auth', authRoutes);
+  // Bare /auth/* for clients configured with server root as API base
+  app.use('/auth', authRoutes);
   app.use('/api/pharmacies', pharmacyRoutes);
   app.use('/api/medicines', medicineRoutes);
   app.use('/api/listings', listingRoutes);
