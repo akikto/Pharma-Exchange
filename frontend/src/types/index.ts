@@ -59,6 +59,7 @@ export interface Pharmacy {
   logoUrl?: string;
   latitude?: number;
   longitude?: number;
+  user?: { id: string; phone?: string | null };
 }
 
 export interface Listing {
@@ -76,6 +77,7 @@ export interface Listing {
   imageUrl?: string;
   medicine: Medicine;
   pharmacy: Pharmacy;
+  distanceKm?: number | null;
 }
 
 export interface CartItem {

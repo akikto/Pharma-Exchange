@@ -14,6 +14,7 @@ const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-pa
 const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
 const SearchPage = lazy(() => import('@/features/home/search-page').then(m => ({ default: m.SearchPage })));
 const MedicineDetailPage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.MedicineDetailPage })));
+const ComparisonPage = lazy(() => import('@/features/medicine/comparison-page').then(m => ({ default: m.ComparisonPage })));
 const PharmacyProfilePage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.PharmacyProfilePage })));
 const SellerDashboardPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerDashboardPage })));
 const SellerInventoryPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerInventoryPage })));
@@ -79,6 +80,7 @@ export function AppRouter() {
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/medicine/:medicineId/compare" element={<ComparisonPage />} />
             <Route path="/medicine/:id" element={<MedicineDetailPage />} />
             <Route path="/pharmacy/:id" element={<PharmacyProfilePage />} />
             <Route path="/cart" element={<CartPage />} />

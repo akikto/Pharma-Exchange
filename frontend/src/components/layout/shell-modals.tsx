@@ -227,7 +227,6 @@ export function ShellModals() {
       <AuthModal open={activeModal === 'buyRequest' && !isAuthenticated} onClose={closeModal} />
       <ListingEditModal open={activeModal === 'listingEdit'} onClose={closeModal} />
       <ComingSoonModal open={activeModal === 'watchlist'} onClose={closeModal} titleKey="modal.watchlistTitle" subKey="modal.watchlistSub" />
-      <ComingSoonModal open={activeModal === 'comparison'} onClose={closeModal} titleKey="modal.comparisonTitle" subKey="modal.comparisonSub" />
       <ComingSoonModal open={activeModal === 'bulk'} onClose={closeModal} titleKey="modal.bulkTitle" subKey="modal.bulkSub" />
       <AuthModal open={activeModal === 'auth'} onClose={closeModal} />
     </>

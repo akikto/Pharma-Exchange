@@ -11,6 +11,13 @@ export class ListingController {
     } catch (err) { next(err); }
   }
 
+  async compare(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await listingService.compareByMedicine(req.query);
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async getById(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const listing = await listingService.getById(req.params.id as string);

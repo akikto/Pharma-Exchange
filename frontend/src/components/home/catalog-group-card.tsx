@@ -1,7 +1,7 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users, ChevronRight } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import { useShellStore } from '@/stores/shell-store';
 import type { CatalogGroup } from '@/lib/catalog-groups';
 import { cn } from '@/lib/utils';
 
@@ -12,18 +12,16 @@ interface CatalogGroupCardProps {
 
 export function CatalogGroupCard({ group, className }: CatalogGroupCardProps) {
   const { t } = useTranslation();
-  const openModal = useShellStore((s) => s.openModal);
 
   return (
-    <button
-      type="button"
+    <Link
+      to={`/medicine/${group.medicineId}/compare`}
       data-testid={`catalog-group-${group.medicineId}`}
       className={cn(
-        'w-full text-left rounded-[var(--radius-md)] border border-border-subtle bg-surface-base p-4',
+        'block w-full text-left rounded-[var(--radius-md)] border border-border-subtle bg-surface-base p-4',
         'transition-shadow hover:shadow-md active:scale-[0.99]',
         className,
       )}
-      onClick={() => openModal('comparison')}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -43,6 +41,6 @@ export function CatalogGroupCard({ group, className }: CatalogGroupCardProps) {
       {group.sellerCount > 1 && (
         <p className="text-[10px] text-primary mt-1">{t('home.compareOffers')}</p>
       )}
-    </button>
+    </Link>
   );
 }

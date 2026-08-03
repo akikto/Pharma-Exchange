@@ -62,3 +62,10 @@ export const marketplaceSearchSchema = z.object({
   longitude: z.coerce.number().optional(),
   radiusKm: z.coerce.number().default(2),
 });
+
+export const compareListingsSchema = z.object({
+  medicineId: z.string().uuid(),
+  sortBy: z.enum(['price', 'expiry', 'distance']).default('price'),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
+});

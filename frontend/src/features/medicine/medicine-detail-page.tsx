@@ -1,30 +1,34 @@
 import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Minus, Plus, MessageCircle } from 'lucide-react';
+import { Minus, Plus, GitCompare, Heart, TrendingUp, BadgeCheck } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ListingCard } from '@/components/listing-card';
+import { ContactActions } from '@/components/offers/contact-actions';
+import { PriceTrendDialog } from '@/components/offers/price-trend-dialog';
 import { apiClient } from '@/lib/api';
-import { formatPrice, getExpiryStatus, getExpiryLabel } from '@/lib/utils';
-import { useAddToCart, useStartConversation } from '@/hooks/use-api';
+import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
+import { isLowStock } from '@/lib/offer-utils';
+import { useAddToCart } from '@/hooks/use-api';
 import { useListings } from '@/hooks/use-listings';
 import { useShellStore } from '@/stores/shell-store';
+import { useWatchlistStore } from '@/stores/watchlist-store';
 import { useToast } from '@/hooks/use-toast';
 import type { Listing } from '@/types';
 
 export function MedicineDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
-  const startChat = useStartConversation();
   const openModal = useShellStore((s) => s.openModal);
   const { toast } = useToast();
+  const { toggle, has } = useWatchlistStore();
+  const [trendOpen, setTrendOpen] = useState(false);
 
   const { data: listing, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -36,6 +40,9 @@ export function MedicineDetailPage() {
   if (!listing) return <div className="p-4 text-center text-text-secondary">{t('listing.notFound')}</div>;
 
   const expiryStatus = getExpiryStatus(listing.expiryDate);
+  const lowStock = isLowStock(listing.availableQty, listing.moq);
+  const verified = listing.pharmacy.verificationStatus === 'APPROVED';
+  const watched = has(listing.medicine.id);
 
   const handleAddToCart = () => {
     addToCart.mutate(
@@ -57,13 +64,6 @@ export function MedicineDetailPage() {
     });
   };
 
-  const handleChat = async () => {
-    const userId = listing.pharmacy.userId;
-    if (!userId) return;
-    const conv = await startChat.mutateAsync({ participantId: userId, listingId: listing.id });
-    navigate(`/chat/${conv.id}`);
-  };
-
   return (
     <div className="pb-24">
       <TopBar showBack />
@@ -77,8 +77,28 @@ export function MedicineDetailPage() {
 
       <div className="p-4 space-y-4">
         <div>
-          <h1 className="text-xl font-bold">{listing.medicine.name}</h1>
+          <div className="flex items-start gap-2">
+            <h1 className="text-xl font-bold flex-1">{listing.medicine.name}</h1>
+            {verified && <BadgeCheck className="h-6 w-6 text-primary shrink-0" aria-label={t('home.verified')} />}
+          </div>
           <p className="text-text-secondary">{listing.medicine.packSize} · {listing.medicine.company}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" asChild>
+            <Link to={`/medicine/${listing.medicine.id}/compare`}>
+              <GitCompare className="h-4 w-4 mr-1" />
+              {t('compare.title')}
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => toggle(listing.medicine.id)}>
+            <Heart className={cn('h-4 w-4 mr-1', watched && 'fill-primary text-primary')} />
+            {t('search.watchlist')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setTrendOpen(true)}>
+            <TrendingUp className="h-4 w-4 mr-1" />
+            {t('offer.priceTrend')}
+          </Button>
         </div>
 
         <div className="flex items-baseline gap-3">
@@ -89,7 +109,10 @@ export function MedicineDetailPage() {
         </div>
 
         <p className="text-sm text-text-secondary">{t('listing.moq', { count: listing.moq })} · {t('listing.available', { count: listing.availableQty })}</p>
+        {lowStock && <p className="text-sm text-warning font-medium">{t('offer.lowStock')}</p>}
         <StatusChip label={t('listing.expiry', { label: getExpiryLabel(listing.expiryDate) })} variant={expiryStatus === 'safe' ? 'success' : expiryStatus} />
+
+        <ContactActions listing={listing} medicineName={listing.medicine.name} size="md" />
 
         <Link to={`/pharmacy/${listing.pharmacy.id}`} className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] border border-border-subtle">
           <div className="h-10 w-10 rounded-full bg-primary-subtle flex items-center justify-center text-primary font-bold">
@@ -117,8 +140,15 @@ export function MedicineDetailPage() {
         </div>
         <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
         <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isPending}>{t('listing.addToCart')}</Button>
-        <Button variant="secondary" size="icon" aria-label={t('listing.messageSeller')} onClick={handleChat}><MessageCircle className="h-5 w-5" /></Button>
       </div>
+
+      <PriceTrendDialog
+        open={trendOpen}
+        onOpenChange={setTrendOpen}
+        medicineId={listing.medicine.id}
+        medicineName={listing.medicine.name}
+        currentPrice={Number(listing.finalPrice)}
+      />
     </div>
   );
 }
