@@ -13,6 +13,7 @@ import { HomeHeaderActions } from '@/components/home/home-header-actions';
 import { BulkProcurementBanner } from '@/components/home/bulk-procurement-banner';
 import { AiMatchSection } from '@/components/home/ai-match-section';
 import { CatalogGroupCard } from '@/components/home/catalog-group-card';
+import { ListingsEmptyState } from '@/components/home/listings-empty-state';
 import { PullToRefreshIndicator } from '@/components/home/pull-to-refresh-indicator';
 import { useListings } from '@/hooks/use-listings';
 import { useInfiniteScroll } from '@/hooks/use-chat';
@@ -126,16 +127,25 @@ export function HomePage() {
               <RefreshCw className={cn('h-4 w-4', (isRefreshing || isFetching) && 'animate-spin')} />
             </Button>
           </div>
-          <div className="flex items-center justify-between text-xs text-text-secondary">
-            <span>{t('home.resultCount', { count: resultCount })}</span>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <p className="min-w-0 text-xs leading-5 text-text-secondary tabular-nums">
+              {t('home.resultCount', { count: resultCount })}
+            </p>
+            <div className="flex shrink-0 items-center gap-3">
               {hasActiveFilters && (
-                <button type="button" className="text-primary flex items-center gap-1" onClick={resetFilters}>
-                  <X className="h-3 w-3" />
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary"
+                  onClick={resetFilters}
+                >
+                  <X className="h-3.5 w-3.5" />
                   {t('home.clearFilters')}
                 </button>
               )}
-              <Link to={searchQuery ? `/search?q=${encodeURIComponent(searchQuery)}` : '/search'} className="text-primary">
+              <Link
+                to={searchQuery ? `/search?q=${encodeURIComponent(searchQuery)}` : '/search'}
+                className="inline-flex items-center rounded-full border border-primary/20 bg-primary-subtle px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+              >
                 {t('home.fullSearch')}
               </Link>
             </div>
@@ -194,7 +204,7 @@ export function HomePage() {
             {isLoading ? (
               <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
             ) : catalogGroups.length === 0 ? (
-              <p className="text-center text-text-secondary py-8">{t('search.noResults')}</p>
+              <ListingsEmptyState onClearFilters={resetFilters} showClearFilters={hasActiveFilters} />
             ) : (
               <div className="space-y-3">
                 {catalogGroups.map((g) => (
@@ -231,7 +241,7 @@ export function HomePage() {
               {isLoading ? (
                 <div className="grid grid-cols-2 gap-3">{Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
               ) : listings.length === 0 ? (
-                <p className="text-center text-text-secondary py-8">{t('search.noResults')}</p>
+                <ListingsEmptyState onClearFilters={resetFilters} showClearFilters={hasActiveFilters} />
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {listings.map((l) => <ListingCard key={l.id} listing={l} />)}

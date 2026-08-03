@@ -1,5 +1,7 @@
 {
   "nav": {
+    "home": "Home",
+    "homeSub": "হোম",
     "feed": "Feed",
     "feedSub": "ফিড",
     "cart": "Cart",
@@ -198,6 +200,8 @@
     "releaseToRefresh": "Release to refresh",
     "refreshing": "Refreshing…",
     "refreshFeed": "Refresh feed",
+    "emptyListingsTitle": "No listings found",
+    "emptyListingsHint": "Try a different search term or clear your filters to see more medicines.",
     "barcodeScan": "Barcode scan",
     "barcodeComingSoon": "Barcode scanner coming soon",
     "watchlistShortcut": "Watchlist, {{count}} items",

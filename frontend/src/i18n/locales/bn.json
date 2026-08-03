@@ -1,5 +1,7 @@
 {
   "nav": {
+    "home": "হোম",
+    "homeSub": "Home",
     "feed": "ফিড",
     "feedSub": "Feed",
     "cart": "কার্ট",
@@ -198,6 +200,8 @@
     "releaseToRefresh": "ছেড়ে দিন রিফ্রেশ করতে",
     "refreshing": "আপডেট হচ্ছে…",
     "refreshFeed": "ফিড রিফ্রেশ",
+    "emptyListingsTitle": "কোনো তালিকা পাওয়া যায়নি",
+    "emptyListingsHint": "ভিন্ন অনুসন্ধান শব্দ ব্যবহার করুন অথবা আরও ওষুধ দেখতে ফিল্টার মুছে দিন।",
     "barcodeScan": "বারকোড স্ক্যান",
     "barcodeComingSoon": "বারকোড স্ক্যানার শীঘ্রই আসছে",
     "watchlistShortcut": "ওয়াচলিস্ট, {{count}} আইটেম",

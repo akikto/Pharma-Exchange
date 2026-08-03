@@ -7,8 +7,9 @@ describe('i18n', () => {
   });
 
   it('has English fallback keys', () => {
-    expect(i18n.t('nav.feed', { lng: 'bn' })).toBe('ফিড');
-    expect(i18n.t('nav.feed', { lng: 'en' })).toBe('Feed');
+    expect(i18n.t('nav.home', { lng: 'bn' })).toBe('হোম');
+    expect(i18n.t('nav.home', { lng: 'en' })).toBe('Home');
+    expect(i18n.t('home.title', { lng: 'en' })).toBe('Home');
   });
 
   it('supports interpolation', () => {
