@@ -23,6 +23,7 @@ import {
 import { useShellStore } from '@/stores/shell-store';
 import { formatPrice } from '@/lib/utils';
 import { inventoryExportFilename, isListingLowStock, type InventoryTab } from '@/lib/inventory-utils';
+import { downloadCsv, shareTextFile } from '@/lib/download-utils';
 import type { Listing } from '@/types';
 
 const TABS: InventoryTab[] = ['ACTIVE', 'PAUSED', 'SOLD_OUT', 'LOW_STOCK'];
@@ -54,13 +55,7 @@ export function SellerInventoryPage() {
   const handleExport = async () => {
     try {
       const csv = await exportInventory.mutateAsync();
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = inventoryExportFilename();
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadCsv(csv, inventoryExportFilename());
       toast({ description: t('inventory.exportSuccess') });
     } catch (e) {
       toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });
@@ -71,15 +66,13 @@ export function SellerInventoryPage() {
     try {
       const csv = await exportInventory.mutateAsync();
       const filename = inventoryExportFilename();
-      if (navigator.share && navigator.canShare?.({ files: [new File([csv], filename, { type: 'text/csv' })] })) {
-        await navigator.share({
-          title: t('inventory.exportTitle'),
-          files: [new File([csv], filename, { type: 'text/csv' })],
-        });
-        return;
+      const result = await shareTextFile(csv, filename, {
+        title: t('inventory.exportTitle'),
+        mimeType: 'text/csv;charset=utf-8',
+      });
+      if (result === 'clipboard') {
+        toast({ description: t('inventory.shareCopied') });
       }
-      await navigator.clipboard.writeText(csv);
-      toast({ description: t('inventory.shareCopied') });
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
         toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });

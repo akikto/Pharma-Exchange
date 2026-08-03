@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { buildOrderReceiptText } from '@/lib/order-utils';
+import { downloadTextFile } from '@/lib/download-utils';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
 
@@ -33,13 +34,7 @@ export function OrderReceiptDialog({ order, counterpartyLabel, open, onClose }: 
   };
 
   const handleDownload = () => {
-    const blob = new Blob([receiptText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${order.orderNumber}-receipt.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadTextFile(receiptText, `${order.orderNumber}-receipt.txt`);
   };
 
   return (

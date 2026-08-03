@@ -3,6 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import bn from './locales/bn.json';
 import en from './locales/en.json';
+import { applyDocumentDirection } from '@/lib/rtl-utils';
 
 export const LOCALE_STORAGE_KEY = 'pharmex-locale';
 export const SUPPORTED_LOCALES = ['bn', 'en'] as const;
@@ -53,8 +54,10 @@ void i18n
 
 i18n.on('languageChanged', (lng) => {
   document.documentElement.lang = lng === 'bn' ? 'bn' : 'en';
+  applyDocumentDirection(lng);
 });
 
 document.documentElement.lang = i18n.language === 'bn' ? 'bn' : 'en';
+applyDocumentDirection(i18n.language);
 
 export default i18n;

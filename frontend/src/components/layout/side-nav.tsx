@@ -25,7 +25,7 @@ export function SideNav() {
         <Logo size="sm" />
       </Link>
 
-      <nav className="flex flex-col gap-1 flex-1" aria-label="Main navigation">
+      <nav className="flex flex-col gap-1 flex-1" aria-label="Main navigation" data-testid="side-nav">
         {nav.map((item) => (
           <NavLinkItem key={item.to} item={item} variant="side" badgeCount={badgeFor(item.badgeKey)} />
         ))}

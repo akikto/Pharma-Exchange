@@ -67,7 +67,7 @@ export function CartTabPanel() {
   const sellerIds = Object.keys(grouped);
   if (sellerIds.length === 0) {
     return (
-      <div className="text-center py-12 px-4">
+      <div className="text-center py-12 px-4" data-testid="cart-empty">
         <p className="text-lg font-medium">{t('cart.empty')}</p>
         <p className="text-text-secondary text-sm mt-1">{t('cart.emptyHint')}</p>
         <Link to="/search"><Button className="mt-4">{t('cart.browseMedicines')}</Button></Link>
@@ -78,7 +78,7 @@ export function CartTabPanel() {
   const grandTotal = cartGrandTotal(grouped);
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4 pb-20" data-testid="cart-panel">
       <p className="text-xs text-text-secondary">{t('cart.checkoutHint')}</p>
       {error && <p className="text-sm text-danger text-center">{error}</p>}
       {sellerIds.map((sellerId) => (

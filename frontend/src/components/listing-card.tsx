@@ -11,12 +11,14 @@ interface ListingCardProps {
 /** Grid marketplace card — delegates to OfferCard. */
 export function ListingCard({ listing, className, showActions = false, bestPrice }: ListingCardProps) {
   return (
-    <OfferCard
-      listing={listing}
-      className={className}
-      variant="grid"
-      showActions={showActions}
-      bestPrice={bestPrice}
-    />
+    <div data-testid={`listing-card-${listing.id}`}>
+      <OfferCard
+        listing={listing}
+        className={className}
+        variant="grid"
+        showActions={showActions}
+        bestPrice={bestPrice}
+      />
+    </div>
   );
 }

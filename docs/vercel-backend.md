@@ -22,6 +22,7 @@ Set in your **frontend** Vercel project:
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
 | `VITE_FIREBASE_APP_ID` | `appId` |
 | `VITE_API_BASE_URL` | `https://pharma-exchange-backend.vercel.app/api/v1` |
+| `VITE_FIREBASE_VAPID_KEY` | Web Push certificate key (FCM) |
 
 ## Backend (Vercel)
 
@@ -38,6 +39,8 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `FIREBASE_CLIENT_EMAIL` | — | Service account email |
 | `FIREBASE_PRIVATE_KEY` | — | Service account private key |
 | `FIREBASE_STORAGE_BUCKET` | — | Storage bucket |
+| `GEMINI_API_KEY` | — | Google AI API key for AI match suggestions |
+| `GEMINI_MODEL` | — | Gemini model id (default: `gemini-2.0-flash`) |
 
 ## Vercel project settings
 
