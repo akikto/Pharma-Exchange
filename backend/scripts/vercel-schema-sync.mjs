@@ -6,7 +6,8 @@
  * 1. Try `prisma migrate deploy`
  * 2. On P3005 (non-empty DB without migration history), baseline existing migrations
  *    with `prisma migrate resolve --applied` and retry deploy
- * 3. Finish with `prisma db push` to apply any remaining schema drift safely
+ * 3. Finish with `prisma db push --accept-data-loss` to apply remaining schema drift
+ *    without interactive prompts on Vercel (non-TTY) builds
  */
 import { execSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
@@ -104,5 +105,5 @@ if (migrate.ok) {
   );
 }
 
-run('npx prisma db push --skip-generate', { inherit: true });
+run('npx prisma db push --skip-generate --accept-data-loss', { inherit: true });
 console.log('[vercel-schema-sync] Schema sync complete.');
