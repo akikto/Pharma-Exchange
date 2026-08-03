@@ -144,6 +144,15 @@
     "emailNotFound": "No account found with this email.",
     "resetFailed": "Password reset failed"
   },
+  "aiMatch": {
+    "title": "AI picks for you",
+    "titleSub": "আপনার জন্য AI পছন্দ",
+    "poweredByGemini": "Powered by Gemini",
+    "poweredByRules": "Smart rule-based matches",
+    "refresh": "Refresh suggestions",
+    "addToCart": "Add to cart",
+    "addedToCart": "Added to cart"
+  },
   "home": {
     "title": "Home",
     "titleSub": "হোম",

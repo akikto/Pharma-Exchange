@@ -144,6 +144,15 @@
     "emailNotFound": "এই ইমেইলে কোনো অ্যাকাউন্ট নেই।",
     "resetFailed": "পাসওয়ার্ড রিসেট ব্যর্থ"
   },
+  "aiMatch": {
+    "title": "আপনার জন্য AI পছন্দ",
+    "titleSub": "AI picks for you",
+    "poweredByGemini": "Gemini দ্বারা চালিত",
+    "poweredByRules": "স্মার্ট নিয়মভিত্তিক মিল",
+    "refresh": "প্রস্তাবনা রিফ্রেশ",
+    "addToCart": "কার্টে যোগ",
+    "addedToCart": "কার্টে যোগ হয়েছে"
+  },
   "home": {
     "title": "হোম",
     "titleSub": "Home",

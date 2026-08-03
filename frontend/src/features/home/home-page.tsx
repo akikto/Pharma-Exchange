@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ShopHeader } from '@/components/home/shop-header';
 import { HomeHeaderActions } from '@/components/home/home-header-actions';
 import { BulkProcurementBanner } from '@/components/home/bulk-procurement-banner';
+import { AiMatchSection } from '@/components/home/ai-match-section';
 import { CatalogGroupCard } from '@/components/home/catalog-group-card';
 import { PullToRefreshIndicator } from '@/components/home/pull-to-refresh-indicator';
 import { useListings } from '@/hooks/use-listings';
@@ -22,6 +23,7 @@ import {
 } from '@/lib/catalog-groups';
 import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
 import { useDemoShopStore } from '@/stores/demo-shop-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +32,7 @@ type FeedView = 'grid' | 'catalog';
 export function HomePage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<HomeQuickFilter>('filterAll');
   const [feedView, setFeedView] = useState<FeedView>('grid');
@@ -63,6 +66,7 @@ export function HomePage() {
 
   const refreshFeed = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: ['listings'] });
+    await qc.invalidateQueries({ queryKey: ['ai-matches'] });
     await refetch();
   }, [qc, refetch]);
 
@@ -91,6 +95,8 @@ export function HomePage() {
 
       <div className="px-4 pb-4 space-y-4">
         <ShopHeader />
+
+        {isAuthenticated && <AiMatchSection />}
 
         <PullToRefreshIndicator
           pullDistance={pullDistance}

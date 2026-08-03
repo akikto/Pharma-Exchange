@@ -27,6 +27,7 @@ import reportRoutes from './modules/report/report.routes';
 import uploadRoutes from './modules/upload/upload.routes';
 import { analyticsRouter, adminRouter } from './modules/admin/admin.routes';
 import healthRoutes from './modules/health/health.routes';
+import aiMatchRoutes from './modules/ai-match/aiMatch.routes';
 
 export function createApp(): express.Application {
   initializeFirebase();
@@ -85,6 +86,7 @@ export function createApp(): express.Application {
   v1.use('/upload', uploadRoutes);
   v1.use('/analytics', analyticsRouter);
   v1.use('/admin', adminRouter);
+  v1.use('/ai-matches', aiMatchRoutes);
 
   app.use('/api/v1', v1);
 
@@ -106,6 +108,7 @@ export function createApp(): express.Application {
   app.use('/api/upload', uploadRoutes);
   app.use('/api/analytics', analyticsRouter);
   app.use('/api/admin', adminRouter);
+  app.use('/api/ai-matches', aiMatchRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
