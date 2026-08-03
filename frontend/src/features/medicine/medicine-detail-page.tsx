@@ -150,7 +150,7 @@ export function MedicineDetailPage() {
           <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
         </div>
         <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
-        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isPending}>{t('listing.addToCart')}</Button>
+        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing.id)}>{t('listing.addToCart')}</Button>
       </div>
 
       <PriceTrendDialog

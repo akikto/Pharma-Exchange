@@ -101,7 +101,7 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
                   <Button
                     size="sm"
                     onClick={() => handleAddToCart(listing.id, listing.moq)}
-                    loading={addToCart.isPending}
+                    loading={addToCart.isAddingToCart(listing.id)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-1" />
                     {t('aiMatch.addToCart')}

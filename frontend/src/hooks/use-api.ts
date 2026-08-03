@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import type { CartItem, PaginatedResponse, Order, BuyRequest, Notification, SellerAnalytics, Listing, Medicine } from '@/types';
@@ -11,10 +12,61 @@ export function useCart() {
 
 export function useAddToCart() {
   const qc = useQueryClient();
-  return useMutation({
+  const [loadingIds, setLoadingIds] = useState(() => new Set<string>());
+
+  const addLoading = useCallback((listingId: string) => {
+    setLoadingIds((prev) => {
+      if (prev.has(listingId)) return prev;
+      const next = new Set(prev);
+      next.add(listingId);
+      return next;
+    });
+  }, []);
+
+  const removeLoading = useCallback((listingId: string) => {
+    setLoadingIds((prev) => {
+      if (!prev.has(listingId)) return prev;
+      const next = new Set(prev);
+      next.delete(listingId);
+      return next;
+    });
+  }, []);
+
+  const mutation = useMutation({
     mutationFn: (data: { listingId: string; quantity: number }) => apiClient.post('/cart', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['cart'] }),
+    onSettled: (_data, _error, variables) => {
+      removeLoading(variables.listingId);
+    },
   });
+
+  const mutate = useCallback(
+    (data: { listingId: string; quantity: number }, options?: Parameters<typeof mutation.mutate>[1]) => {
+      addLoading(data.listingId);
+      mutation.mutate(data, options);
+    },
+    [mutation, addLoading],
+  );
+
+  const mutateAsync = useCallback(
+    (data: { listingId: string; quantity: number }, options?: Parameters<typeof mutation.mutateAsync>[1]) => {
+      addLoading(data.listingId);
+      return mutation.mutateAsync(data, options);
+    },
+    [mutation, addLoading],
+  );
+
+  const isAddingToCart = useCallback(
+    (listingId: string) => loadingIds.has(listingId),
+    [loadingIds],
+  );
+
+  return {
+    ...mutation,
+    mutate,
+    mutateAsync,
+    isAddingToCart,
+  };
 }
 
 export function useRemoveFromCart() {
