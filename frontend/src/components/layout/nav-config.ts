@@ -4,7 +4,7 @@ import type { AppMode } from '@/types';
 
 export type NavBadgeKey = 'cart' | 'chat' | 'requests';
 
-export type NavLabelKey = 'feed' | 'cart' | 'inventory' | 'chat' | 'profile';
+export type NavLabelKey = 'home' | 'dashboard' | 'cart' | 'inventory' | 'chat' | 'profile';
 
 export interface NavItem {
   to: string;
@@ -15,9 +15,9 @@ export interface NavItem {
   matchPrefix?: boolean;
 }
 
-/** PRD: Feed, Cart, Inventory, Chat, Profile */
+/** PRD: Home, Cart, Inventory, Chat, Profile */
 export const buyerNav: NavItem[] = [
-  { to: '/', icon: Home, labelKey: 'feed', matchPrefix: false },
+  { to: '/', icon: Home, labelKey: 'home', matchPrefix: false },
   { to: '/cart', icon: ShoppingCart, labelKey: 'cart', badgeKey: 'cart' },
   { to: '/search', icon: Package, labelKey: 'inventory' },
   { to: '/chat', icon: MessageCircle, labelKey: 'chat', badgeKey: 'chat' },
@@ -25,7 +25,7 @@ export const buyerNav: NavItem[] = [
 ];
 
 export const sellerNav: NavItem[] = [
-  { to: '/seller', icon: LayoutDashboard, labelKey: 'feed', matchPrefix: true },
+  { to: '/seller', icon: LayoutDashboard, labelKey: 'dashboard', matchPrefix: true },
   { to: '/cart', icon: ShoppingCart, labelKey: 'cart', badgeKey: 'cart' },
   { to: '/seller/inventory', icon: Package, labelKey: 'inventory', badgeKey: 'requests', matchPrefix: true },
   { to: '/chat', icon: MessageCircle, labelKey: 'chat', badgeKey: 'chat' },
