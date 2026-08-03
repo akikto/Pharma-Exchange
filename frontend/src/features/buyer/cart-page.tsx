@@ -1,13 +1,21 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Trash2, MessageCircle } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
-import { useCart, useOrders, useBuyRequests, useRemoveFromCart, useStartConversation } from '@/hooks/use-api';
+import { SellerCartGroup } from '@/components/cart/seller-cart-group';
+import {
+  useCart,
+  useOrders,
+  useBuyRequests,
+  useRemoveFromCart,
+  useStartConversation,
+  useUpdateCartItem,
+} from '@/hooks/use-api';
 import { usePageRole } from '@/hooks/use-page-role';
 import { apiClient } from '@/lib/api';
+import { cartGrandTotal } from '@/lib/cart-utils';
 import { formatPrice } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -18,25 +26,30 @@ export function CartPage() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useCart();
   const removeItem = useRemoveFromCart();
+  const updateItem = useUpdateCartItem();
   const startChat = useStartConversation();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState('');
   const [sending, setSending] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const grouped = data?.groupedBySeller ?? {};
 
   const sendBuyRequest = async (sellerId: string, items: CartItem[]) => {
     setError('');
     setSending(sellerId);
     try {
-      await apiClient.post('/buy-requests', {
+      const result = await apiClient.post<{ id: string }>('/buy-requests', {
         sellerId,
         listingIds: items.map((i) => ({ listingId: i.listing.id, quantity: i.quantity })),
+        note: notes[sellerId]?.trim() || undefined,
       });
       qc.invalidateQueries({ queryKey: ['cart'] });
+      qc.invalidateQueries({ queryKey: ['buy-requests'] });
       toast({ description: t('toast.buyRequestSent') });
-      navigate('/buy-requests');
+      navigate(`/buy-requests/${result.id}`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -46,15 +59,34 @@ export function CartPage() {
 
   const handleChat = async (items: CartItem[]) => {
     const userId = items[0]?.listing.pharmacy.userId;
-    if (!userId) return;
-    const conv = await startChat.mutateAsync({ participantId: userId, listingId: items[0].listing.id });
-    navigate(`/chat/${conv.id}`);
+    if (!userId) {
+      toast({ title: t('toast.error'), description: t('cart.chatUnavailable'), variant: 'destructive' });
+      return;
+    }
+    try {
+      const conv = await startChat.mutateAsync({ participantId: userId, listingId: items[0].listing.id });
+      navigate(`/chat/${conv.id}`);
+    } catch (e) {
+      toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });
+    }
   };
 
   const handleRemove = (id: string) => {
     removeItem.mutate(id, {
       onSuccess: () => toast({ description: t('toast.removedFromCart') }),
     });
+  };
+
+  const handleQuantityChange = (cartItemId: string, quantity: number) => {
+    setUpdatingId(cartItemId);
+    updateItem.mutate(
+      { id: cartItemId, quantity },
+      {
+        onSuccess: () => toast({ description: t('cart.quantityUpdated') }),
+        onError: (e) => toast({ title: t('toast.error'), description: e.message, variant: 'destructive' }),
+        onSettled: () => setUpdatingId(null),
+      },
+    );
   };
 
   if (isLoading) return <div className="p-4"><ListSkeleton /></div>;
@@ -74,47 +106,40 @@ export function CartPage() {
     );
   }
 
+  const grandTotal = cartGrandTotal(grouped);
+
   return (
-    <div>
+    <div className="pb-28">
       <TopBar title={t('cart.title')} />
       <div className="p-4 space-y-4">
+        <p className="text-xs text-text-secondary">{t('cart.checkoutHint')}</p>
         {error && <p className="text-sm text-danger text-center">{error}</p>}
-        {sellerIds.map((sellerId) => {
-          const items = grouped[sellerId];
-          const subtotal = items.reduce((sum, i) => sum + Number(i.listing.finalPrice) * i.quantity, 0);
-          return (
-            <div key={sellerId} className="rounded-[var(--radius-md)] border border-border-subtle overflow-hidden">
-              <div className="flex items-center justify-between p-3 bg-surface-raised">
-                <span className="font-medium text-sm">{items[0].listing.pharmacy.name} ({t('common.items', { count: items.length })})</span>
-                <Button variant="ghost" size="sm" aria-label={t('cart.messageSeller')} onClick={() => handleChat(items)}>
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-              </div>
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 p-3 border-t border-border-subtle">
-                  <div className="h-12 w-12 rounded bg-surface-sunken flex items-center justify-center text-lg">💊</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.listing.medicine.name}</p>
-                    <p className="text-xs text-text-secondary">{item.quantity} · {formatPrice(Number(item.listing.finalPrice) * item.quantity)}</p>
-                  </div>
-                  <button
-                    className="p-2 text-text-secondary hover:text-danger"
-                    aria-label={t('cart.removeItem')}
-                    onClick={() => handleRemove(item.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-              <div className="flex items-center justify-between p-3 border-t border-border-subtle bg-surface-raised">
-                <span className="font-medium tabular-nums">{t('cart.subtotal', { amount: formatPrice(subtotal) })}</span>
-                <Button size="sm" loading={sending === sellerId} onClick={() => sendBuyRequest(sellerId, items)}>
-                  {t('cart.sendBuyRequest')} →
-                </Button>
-              </div>
-            </div>
-          );
-        })}
+        {sellerIds.map((sellerId) => (
+          <SellerCartGroup
+            key={sellerId}
+            sellerId={sellerId}
+            items={grouped[sellerId]}
+            note={notes[sellerId] ?? ''}
+            onNoteChange={(note) => setNotes((prev) => ({ ...prev, [sellerId]: note }))}
+            onQuantityChange={handleQuantityChange}
+            onRemove={handleRemove}
+            onChat={() => handleChat(grouped[sellerId])}
+            onSendBuyRequest={() => sendBuyRequest(sellerId, grouped[sellerId])}
+            sending={sending === sellerId}
+            updatingId={updatingId}
+          />
+        ))}
+      </div>
+
+      <div className="fixed bottom-16 left-0 right-0 lg:left-60 z-30 border-t border-border-subtle bg-surface-raised/95 backdrop-blur px-4 py-3">
+        <div className="flex items-center justify-between max-w-3xl mx-auto">
+          <div>
+            <p className="text-xs text-text-secondary">{t('cart.grandTotalLabel')}</p>
+            <p className="text-lg font-bold tabular-nums">{formatPrice(grandTotal)}</p>
+            <p className="text-[10px] text-text-disabled">{t('cart.grandTotalHint')}</p>
+          </div>
+          <span className="text-xs text-text-secondary">{t('cart.sellerGroups', { count: sellerIds.length })}</span>
+        </div>
       </div>
     </div>
   );

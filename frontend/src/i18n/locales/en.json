@@ -54,6 +54,9 @@
     "pendingRequests_other": "{{count}} pending requests",
     "viewCart": "View cart",
     "viewRequests": "View requests",
+    "moreCartItems": "+{{count}} more items",
+    "moreCartItems_one": "+{{count}} more item",
+    "moreCartItems_other": "+{{count}} more items",
     "expand": "Expand",
     "collapse": "Collapse",
     "notifications": "Notifications",
@@ -300,7 +303,16 @@
     "removeItem": "Remove item",
     "loadError": "Failed to load cart",
     "note": "Note (optional)",
-    "notePlaceholder": "Message to seller…"
+    "notePlaceholder": "Message to seller…",
+    "checkoutHint": "Each seller receives a separate buy request — negotiate independently.",
+    "grandTotalLabel": "Cart total",
+    "grandTotalHint": "Send buy requests per seller below",
+    "sellerGroups": "{{count}} sellers",
+    "sellerGroups_one": "{{count}} seller",
+    "sellerGroups_other": "{{count}} sellers",
+    "quantityUpdated": "Quantity updated",
+    "quantityFor": "Quantity for {{name}}",
+    "chatUnavailable": "Seller contact is not available"
   },
   "buyRequest": {
     "title": "Buy Requests",
