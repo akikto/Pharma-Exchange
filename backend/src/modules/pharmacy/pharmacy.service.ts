@@ -1,4 +1,4 @@
-import { VerificationStatus } from '@prisma/client';
+import { OrderStatus, VerificationStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { notificationService } from '../notification';
@@ -52,13 +52,37 @@ export class PharmacyService {
     const pharmacy = await prisma.pharmacy.findUnique({
       where: { id },
       select: {
-        id: true, name: true, city: true, district: true, description: true,
-        logoUrl: true, rating: true, ratingCount: true, verificationStatus: true,
-        latitude: true, longitude: true, createdAt: true,
+        id: true, name: true, city: true, district: true, address: true, postalCode: true,
+        description: true, logoUrl: true, rating: true, ratingCount: true, verificationStatus: true,
+        licenseNumber: true, latitude: true, longitude: true, createdAt: true,
+        user: { select: { id: true, firstName: true, lastName: true, phone: true } },
       },
     });
     if (!pharmacy) throw AppError.notFound('Pharmacy not found');
-    return pharmacy;
+
+    const dealsCompleted = await prisma.order.count({
+      where: { sellerId: id, status: OrderStatus.DELIVERED },
+    });
+
+    const { user, ...rest } = pharmacy;
+    return {
+      ...rest,
+      owner: user
+        ? { id: user.id, name: `${user.firstName} ${user.lastName}`.trim(), phone: user.phone }
+        : null,
+      dealsCompleted,
+    };
+  }
+
+  async listDemoShops() {
+    return prisma.pharmacy.findMany({
+      where: { verificationStatus: VerificationStatus.APPROVED, isActive: true },
+      select: {
+        id: true, name: true, city: true, district: true, logoUrl: true,
+        rating: true, verificationStatus: true,
+      },
+      orderBy: { name: 'asc' },
+    });
   }
 
   async adminVerify(pharmacyId: string, action: 'approve' | 'reject', rejectionReason?: string) {

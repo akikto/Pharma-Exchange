@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { useToast } from '@/hooks/use-toast';
+import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import type { AppLocale } from '@/i18n';
 
 export function ProfilePage() {
@@ -35,7 +36,15 @@ export function ProfilePage() {
           <div>
             <h2 className="text-lg font-bold">{user?.firstName} {user?.lastName}</h2>
             <p className="text-sm text-text-secondary">{user?.email || user?.phone}</p>
-            {user?.pharmacy && <p className="text-xs text-primary mt-0.5">{user.pharmacy.name} · {user.pharmacy.verificationStatus}</p>}
+            {user?.pharmacy && (
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                <p className="text-xs text-primary">{user.pharmacy.name}</p>
+                {user.pharmacy.verificationStatus === 'APPROVED' && <VerifiedBadge size="sm" />}
+                {user.pharmacy.verificationStatus !== 'APPROVED' && (
+                  <span className="text-xs text-text-secondary">{user.pharmacy.verificationStatus}</span>
+                )}
+              </div>
+            )}
             {!hasPharmacy && (
               <Link to="/pharmacy/register" className="text-xs text-primary mt-1 inline-block">{t('profile.registerPharmacy')}</Link>
             )}

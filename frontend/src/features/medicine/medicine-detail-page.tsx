@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Minus, Plus, GitCompare, Heart, TrendingUp, BadgeCheck } from 'lucide-react';
+import { Minus, Plus, GitCompare, Heart, TrendingUp } from 'lucide-react';
+import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
@@ -14,6 +15,9 @@ import { apiClient } from '@/lib/api';
 import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock } from '@/lib/offer-utils';
 import { useAddToCart } from '@/hooks/use-api';
+import { PharmacyContactActions } from '@/components/pharmacy/pharmacy-contact-actions';
+import { usePharmacyProfile } from '@/hooks/use-pharmacy';
+import { formatPharmacyAddress } from '@/lib/shop-utils';
 import { useListings } from '@/hooks/use-listings';
 import { useShellStore } from '@/stores/shell-store';
 import { useToggleWatchlist, useIsWatched } from '@/hooks/use-watchlist';
@@ -80,7 +84,7 @@ export function MedicineDetailPage() {
         <div>
           <div className="flex items-start gap-2">
             <h1 className="text-xl font-bold flex-1">{listing.medicine.name}</h1>
-            {verified && <BadgeCheck className="h-6 w-6 text-primary shrink-0" aria-label={t('home.verified')} />}
+            {verified && <VerifiedBadge size="md" className="shrink-0" />}
           </div>
           <p className="text-text-secondary">{listing.medicine.packSize} · {listing.medicine.company}</p>
         </div>
@@ -163,27 +167,74 @@ export function MedicineDetailPage() {
 export function PharmacyProfilePage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const { data: pharmacy, isLoading } = useQuery({
-    queryKey: ['pharmacy', id],
-    queryFn: () => apiClient.get<{ id: string; name: string; city: string; rating: number }>(`/pharmacies/${id}`),
-    enabled: !!id,
-  });
+  const { data: pharmacy, isLoading } = usePharmacyProfile(id);
   const { data: listingsData, isLoading: listingsLoading } = useListings({ pharmacyId: id });
   const listings = listingsData?.pages.flatMap((p) => p.data) ?? [];
 
   if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>;
+  if (!pharmacy) return <div className="p-4 text-center text-danger">{t('common.error')}</div>;
+
+  const isVerified = pharmacy.verificationStatus === 'APPROVED';
+  const fullAddress = formatPharmacyAddress(pharmacy);
 
   return (
-    <div>
+    <div data-testid="pharmacy-profile-page">
       <TopBar showBack />
-      <div className="p-4 space-y-4">
-        <div className="text-center">
-          <div className="h-16 w-16 rounded-full bg-primary-subtle flex items-center justify-center text-2xl font-bold text-primary mx-auto mb-2">
-            {pharmacy?.name?.[0]}
+      <div className="p-4 space-y-5">
+        <div className="text-center space-y-2">
+          <div className="h-16 w-16 rounded-full bg-primary-subtle flex items-center justify-center text-2xl font-bold text-primary mx-auto">
+            {pharmacy.name[0]}
           </div>
-          <h1 className="text-xl font-bold">{pharmacy?.name}</h1>
-          <p className="text-text-secondary">⭐ {pharmacy?.rating} · {pharmacy?.city}</p>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold">{pharmacy.name}</h1>
+            {isVerified && <VerifiedBadge size="md" />}
+          </div>
+          <p className="text-text-secondary text-sm">
+            ⭐ {pharmacy.rating}
+            {pharmacy.ratingCount ? ` (${pharmacy.ratingCount})` : ''}
+            {' · '}
+            {pharmacy.city}
+          </p>
         </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="p-3 rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised">
+            <p className="text-xs text-text-secondary">{t('shop.dealsCompleted')}</p>
+            <p className="font-semibold text-lg tabular-nums">{pharmacy.dealsCompleted}</p>
+          </div>
+          <div className="p-3 rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised">
+            <p className="text-xs text-text-secondary">{t('shop.license')}</p>
+            <p className="font-medium text-sm break-all">{pharmacy.licenseNumber}</p>
+          </div>
+        </div>
+
+        {pharmacy.owner && (
+          <div>
+            <p className="text-xs text-text-secondary">{t('shop.owner')}</p>
+            <p className="font-medium">{pharmacy.owner.name}</p>
+          </div>
+        )}
+
+        {fullAddress && (
+          <div>
+            <p className="text-xs text-text-secondary">{t('pharmacy.address')}</p>
+            <p className="text-sm">{fullAddress}</p>
+          </div>
+        )}
+
+        {pharmacy.description && (
+          <div>
+            <p className="text-xs text-text-secondary">{t('pharmacy.description')}</p>
+            <p className="text-sm text-text-secondary">{pharmacy.description}</p>
+          </div>
+        )}
+
+        <PharmacyContactActions
+          ownerId={pharmacy.owner?.id}
+          phone={pharmacy.owner?.phone}
+          pharmacyName={pharmacy.name}
+        />
+
         <h2 className="font-semibold">{t('listing.listings')}</h2>
         {listingsLoading ? (
           <Skeleton className="h-32 w-full" />

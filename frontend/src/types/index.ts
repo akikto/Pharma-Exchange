@@ -62,6 +62,16 @@ export interface Pharmacy {
   user?: { id: string; phone?: string | null };
 }
 
+export interface PharmacyProfile extends Pharmacy {
+  address: string;
+  postalCode?: string | null;
+  description?: string | null;
+  licenseNumber: string;
+  dealsCompleted: number;
+  owner?: { id: string; name: string; phone?: string | null } | null;
+  createdAt: string;
+}
+
 export interface Listing {
   id: string;
   batchNumber: string;

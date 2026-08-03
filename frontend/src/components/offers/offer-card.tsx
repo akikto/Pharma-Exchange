@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  ShoppingCart, Heart, GitCompare, Clock, TrendingUp, BadgeCheck, AlertTriangle,
+  ShoppingCart, Heart, GitCompare, Clock, TrendingUp, AlertTriangle,
 } from 'lucide-react';
+import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock, calculateSavings, formatSavingsPercent } from '@/lib/offer-utils';
 import { StatusChip } from '@/components/ui/status-chip';
@@ -114,7 +115,7 @@ export function OfferCard({
     <div className="flex-1 min-w-0 space-y-1">
       <div className="flex items-start gap-1">
         <h3 className={cn('font-semibold line-clamp-2', variant === 'grid' ? 'text-sm' : 'text-base')}>{listing.medicine.name}</h3>
-        {verified && <BadgeCheck className="h-4 w-4 text-primary shrink-0" aria-label={t('home.verified')} />}
+        {verified && <VerifiedBadge size="sm" className="shrink-0" />}
       </div>
       <p className="text-xs text-text-secondary">{listing.medicine.packSize} · {listing.medicine.company}</p>
       <p className="text-xs text-text-secondary">⭐ {listing.pharmacy.rating} · {listing.pharmacy.name} · {listing.pharmacy.city}</p>

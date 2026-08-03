@@ -9,6 +9,7 @@ const router = Router();
 router.post('/register', authenticate, validate(registerPharmacySchema), pharmacyController.register.bind(pharmacyController));
 router.post('/documents', authenticate, validate(documentSchema), pharmacyController.uploadDocument.bind(pharmacyController));
 router.get('/me', authenticate, pharmacyController.getMyPharmacy.bind(pharmacyController));
+router.get('/demo-shops', pharmacyController.listDemoShops.bind(pharmacyController));
 router.get('/:id', pharmacyController.getPublicProfile.bind(pharmacyController));
 
 export default router;
