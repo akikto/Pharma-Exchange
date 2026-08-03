@@ -127,7 +127,16 @@ frontend vite build — pass (2.45s)
 
 ## GitHub CI / Vercel Preview
 
-Status updated after push.
+| Check | Status |
+|-------|--------|
+| GitHub CI — backend | ✅ Pass |
+| GitHub CI — frontend | ✅ Pass |
+| Vercel — pharma-exchange-backend | ✅ Pass |
+| Vercel — pharma-exchange-frontend | ✅ Pass |
+
+**PR:** [#34](https://github.com/akikto/Pharma-Exchange/pull/34)  
+**Frontend preview:** https://pharma-exchange-frontend-5klq73eta-akikto1.vercel.app  
+**Backend preview:** https://pharma-exchange-backend-351nuqm7j-akikto1.vercel.app
 
 ---
 
