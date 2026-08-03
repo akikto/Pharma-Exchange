@@ -16,7 +16,7 @@ import { isLowStock } from '@/lib/offer-utils';
 import { useAddToCart } from '@/hooks/use-api';
 import { useListings } from '@/hooks/use-listings';
 import { useShellStore } from '@/stores/shell-store';
-import { useWatchlistStore } from '@/stores/watchlist-store';
+import { useToggleWatchlist, useIsWatched } from '@/hooks/use-watchlist';
 import { useToast } from '@/hooks/use-toast';
 import type { Listing } from '@/types';
 
@@ -27,7 +27,7 @@ export function MedicineDetailPage() {
   const addToCart = useAddToCart();
   const openModal = useShellStore((s) => s.openModal);
   const { toast } = useToast();
-  const { toggle, has } = useWatchlistStore();
+  const toggleWatchlist = useToggleWatchlist();
   const [trendOpen, setTrendOpen] = useState(false);
 
   const { data: listing, isLoading } = useQuery({
@@ -36,13 +36,14 @@ export function MedicineDetailPage() {
     enabled: !!id,
   });
 
+  const watched = useIsWatched(listing?.medicine.id ?? '');
+
   if (isLoading) return <div className="p-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-8 w-2/3 mt-4" /></div>;
   if (!listing) return <div className="p-4 text-center text-text-secondary">{t('listing.notFound')}</div>;
 
   const expiryStatus = getExpiryStatus(listing.expiryDate);
   const lowStock = isLowStock(listing.availableQty, listing.moq);
   const verified = listing.pharmacy.verificationStatus === 'APPROVED';
-  const watched = has(listing.medicine.id);
 
   const handleAddToCart = () => {
     addToCart.mutate(
@@ -91,7 +92,13 @@ export function MedicineDetailPage() {
               {t('compare.title')}
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => toggle(listing.medicine.id)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => toggleWatchlist.mutate(listing.medicine.id, {
+              onSuccess: (r) => toast({ description: r.added ? t('search.addedWatchlist') : t('search.removedWatchlist') }),
+            })}
+          >
             <Heart className={cn('h-4 w-4 mr-1', watched && 'fill-primary text-primary')} />
             {t('search.watchlist')}
           </Button>

@@ -558,6 +558,36 @@
     "sellerRequiredDesc": "বাল্ক ক্রয় অনুরোধ পোস্ট করতে ফার্মেসি নিবন্ধন ও যাচাই করুন।",
     "fabLabel": "বাল্ক অনুরোধ"
   },
+  "watchlist": {
+    "title": "ওয়াচলিস্ট",
+    "tabList": "সংরক্ষিত",
+    "tabAlerts": "সতর্কতা",
+    "empty": "এখনো কোনো ওষুধ সংরক্ষিত নেই",
+    "browse": "ওষুধ ব্রাউজ করুন",
+    "loadError": "ওয়াচলিস্ট লোড করতে ব্যর্থ",
+    "noOffers": "কোনো সক্রিয় অফার নেই",
+    "sellers": "{{count}} বিক্রেতা",
+    "compare": "তুলনা",
+    "remove": "সরান",
+    "maxPrice": "সর্বোচ্চ মূল্য সতর্কতা",
+    "alertSet": "মূল্য সতর্কতা সংরক্ষিত",
+    "simulate": "সতর্কতা সিমুলেট",
+    "simulateSuccess": "ডেমো সতর্কতা ট্রিগার হয়েছে",
+    "addToCart": "কার্টে যোগ",
+    "activeAlerts": "আপনার মূল্য সতর্কতা",
+    "noAlerts": "কোনো মূল্য সতর্কতা নেই",
+    "enabled": "চালু",
+    "disabled": "বন্ধ",
+    "triggeredInbox": "ট্রিগার করা সতর্কতা",
+    "noTriggered": "কোনো ট্রিগার করা সতর্কতা নেই",
+    "simulated": "ডেমো",
+    "dismiss": "বাতিল",
+    "trend": {
+      "up": "বাড়ছে",
+      "down": "কমছে",
+      "stable": "স্থির"
+    }
+  },
   "admin": {
     "dashboard": "অ্যাডমিন ড্যাশবোর্ড",
     "dashboardSub": "Admin Dashboard",
