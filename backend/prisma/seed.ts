@@ -52,7 +52,7 @@ async function main() {
 
   const pharmacy = await prisma.pharmacy.upsert({
     where: { userId: seller.id },
-    update: {},
+    update: { description: 'Trusted wholesale supplier in Dhanmondi with cold-chain storage.' },
     create: {
       userId: seller.id,
       name: 'City Pharmacy',
@@ -63,11 +63,78 @@ async function main() {
       postalCode: '1205',
       latitude: 23.7461,
       longitude: 90.3742,
+      description: 'Trusted wholesale supplier in Dhanmondi with cold-chain storage.',
       rating: 4.6,
       ratingCount: 128,
       verificationStatus: VerificationStatus.APPROVED,
     },
   });
+
+  const seller2 = await prisma.user.upsert({
+    where: { email: 'seller2@pharmex.bd' },
+    update: {},
+    create: {
+      email: 'seller2@pharmex.bd',
+      phone: '+8801700000004',
+      passwordHash,
+      firstName: 'Fatima',
+      lastName: 'Begum',
+    },
+  });
+
+  const pharmacy2 = await prisma.pharmacy.upsert({
+    where: { userId: seller2.id },
+    update: { description: 'Green Care Pharmacy — fast delivery across Chattogram metro.' },
+    create: {
+      userId: seller2.id,
+      name: 'Green Care Pharmacy',
+      licenseNumber: 'DGDA-CTG-2024-002',
+      address: '45 Agrabad Commercial Area',
+      city: 'Chattogram',
+      district: 'Chattogram',
+      postalCode: '4100',
+      latitude: 22.3569,
+      longitude: 91.7832,
+      description: 'Green Care Pharmacy — fast delivery across Chattogram metro.',
+      rating: 4.4,
+      ratingCount: 86,
+      verificationStatus: VerificationStatus.APPROVED,
+    },
+  });
+
+  const seller3 = await prisma.user.upsert({
+    where: { email: 'seller3@pharmex.bd' },
+    update: {},
+    create: {
+      email: 'seller3@pharmex.bd',
+      phone: '+8801700000005',
+      passwordHash,
+      firstName: 'Jamal',
+      lastName: 'Uddin',
+    },
+  });
+
+  const pharmacy3 = await prisma.pharmacy.upsert({
+    where: { userId: seller3.id },
+    update: { description: 'MediPlus Sylhet — bulk analgesics and syrups for upcountry buyers.' },
+    create: {
+      userId: seller3.id,
+      name: 'MediPlus Sylhet',
+      licenseNumber: 'DGDA-SYL-2024-003',
+      address: '12 Zindabazar Road',
+      city: 'Sylhet',
+      district: 'Sylhet',
+      postalCode: '3100',
+      latitude: 24.8949,
+      longitude: 91.8687,
+      description: 'MediPlus Sylhet — bulk analgesics and syrups for upcountry buyers.',
+      rating: 4.8,
+      ratingCount: 54,
+      verificationStatus: VerificationStatus.APPROVED,
+    },
+  });
+
+  const demoPharmacies = [pharmacy, pharmacy2, pharmacy3];
 
   const medicines = await Promise.all([
     prisma.medicine.upsert({
@@ -151,11 +218,39 @@ async function main() {
     )
   );
 
+  await Promise.all(
+    demoPharmacies.slice(1).flatMap((ph, pi) =>
+      medicines.map((medicine, mi) =>
+        prisma.listing.upsert({
+          where: { id: `00000000-0000-0000-0002-0000000000${pi}${mi + 1}` },
+          update: {},
+          create: {
+            id: `00000000-0000-0000-0002-0000000000${pi}${mi + 1}`,
+            pharmacyId: ph.id,
+            medicineId: medicine.id,
+            batchNumber: `BATCH-DEMO-${pi + 1}-0${mi + 1}`,
+            mfgDate,
+            expiryDate,
+            purchasePrice: 85 + mi * 8 + pi * 5,
+            sellingPrice: 140 + mi * 12 + pi * 5,
+            discountPercent: 15 + pi * 3,
+            finalPrice: (140 + mi * 12 + pi * 5) * (1 - (15 + pi * 3) / 100),
+            availableQty: 300 - mi * 50,
+            moq: 10,
+            status: ListingStatus.ACTIVE,
+          },
+        })
+      )
+    )
+  );
+
   console.log('Seed complete:');
   console.log(`  Admin:  admin@pharmex.bd / password123`);
   console.log(`  Seller: seller@pharmex.bd / password123 (${pharmacy.name})`);
+  console.log(`  Seller: seller2@pharmex.bd / password123 (${pharmacy2.name})`);
+  console.log(`  Seller: seller3@pharmex.bd / password123 (${pharmacy3.name})`);
   console.log(`  Buyer:  buyer@pharmex.bd / password123`);
-  console.log(`  Medicines: ${medicines.length}, Listings: ${medicines.length}`);
+  console.log(`  Medicines: ${medicines.length}, Demo pharmacies: ${demoPharmacies.length}`);
 }
 
 main()

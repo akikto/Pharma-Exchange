@@ -291,6 +291,14 @@
     "postalCode": "পোস্টাল কোড",
     "description": "বিবরণ"
   },
+  "shop": {
+    "switchLabel": "দোকান হিসেবে ব্রাউজ করুন",
+    "allShops": "সব মার্কেটপ্লেস দোকান",
+    "owner": "মালিক",
+    "license": "লাইসেন্স",
+    "dealsCompleted": "সম্পন্ন লেনদেন",
+    "whatsappGreeting": "হ্যালো, Pharma Exchange-এ {{name}} থেকে অর্ডার করতে আগ্রহী।"
+  },
   "cart": {
     "title": "কার্ট",
     "titleSub": "Cart",

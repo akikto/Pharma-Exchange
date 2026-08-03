@@ -21,6 +21,7 @@ import {
   groupListingsByMedicine,
 } from '@/lib/catalog-groups';
 import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
+import { useDemoShopStore } from '@/stores/demo-shop-store';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { cn } from '@/lib/utils';
 
@@ -33,13 +34,17 @@ export function HomePage() {
   const [activeFilter, setActiveFilter] = useState<HomeQuickFilter>('filterAll');
   const [feedView, setFeedView] = useState<FeedView>('grid');
   const { coords, requestLocation } = useGeolocation();
+  const activeShopId = useDemoShopStore((s) => s.activeShopId);
 
   const listingParams = useMemo(() => {
     if (activeFilter === 'filterNearby' && !coords) {
       requestLocation();
     }
-    return homeFilterToParams(activeFilter, coords);
-  }, [activeFilter, coords, requestLocation]);
+    return {
+      ...homeFilterToParams(activeFilter, coords),
+      ...(activeShopId ? { pharmacyId: activeShopId } : {}),
+    };
+  }, [activeFilter, coords, requestLocation, activeShopId]);
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, isFetching, refetch } = useListings(listingParams);
   const rawListings = data?.pages.flatMap((p) => p.data) ?? [];

@@ -28,11 +28,16 @@ describe('Chat API', () => {
     sellerToken = sellerLogin.body.accessToken;
     sellerUserId = sellerLogin.body.user.id;
 
-    const listings = await request(app).get('/api/v1/listings/search?limit=20');
+    const sellerPharmacy = await request(app)
+      .get('/api/v1/pharmacies/me')
+      .set('Authorization', `Bearer ${sellerToken}`);
+    expect(sellerPharmacy.status).toBe(200);
+    pharmacyId = sellerPharmacy.body.id;
+
+    const listings = await request(app).get(`/api/v1/listings/search?pharmacyId=${pharmacyId}&limit=20`);
     const pick = listings.body.data.find((l: { moq: number }) => l.moq <= 10) ?? listings.body.data[0];
     listingId = pick?.id;
     listingMoq = pick?.moq ?? 1;
-    pharmacyId = pick?.pharmacyId;
     expect(listingId).toBeTruthy();
     expect(pharmacyId).toBeTruthy();
   });

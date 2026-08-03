@@ -291,6 +291,14 @@
     "postalCode": "Postal code",
     "description": "Description"
   },
+  "shop": {
+    "switchLabel": "Browse as shop",
+    "allShops": "All marketplace shops",
+    "owner": "Owner",
+    "license": "License",
+    "dealsCompleted": "Deals completed",
+    "whatsappGreeting": "Hello, I am interested in ordering from {{name}} on Pharma Exchange."
+  },
   "cart": {
     "title": "Cart",
     "titleSub": "কার্ট",
