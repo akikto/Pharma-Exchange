@@ -4,9 +4,17 @@ import type { Application } from 'express';
 let app: Application | null = null;
 let bootstrapError: Error | null = null;
 
-function isRootRequest(req: VercelRequest): boolean {
-  const url = req.url ?? '';
-  return url === '' || url === '/' || url.startsWith('/?');
+/** Paths that must respond without bootstrapping Express/Prisma on Vercel. */
+const LIVENESS_PATHS = new Set(['/', '/health', '/api', '/api/']);
+
+function requestPath(req: VercelRequest): string {
+  const raw = req.url ?? '';
+  const path = raw.split('?')[0] ?? '';
+  return path || '/';
+}
+
+function isLivenessRequest(req: VercelRequest): boolean {
+  return LIVENESS_PATHS.has(requestPath(req));
 }
 
 function sendLiveness(res: VercelResponse): void {
@@ -37,7 +45,7 @@ async function getApp(): Promise<Application> {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (isRootRequest(req)) {
+  if (isLivenessRequest(req)) {
     sendLiveness(res);
     return;
   }

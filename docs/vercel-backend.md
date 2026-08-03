@@ -58,7 +58,7 @@ Vercel can scope environment variables to **Production** only. Preview deploymen
 | `OTP_DEV_MODE` | `false` (required when `NODE_ENV=production`) |
 | `CORS_ORIGIN` | Frontend preview URL or `https://pharma-exchange-frontend.vercel.app` |
 
-If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON. The lightweight probes `/` and `/health` still respond without loading Express.
+If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON. The lightweight probes `/`, `/health`, and the Vercel rewrite path `/api` still respond without loading Express.
 
 ## Verify deployment
 
