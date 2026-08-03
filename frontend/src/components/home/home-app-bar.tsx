@@ -13,17 +13,17 @@ export function HomeAppBar() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border-subtle bg-surface-base/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80"
+      className="sticky top-0 z-40 flex h-14 items-center justify-between gap-1 border-b border-border-subtle bg-surface-base/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80"
       data-testid="home-app-bar"
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2.5 pr-2">
-        <Logo size="sm" className="shrink-0" />
-        <span className="min-w-0 truncate text-base font-semibold leading-none tracking-tight text-text-primary">
+      <div className="flex items-center gap-1.5">
+        <Logo size="xs" className="shrink-0" />
+        <span className="whitespace-nowrap text-sm font-semibold leading-none tracking-tight text-text-primary">
           {t('common.appName')}
         </span>
       </div>
 
-      <div className="flex shrink-0 items-center gap-0">
+      <div className="flex shrink-0 items-center">
         <HomeHeaderActions />
         <button
           type="button"
@@ -32,10 +32,10 @@ export function HomeAppBar() {
               ? t('shell.notificationsUnread', { count: badges.notifications })
               : t('shell.notifications')
           }
-          className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-raised"
+          className="relative flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-raised"
           onClick={() => navigate('/notifications')}
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-4 w-4" />
           <NavBadge count={badges.notifications} />
         </button>
       </div>
