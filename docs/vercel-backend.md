@@ -49,7 +49,15 @@ Set these in Vercel → Project → Settings → Environment Variables:
 - **Build Command:** `npm run vercel-build` (auto from `vercel.json`)
 - **Install Command:** `cd .. && npm ci` (auto from `vercel.json`)
 
-The Vercel build runs `prisma migrate deploy` and `prisma db push` so the production database schema stays in sync with `prisma/schema.prisma`. If auth endpoints return 500 after a schema change, redeploy the backend project so migrations run during build.
+The Vercel build runs `scripts/vercel-schema-sync.mjs`, which:
+
+1. Runs `prisma migrate deploy` when migration history exists
+2. On **P3005** (database has tables but no migration history), baselines all migrations with `prisma migrate resolve --applied`, then retries deploy
+3. Finishes with `prisma db push` to apply any remaining schema drift safely
+
+You can run the same sync locally with `npm run db:baseline` from the `backend` directory.
+
+**Important:** `DATABASE_URL` must be enabled for **Production** and **Preview** build environments in Vercel (not only Runtime), or the build will fail during schema sync.
 
 ## Preview deployments
 
