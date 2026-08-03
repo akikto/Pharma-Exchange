@@ -1,17 +1,30 @@
 import { MessageType, NotificationType } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
-import { parsePagination } from '../../shared/utils/helpers';
 import { notificationService } from '../notification';
 
+const memberInclude = {
+  members: {
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true, phone: true } },
+    },
+  },
+};
+
 export class ChatService {
-  async getConversations(userId: string) {
+  async getConversations(userId: string, filters?: { orderId?: string; buyRequestId?: string }) {
     const memberships = await prisma.conversationMember.findMany({
-      where: { userId },
+      where: {
+        userId,
+        conversation: {
+          ...(filters?.orderId ? { orderId: filters.orderId } : {}),
+          ...(filters?.buyRequestId ? { buyRequestId: filters.buyRequestId } : {}),
+        },
+      },
       include: {
         conversation: {
           include: {
-            members: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+            ...memberInclude,
             messages: { orderBy: { createdAt: 'desc' }, take: 1 },
           },
         },
@@ -21,26 +34,121 @@ export class ChatService {
     return memberships.map((m) => m.conversation);
   }
 
-  async createConversation(userId: string, participantId: string, orderId?: string, listingId?: string) {
+  async getConversation(userId: string, conversationId: string) {
+    const member = await prisma.conversationMember.findUnique({
+      where: { conversationId_userId: { conversationId, userId } },
+    });
+    if (!member) throw AppError.forbidden('Not a member of this conversation');
+
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        ...memberInclude,
+        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+      },
+    });
+    if (!conversation) throw AppError.notFound('Conversation not found');
+
+    let order = null;
+    let buyRequest = null;
+
+    if (conversation.orderId) {
+      order = await prisma.order.findUnique({
+        where: { id: conversation.orderId },
+        select: {
+          id: true, orderNumber: true, status: true, totalAmount: true,
+          buyerId: true, sellerId: true,
+          seller: { select: { id: true, name: true, userId: true } },
+          buyer: { select: { id: true, firstName: true, lastName: true } },
+        },
+      });
+    }
+
+    if (conversation.buyRequestId) {
+      buyRequest = await prisma.buyRequest.findUnique({
+        where: { id: conversation.buyRequestId },
+        select: {
+          id: true, requestNumber: true, status: true, totalAmount: true,
+          buyerId: true, sellerId: true,
+          seller: { select: { id: true, name: true, userId: true } },
+        },
+      });
+    }
+
+    const counterparty = conversation.members.find((m) => m.userId !== userId)?.user ?? null;
+
+    return { ...conversation, order, buyRequest, counterparty };
+  }
+
+  async getContextOptions(userId: string) {
+    const pharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
+
+    const [buyerOrders, sellerOrders, buyerRequests, sellerRequests] = await Promise.all([
+      prisma.order.findMany({
+        where: { buyerId: userId },
+        select: { id: true, orderNumber: true, status: true },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+      pharmacy
+        ? prisma.order.findMany({
+          where: { sellerId: pharmacy.id },
+          select: { id: true, orderNumber: true, status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        })
+        : Promise.resolve([]),
+      prisma.buyRequest.findMany({
+        where: { buyerId: userId },
+        select: { id: true, requestNumber: true, status: true },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+      pharmacy
+        ? prisma.buyRequest.findMany({
+          where: { sellerId: pharmacy.id },
+          select: { id: true, requestNumber: true, status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        })
+        : Promise.resolve([]),
+    ]);
+
+    return {
+      orders: [...buyerOrders, ...sellerOrders],
+      buyRequests: [...buyerRequests, ...sellerRequests],
+    };
+  }
+
+  async createConversation(
+    userId: string,
+    participantId: string,
+    orderId?: string,
+    listingId?: string,
+    buyRequestId?: string,
+  ) {
     const existing = await prisma.conversation.findFirst({
       where: {
         AND: [
           { members: { some: { userId } } },
           { members: { some: { userId: participantId } } },
           ...(orderId ? [{ orderId }] : []),
+          ...(buyRequestId ? [{ buyRequestId }] : []),
         ],
       },
-      include: { members: { include: { user: { select: { id: true, firstName: true, lastName: true } } } } },
+      include: memberInclude,
     });
 
     if (existing) return existing;
 
     return prisma.conversation.create({
       data: {
-        orderId, listingId,
+        orderId,
+        listingId,
+        buyRequestId,
         members: { create: [{ userId }, { userId: participantId }] },
       },
-      include: { members: { include: { user: { select: { id: true, firstName: true, lastName: true } } } } },
+      include: memberInclude,
     });
   }
 

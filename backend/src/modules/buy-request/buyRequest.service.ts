@@ -4,6 +4,7 @@ import { AppError } from '../../shared/errors/AppError';
 import { generateOrderNumber, generateRequestNumber, parsePagination } from '../../shared/utils/helpers';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { notificationService } from '../notification';
+import { chatSystemService } from '../chat/chatSystem.service';
 
 export class BuyRequestService {
   async list(userId: string, role: string, status?: BuyRequestStatus, page = 1, limit = 20) {
@@ -127,6 +128,7 @@ export class BuyRequestService {
         body: `Request ${buyRequest.requestNumber} was rejected`,
         data: { buyRequestId: requestId },
       });
+      await chatSystemService.postBuyRequestStatusMessage(requestId, sellerUserId, 'REJECTED', buyRequest.requestNumber);
       return { buyRequest: updated };
     }
 
@@ -182,6 +184,10 @@ export class BuyRequestService {
         body: `Order ${order.orderNumber} created`,
         data: { orderId: order.id, buyRequestId: requestId },
       });
+
+      await chatSystemService.ensureOrderConversation(order.id, buyRequest.buyerId, sellerUserId);
+      await chatSystemService.postBuyRequestStatusMessage(requestId, sellerUserId, 'ACCEPTED', buyRequest.requestNumber);
+      await chatSystemService.postOrderStatusMessage(order.id, sellerUserId, OrderStatus.CONFIRMED, order.orderNumber);
 
       return { buyRequest: request, order };
     });

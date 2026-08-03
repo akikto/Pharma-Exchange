@@ -489,16 +489,19 @@ model OrderStatusHistory {
 // ─── Chat ────────────────────────────────────────────────────────────────────
 
 model Conversation {
-  id        String   @id @default(uuid())
-  orderId   String?
-  listingId String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  orderId       String?
+  buyRequestId  String?
+  listingId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   members  ConversationMember[]
   messages Message[]
 
   @@index([updatedAt])
+  @@index([orderId])
+  @@index([buyRequestId])
 }
 
 model ConversationMember {
