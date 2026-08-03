@@ -12,7 +12,7 @@ export function ListingsEmptyState({ onClearFilters, showClearFilters }: Listing
 
   return (
     <div
-      className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-border-subtle bg-surface-raised px-6 py-10 text-center"
+      className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-border-subtle bg-surface-raised px-4 py-8 text-center"
       data-testid="listings-empty-state"
     >
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-sunken text-text-secondary">

@@ -31,7 +31,7 @@ export function ShopHeader() {
 
   return (
     <div
-      className="rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-4 space-y-3"
+      className="rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3 space-y-2.5"
       data-testid="shop-header"
     >
       <div className="flex items-start gap-3">

@@ -18,7 +18,7 @@ export function CatalogGroupCard({ group, className }: CatalogGroupCardProps) {
       to={`/medicine/${group.medicineId}/compare`}
       data-testid={`catalog-group-${group.medicineId}`}
       className={cn(
-        'block w-full text-left rounded-[var(--radius-md)] border border-border-subtle bg-surface-base p-4',
+        'block w-full text-left rounded-[var(--radius-md)] border border-border-subtle bg-surface-base p-3',
         'transition-shadow hover:shadow-md active:scale-[0.99]',
         className,
       )}

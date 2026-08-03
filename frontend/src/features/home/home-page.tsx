@@ -93,7 +93,7 @@ export function HomePage() {
 
       <BulkProcurementBanner />
 
-      <div className="px-4 pb-4 space-y-4">
+      <div className="pb-3 space-y-3">
         <ShopHeader />
 
         {isAuthenticated && <AiMatchSection />}
@@ -151,7 +151,7 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" data-testid="home-quick-filters">
+        <div className="flex gap-2 overflow-x-auto pb-1" data-testid="home-quick-filters">
           {HOME_QUICK_FILTERS.map((key) => (
             <button
               key={key}
@@ -218,7 +218,7 @@ export function HomePage() {
               <section>
                 <h2 className="font-semibold mb-1">{t('home.featuredDeals')}</h2>
                 <p className="text-[10px] text-text-disabled mb-3">{t('home.featuredDealsSub')}</p>
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                <div className="flex gap-2.5 overflow-x-auto pb-2">
                   {featured.map((l) => <ListingCard key={l.id} listing={l} className="w-40 shrink-0" />)}
                 </div>
               </section>
@@ -228,7 +228,7 @@ export function HomePage() {
               <section>
                 <h2 className="font-semibold mb-1 flex items-center gap-2">⏰ {t('home.shortExpiry')}</h2>
                 <p className="text-[10px] text-text-disabled mb-3">{t('home.shortExpirySub')}</p>
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                <div className="flex gap-2.5 overflow-x-auto pb-2">
                   {shortExpiry.map((l) => <ListingCard key={l.id} listing={l} className="w-40 shrink-0" />)}
                 </div>
               </section>
@@ -238,17 +238,17 @@ export function HomePage() {
               <h2 className="font-semibold mb-1">{t('home.allListings')}</h2>
               <p className="text-[10px] text-text-disabled mb-3">{t('home.allListingsSub')}</p>
               {isLoading ? (
-                <div className="grid grid-cols-2 gap-3">{Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
+                <div className="grid grid-cols-2 gap-2.5">{Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
               ) : listings.length === 0 ? (
                 <ListingsEmptyState onClearFilters={resetFilters} showClearFilters={hasActiveFilters} />
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   {listings.map((l) => <ListingCard key={l.id} listing={l} />)}
                 </div>
               )}
               <div ref={scrollRef} className="h-4" />
               {isFetchingNextPage && (
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-2 gap-2.5 mt-3">
                   {Array.from({ length: 2 }).map((_, i) => <ListingCardSkeleton key={i} />)}
                 </div>
               )}
