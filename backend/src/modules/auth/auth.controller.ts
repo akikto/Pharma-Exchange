@@ -20,6 +20,13 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
+  async demoLogin(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.demoLogin();
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async firebaseAuth(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { idToken, firstName, lastName } = req.body;

@@ -121,7 +121,28 @@
     "onboardingSlide3Title": "Track orders in real-time",
     "onboardingSlide3Desc": "From confirmation to delivery — stay updated on every order status.",
     "next": "Next",
-    "splashTagline": "B2B Pharmacy Marketplace"
+    "splashTagline": "B2B Pharmacy Marketplace",
+    "createAccountDesc": "Create your pharmacy account",
+    "tryDemo": "Try demo (read-only buyer)",
+    "demoLoginSuccess": "Signed in to demo account",
+    "demoModeHint": "You are browsing as the demo buyer account. Some actions may be limited.",
+    "welcomeTitle": "Welcome, {{name}}!",
+    "accountRole": "Account type",
+    "pharmacyStatus": "Pharmacy",
+    "noPharmacyYet": "No pharmacy registered yet",
+    "continueToApp": "Continue to app",
+    "continueGoogle": "Continue with Google",
+    "accountExists": "This email or phone is already registered. Reset your password or sign in.",
+    "registerFailed": "Registration failed",
+    "otpFailed": "OTP verification failed",
+    "otpLength": "Enter a 6-digit code",
+    "resetPasswordTitle": "Reset password",
+    "resetPasswordDesc": "Enter your email and choose a new password",
+    "newPassword": "New password",
+    "updatePassword": "Update password",
+    "backToLogin": "Back to login",
+    "emailNotFound": "No account found with this email.",
+    "resetFailed": "Password reset failed"
   },
   "home": {
     "title": "Home",
@@ -634,6 +655,7 @@
   "validation": {
     "required": "This field is required",
     "passwordMin": "Password must be at least 8 characters",
+    "email": "Enter a valid email address",
     "emailOrPhone": "Email or phone is required",
     "quantityMin": "Quantity must be at least {{min}}",
     "quantityMax": "Quantity must be at most {{max}}"

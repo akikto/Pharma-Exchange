@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 const SplashPage = lazy(() => import('@/features/auth/splash-page').then(m => ({ default: m.SplashPage })));
 const OnboardingPage = lazy(() => import('@/features/auth/onboarding-page').then(m => ({ default: m.OnboardingPage })));
 const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ default: m.LoginPage })));
-const RegisterPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.RegisterPage })));
 const OtpLoginPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.OtpLoginPage })));
 const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })));
 const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
@@ -74,7 +73,7 @@ export function AppRouter() {
           <Route path="/splash" element={<SplashPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/otp" element={<OtpLoginPage />} />
 

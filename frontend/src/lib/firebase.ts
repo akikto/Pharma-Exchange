@@ -33,3 +33,12 @@ export function getFirebaseAuth(): Auth | null {
   }
   return auth;
 }
+
+export async function signInWithGoogle(): Promise<string> {
+  const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+  const firebaseAuth = getFirebaseAuth();
+  if (!firebaseAuth) throw new Error('Firebase is not configured');
+
+  const result = await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
+  return result.user.getIdToken();
+}
