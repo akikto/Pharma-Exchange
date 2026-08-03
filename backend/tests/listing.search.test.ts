@@ -62,6 +62,36 @@ describe('Listing marketplace search filters', () => {
   });
 });
 
+describe('Listing compare by medicine', () => {
+  const app = createApp();
+
+  it('GET /api/v1/listings/compare returns grouped offers', async () => {
+    const medicines = await request(app).get('/api/v1/medicines?q=Napa');
+    const medicineId = medicines.body.data[0]?.id;
+    if (!medicineId) return;
+
+    const res = await request(app).get(`/api/v1/listings/compare?medicineId=${medicineId}`);
+    expect(res.status).toBe(200);
+    expect(res.body.medicine).toBeDefined();
+    expect(Array.isArray(res.body.listings)).toBe(true);
+    expect(res.body.stats).toBeDefined();
+    expect(res.body.stats.sellerCount).toBeGreaterThanOrEqual(1);
+  });
+
+  it('sorts compare results by price by default', async () => {
+    const medicines = await request(app).get('/api/v1/medicines?q=Napa');
+    const medicineId = medicines.body.data[0]?.id;
+    if (!medicineId) return;
+
+    const res = await request(app).get(`/api/v1/listings/compare?medicineId=${medicineId}&sortBy=price`);
+    expect(res.status).toBe(200);
+    const prices = res.body.listings.map((l: { finalPrice: string }) => Number(l.finalPrice));
+    for (let i = 1; i < prices.length; i++) {
+      expect(prices[i]).toBeGreaterThanOrEqual(prices[i - 1]);
+    }
+  });
+});
+
 describe('Medicine alternatives', () => {
   const app = createApp();
 

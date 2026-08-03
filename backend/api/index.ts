@@ -4,6 +4,33 @@ import type { Application } from 'express';
 let app: Application | null = null;
 let bootstrapError: Error | null = null;
 
+/** Paths that must respond without bootstrapping Express/Prisma on Vercel. */
+const LIVENESS_PATHS = new Set(['/', '/health', '/api', '/api/']);
+
+function requestPath(req: VercelRequest): string {
+  const raw = req.url ?? '';
+  const path = raw.split('?')[0] ?? '';
+  return path || '/';
+}
+
+function isLivenessRequest(req: VercelRequest): boolean {
+  return LIVENESS_PATHS.has(requestPath(req));
+}
+
+function sendLiveness(res: VercelResponse): void {
+  res.status(200).json({
+    status: 'ok',
+    service: 'pharma-exchange-api',
+    runtime: 'vercel-serverless',
+    env: {
+      hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+      hasJwtSecret: Boolean(process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16),
+      nodeEnv: process.env.NODE_ENV ?? 'unset',
+      otpDevMode: process.env.OTP_DEV_MODE ?? 'unset',
+    },
+  });
+}
+
 async function getApp(): Promise<Application> {
   if (bootstrapError) throw bootstrapError;
   if (app) return app;
@@ -18,6 +45,11 @@ async function getApp(): Promise<Application> {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (isLivenessRequest(req)) {
+    sendLiveness(res);
+    return;
+  }
+
   try {
     const expressApp = await getApp();
     expressApp(req, res);

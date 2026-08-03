@@ -44,6 +44,16 @@ export function createApp(): express.Application {
   app.use(express.json({ limit: '2mb' }));
   app.use(globalRateLimiter);
 
+  app.get('/', (_req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'pharma-exchange-api',
+      version: '1.0.0',
+      health: '/health',
+      api: '/api/v1',
+    });
+  });
+
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'pharma-exchange-api', version: '1.0.0' });
   });

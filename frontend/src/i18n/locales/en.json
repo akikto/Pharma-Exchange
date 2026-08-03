@@ -250,6 +250,32 @@
     "listings": "Listings",
     "noListings": "No active listings"
   },
+  "offer": {
+    "lowStock": "Low stock",
+    "priceTrend": "Price trend",
+    "priceTrendSub": "৩০ দিনের দামের ইতিহাস",
+    "priceTrendDisclaimer": "Simulated data for demonstration.",
+    "callSeller": "Call seller",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Hi, I'm interested in {{medicine}} on Pharma Exchange."
+  },
+  "compare": {
+    "title": "Compare offers",
+    "titleSub": "অফার তুলনা",
+    "sellerCount": "{{count}} sellers",
+    "sellerCount_one": "{{count}} seller",
+    "sellerCount_other": "{{count}} sellers",
+    "bestPrice": "Best: {{price}}",
+    "lowestPrice": "Lowest price",
+    "distance": "{{km}} km away",
+    "detailedOffers": "Detailed offers",
+    "loadError": "Could not load comparison",
+    "sort": {
+      "price": "Lowest price",
+      "expiry": "Best expiry",
+      "distance": "Nearest seller"
+    }
+  },
   "pharmacy": {
     "register": "Register Pharmacy",
     "registerSub": "ফার্মেসি নিবন্ধন",

@@ -154,12 +154,96 @@ export class ListingService {
     return { data, total, page, limit };
   }
 
+  async compareByMedicine(query: Record<string, unknown>) {
+    const { medicineId, sortBy = 'price', latitude, longitude } = query;
+    const userLat = latitude !== undefined ? Number(latitude) : undefined;
+    const userLng = longitude !== undefined ? Number(longitude) : undefined;
+
+    const medicine = await prisma.medicine.findUnique({ where: { id: String(medicineId) } });
+    if (!medicine) throw AppError.notFound('Medicine not found');
+
+    const include = {
+      medicine: {
+        select: {
+          id: true, name: true, company: true, dosageForm: true, packSize: true,
+          category: true, composition: true, genericName: true, brandName: true, imageUrl: true,
+        },
+      },
+      pharmacy: {
+        select: {
+          id: true, name: true, city: true, district: true, rating: true, ratingCount: true,
+          verificationStatus: true, logoUrl: true, userId: true, latitude: true, longitude: true,
+          user: { select: { id: true, phone: true } },
+        },
+      },
+    };
+
+    let listings = await prisma.listing.findMany({
+      where: {
+        medicineId: String(medicineId),
+        status: ListingStatus.ACTIVE,
+        pharmacy: { verificationStatus: VerificationStatus.APPROVED, isActive: true },
+      },
+      include,
+      orderBy: { finalPrice: 'asc' },
+    });
+
+    if (listings.length === 0) {
+      return { medicine, listings: [], stats: { sellerCount: 0, lowestPrice: 0, highestPrice: 0 } };
+    }
+
+    const withDistance = listings.map((listing) => {
+      let distanceKm: number | null = null;
+      if (
+        userLat !== undefined && userLng !== undefined
+        && listing.pharmacy.latitude != null && listing.pharmacy.longitude != null
+      ) {
+        distanceKm = haversineKm(
+          userLat, userLng,
+          Number(listing.pharmacy.latitude), Number(listing.pharmacy.longitude),
+        );
+      }
+      return { ...listing, distanceKm };
+    });
+
+    const sorted = [...withDistance].sort((a, b) => {
+      if (sortBy === 'expiry') {
+        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+      }
+      if (sortBy === 'distance') {
+        const da = a.distanceKm ?? Number.POSITIVE_INFINITY;
+        const db = b.distanceKm ?? Number.POSITIVE_INFINITY;
+        return da - db;
+      }
+      return Number(a.finalPrice) - Number(b.finalPrice);
+    });
+
+    const prices = sorted.map((l) => Number(l.finalPrice));
+    const sellerCount = new Set(sorted.map((l) => l.pharmacy.id)).size;
+
+    return {
+      medicine,
+      listings: sorted,
+      stats: {
+        sellerCount,
+        lowestPrice: Math.min(...prices),
+        highestPrice: Math.max(...prices),
+      },
+    };
+  }
+
   async getById(id: string) {
     const listing = await prisma.listing.findUnique({
       where: { id },
       include: {
         medicine: true,
-        pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, ratingCount: true, verificationStatus: true, logoUrl: true, userId: true } },
+        pharmacy: {
+          select: {
+            id: true, name: true, city: true, district: true, rating: true, ratingCount: true,
+            verificationStatus: true, logoUrl: true, userId: true, latitude: true, longitude: true,
+            user: { select: { id: true, phone: true } },
+          },
+        },
       },
     });
     if (!listing) throw AppError.notFound('Listing not found');

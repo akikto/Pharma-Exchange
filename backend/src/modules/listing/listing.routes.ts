@@ -5,13 +5,14 @@ import { validate } from '../../shared/middleware/validate.middleware';
 import { listingController } from './listing.controller';
 import {
   createListingSchema, updateListingSchema,
-  updatePriceSchema, updateQuantitySchema, marketplaceSearchSchema,
+  updatePriceSchema, updateQuantitySchema, marketplaceSearchSchema, compareListingsSchema,
 } from './listing.validation';
 
 const router = Router();
 
 // Marketplace search (public)
 router.get('/search', validate(marketplaceSearchSchema, 'query'), listingController.search.bind(listingController));
+router.get('/compare', validate(compareListingsSchema, 'query'), listingController.compare.bind(listingController));
 
 // Seller inventory
 router.get('/inventory', authenticate, listingController.getSellerListings.bind(listingController));

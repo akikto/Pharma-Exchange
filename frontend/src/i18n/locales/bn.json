@@ -250,6 +250,32 @@
     "listings": "তালিকা",
     "noListings": "কোনো সক্রিয় তালিকা নেই"
   },
+  "offer": {
+    "lowStock": "কম স্টক",
+    "priceTrend": "দামের প্রবণতা",
+    "priceTrendSub": "30-day price history",
+    "priceTrendDisclaimer": "ডেমোর জন্য সিমুলেটেড ডেটা।",
+    "callSeller": "বিক্রেতাকে কল",
+    "whatsapp": "হোয়াটসঅ্যাপ",
+    "whatsappMessage": "হ্যালো, আমি Pharma Exchange-এ {{medicine}} নিয়ে আগ্রহী।"
+  },
+  "compare": {
+    "title": "অফার তুলনা",
+    "titleSub": "Compare offers",
+    "sellerCount": "{{count}} বিক্রেতা",
+    "sellerCount_one": "{{count}} বিক্রেতা",
+    "sellerCount_other": "{{count}} বিক্রেতা",
+    "bestPrice": "সেরা: {{price}}",
+    "lowestPrice": "সর্বনিম্ন দাম",
+    "distance": "{{km}} কিমি দূরে",
+    "detailedOffers": "বিস্তারিত অফার",
+    "loadError": "তুলনা লোড করা যায়নি",
+    "sort": {
+      "price": "সর্বনিম্ন দাম",
+      "expiry": "সেরা মেয়াদ",
+      "distance": "নিকটতম বিক্রেতা"
+    }
+  },
   "pharmacy": {
     "register": "ফার্মেসি নিবন্ধন",
     "registerSub": "Register Pharmacy",
