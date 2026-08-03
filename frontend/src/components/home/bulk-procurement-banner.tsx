@@ -40,7 +40,7 @@ export function BulkProcurementBanner() {
 
   return (
     <div
-      className="mx-4 mb-4 rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle/50 p-4 relative"
+      className="mb-3 rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle/50 p-3 relative"
       data-testid="bulk-procurement-banner"
     >
       <button
