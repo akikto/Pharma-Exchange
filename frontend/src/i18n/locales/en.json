@@ -484,6 +484,16 @@
     "markAllRead": "Mark all read",
     "unread": "Unread"
   },
+  "push": {
+    "promptTitle": "Stay updated on orders",
+    "promptTitleSub": "অর্ডার আপডেট পেতে নোটিফিকেশন চালু করুন",
+    "promptDesc": "Get alerts when orders ship, buy requests are accepted, or sellers message you.",
+    "promptDescSub": "অর্ডার পাঠানো, অনুরোধ গৃহীত বা বার্তা এলে সঙ্গে সঙ্গে জানুন।",
+    "enable": "Enable notifications",
+    "enableSub": "নোটিফিকেশন চালু করুন",
+    "notNow": "Not now",
+    "notNowSub": "এখন নয়"
+  },
   "profile": {
     "title": "Profile",
     "titleSub": "প্রোফাইল",

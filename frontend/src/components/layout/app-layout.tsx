@@ -4,6 +4,7 @@ import { SideNav } from './side-nav';
 import { RequestBottomSheet } from './request-bottom-sheet';
 import { ShellModals } from './shell-modals';
 import { OfflineBanner } from './offline-banner';
+import { PushPermissionPrompt } from '@/components/notifications/push-permission-prompt';
 
 export function AppLayout() {
   return (
@@ -14,6 +15,7 @@ export function AppLayout() {
         <div className="mx-auto w-full max-w-lg lg:max-w-5xl xl:max-w-6xl flex-1 w-full">
           <Outlet />
         </div>
+        <PushPermissionPrompt />
         <RequestBottomSheet />
         <BottomNav />
       </div>

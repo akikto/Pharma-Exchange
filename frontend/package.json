@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run icons && tsc -b && vite build",
+    "build": "npm run icons && npm run fcm-sw && tsc -b && vite build",
     "icons": "node scripts/generate-icons.mjs",
+    "fcm-sw": "node scripts/generate-fcm-sw.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
