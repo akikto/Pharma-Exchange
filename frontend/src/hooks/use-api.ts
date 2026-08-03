@@ -143,6 +143,37 @@ export function useExportInventory() {
   });
 }
 
+export interface BulkRequest {
+  id: string;
+  requestNumber: string;
+  quantity: number;
+  targetPrice: string | number;
+  urgency: string;
+  status: string;
+  listingId?: string;
+  listing?: { id: string; status: string; availableQty: number; finalPrice: string | number };
+  medicine: { id: string; name: string; company: string };
+}
+
+export function useBulkRequests() {
+  return useQuery({
+    queryKey: ['bulk-requests'],
+    queryFn: () => apiClient.get<PaginatedResponse<BulkRequest>>('/bulk-requests'),
+  });
+}
+
+export function useCreateBulkRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Record<string, unknown>) => apiClient.post<BulkRequest>('/bulk-requests', body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['bulk-requests'] });
+      qc.invalidateQueries({ queryKey: ['seller-inventory'] });
+      qc.invalidateQueries({ queryKey: ['listings'] });
+    },
+  });
+}
+
 export function useMedicines(q?: string) {
   return useQuery({
     queryKey: ['medicines', q],

@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BuyRequestDialog } from '@/components/buy-request/buy-request-dialog';
+import { BulkProcurementDialog } from '@/components/bulk/bulk-procurement-dialog';
 
 function ComingSoonModal({
   open,
@@ -140,10 +141,46 @@ function ListingEditModal({ open, onClose }: { open: boolean; onClose: () => voi
   );
 }
 
+function BulkSellerRequiredModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('bulk.sellerRequiredTitle')}</DialogTitle>
+          <DialogDescription>{t('bulk.sellerRequiredDesc')}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2">
+          <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button onClick={() => { onClose(); navigate('/pharmacy/register'); }}>{t('inventory.registerPharmacyCta')}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BulkModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+
+  return (
+    <BulkProcurementDialog
+      open={open}
+      onClose={onClose}
+      defaultPhone={user?.phone ?? ''}
+      onSuccess={() => navigate('/seller/inventory')}
+    />
+  );
+}
+
 export function ShellModals() {
   const activeModal = useShellStore((s) => s.activeModal);
   const closeModal = useShellStore((s) => s.closeModal);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const isVerifiedSeller = user?.pharmacy?.verificationStatus === 'APPROVED';
 
   return (
     <>
@@ -152,7 +189,9 @@ export function ShellModals() {
       <AuthModal open={activeModal === 'buyRequest' && !isAuthenticated} onClose={closeModal} />
       <ListingEditModal open={activeModal === 'listingEdit'} onClose={closeModal} />
       <ComingSoonModal open={activeModal === 'watchlist'} onClose={closeModal} titleKey="modal.watchlistTitle" subKey="modal.watchlistSub" />
-      <ComingSoonModal open={activeModal === 'bulk'} onClose={closeModal} titleKey="modal.bulkTitle" subKey="modal.bulkSub" />
+      <BulkModal open={activeModal === 'bulk' && isAuthenticated && isVerifiedSeller} onClose={closeModal} />
+      <AuthModal open={activeModal === 'bulk' && !isAuthenticated} onClose={closeModal} />
+      <BulkSellerRequiredModal open={activeModal === 'bulk' && isAuthenticated && !isVerifiedSeller} onClose={closeModal} />
       <AuthModal open={activeModal === 'auth'} onClose={closeModal} />
     </>
   );

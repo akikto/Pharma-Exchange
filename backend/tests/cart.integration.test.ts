@@ -6,6 +6,7 @@ describe('Cart API', () => {
   const app = createApp();
   let token = '';
   let listingId = '';
+  let listingMoq = 1;
   let cartItemId = '';
 
   beforeAll(async () => {
@@ -15,8 +16,10 @@ describe('Cart API', () => {
     expect(login.status).toBe(200);
     token = login.body.accessToken;
 
-    const listings = await request(app).get('/api/v1/listings/search?limit=1');
-    listingId = listings.body.data[0]?.id;
+    const listings = await request(app).get('/api/v1/listings/search?limit=20');
+    const pick = listings.body.data.find((l: { moq: number }) => l.moq <= 10) ?? listings.body.data[0];
+    listingId = pick?.id;
+    listingMoq = pick?.moq ?? 1;
     expect(listingId).toBeTruthy();
   });
 
@@ -24,7 +27,7 @@ describe('Cart API', () => {
     const add = await request(app)
       .post('/api/v1/cart')
       .set('Authorization', `Bearer ${token}`)
-      .send({ listingId, quantity: 10 });
+      .send({ listingId, quantity: Math.max(listingMoq, 10) });
 
     expect(add.status).toBe(201);
     cartItemId = add.body.id;
@@ -44,10 +47,10 @@ describe('Cart API', () => {
     const res = await request(app)
       .patch(`/api/v1/cart/${cartItemId}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ quantity: 15 });
+      .send({ quantity: Math.max(listingMoq, 10) + 5 });
 
     expect(res.status).toBe(200);
-    expect(res.body.quantity).toBe(15);
+    expect(res.body.quantity).toBe(Math.max(listingMoq, 10) + 5);
   });
 
   it('rejects quantity below MOQ', async () => {

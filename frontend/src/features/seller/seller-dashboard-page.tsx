@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Package, Inbox, TrendingUp, AlertTriangle, LogIn, ShieldCheck } from 'lucide-react';
+import { Plus, Package, Inbox, TrendingUp, AlertTriangle, LogIn, ShieldCheck, Boxes } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -118,6 +118,17 @@ export function SellerDashboardPage() {
           <Button variant="tertiary" className="col-span-2" onClick={() => openModal('bulk')}>{t('modal.bulkTitle')}</Button>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => openModal('bulk')}
+        className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-primary text-on-primary shadow-lg px-4 py-3 font-medium text-sm"
+        data-testid="bulk-fab"
+        aria-label={t('bulk.fabLabel')}
+      >
+        <Boxes className="h-5 w-5" />
+        {t('bulk.fabLabel')}
+      </button>
     </div>
   );
 }
