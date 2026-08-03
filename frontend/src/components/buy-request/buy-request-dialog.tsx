@@ -16,6 +16,7 @@ import { useAddToCart } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import type { BuyRequestModalContext } from '@/stores/shell-store';
 
 interface BuyRequestDialogProps {
@@ -66,6 +67,16 @@ export function BuyRequestDialog({ open, onClose, context, onSuccess }: BuyReque
   };
 
   const handleAddToCart = () => {
+    debugListingAction('buy-request-dialog:add-to-cart', {
+      listingId: context.listingId,
+      quantity,
+      context,
+    });
+    if (!context.listingId) {
+      warnInvalidListing('buy-request-dialog:add-to-cart', { context });
+      toast({ title: t('toast.error'), description: t('search.addToCartError'), variant: 'destructive' });
+      return;
+    }
     addToCart.mutate(
       { listingId: context.listingId, quantity },
       {

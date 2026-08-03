@@ -8,6 +8,7 @@ import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock, calculateSavings, formatSavingsPercent } from '@/lib/offer-utils';
 import { isRenderableListing } from '@/lib/catalog-groups';
+import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import { StatusChip } from '@/components/ui/status-chip';
 import { Button } from '@/components/ui/button';
 import { useAddToCart } from '@/hooks/use-api';
@@ -62,6 +63,12 @@ function OfferCardContent({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    debugListingAction('offer-card:add-to-cart', { listingId: listing.id, moq: listing.moq, listing });
+    if (!listing?.id) {
+      warnInvalidListing('offer-card:add-to-cart', { listing });
+      toast({ title: t('search.addToCartError'), variant: 'destructive' });
+      return;
+    }
     addToCart.mutate(
       { listingId: listing.id, quantity: listing.moq },
       {
@@ -176,7 +183,7 @@ function OfferCardContent({
               <Button variant="secondary" size="sm" className="flex-1 h-8 text-xs" onClick={handleBuyRequest}>
                 {t('listing.buyNow')}
               </Button>
-              <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing.id)}>
+              <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing?.id)}>
                 <ShoppingCart className="h-3.5 w-3.5" />
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t('search.watchlist')} onClick={handleWatchlist}>

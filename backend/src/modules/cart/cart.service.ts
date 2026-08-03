@@ -16,13 +16,16 @@ export class CartService {
     });
 
     const groupedBySeller = items.reduce<Record<string, typeof items>>((acc, item) => {
-      const sellerId = item.listing.pharmacy.id;
+      const sellerId = item.listing?.pharmacy?.id;
+      if (!sellerId) return acc;
       if (!acc[sellerId]) acc[sellerId] = [];
       acc[sellerId].push(item);
       return acc;
     }, {});
 
-    return { items, groupedBySeller };
+    const validItems = items.filter((item) => item.listing?.id && item.listing?.pharmacy?.id);
+
+    return { items: validItems, groupedBySeller };
   }
 
   async addItem(userId: string, listingId: string, quantity: number) {

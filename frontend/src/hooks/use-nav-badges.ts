@@ -25,7 +25,7 @@ export function useNavBadges() {
 
   const chatUnread = (conversations ?? []).filter((conv) => {
     const last = conv.messages?.[0];
-    return last && last.sender.id !== userId && !last.isRead;
+    return Boolean(last?.sender?.id && last.sender.id !== userId && !last.isRead);
   }).length;
 
   const { data: sellerRequests } = useQuery({

@@ -22,6 +22,9 @@ import { useListings } from '@/hooks/use-listings';
 import { useShellStore } from '@/stores/shell-store';
 import { useToggleWatchlist, useIsWatched } from '@/hooks/use-watchlist';
 import { useToast } from '@/hooks/use-toast';
+import { isRenderableListing } from '@/lib/catalog-groups';
+import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
+
 import type { Listing } from '@/types';
 
 export function MedicineDetailPage() {
@@ -40,7 +43,7 @@ export function MedicineDetailPage() {
     enabled: !!id,
   });
 
-  const watched = useIsWatched(listing?.medicine.id ?? '');
+  const watched = useIsWatched(listing?.medicine?.id ?? '');
 
   if (isLoading) return <div className="p-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-8 w-2/3 mt-4" /></div>;
   if (!listing) return <div className="p-4 text-center text-text-secondary">{t('listing.notFound')}</div>;
@@ -50,6 +53,12 @@ export function MedicineDetailPage() {
   const verified = listing.pharmacy.verificationStatus === 'APPROVED';
 
   const handleAddToCart = () => {
+    debugListingAction('medicine-detail:add-to-cart', { listingId: listing?.id, quantity, listing });
+    if (!listing?.id) {
+      warnInvalidListing('medicine-detail:add-to-cart', { listing });
+      toast({ title: t('toast.error'), description: t('search.addToCartError'), variant: 'destructive' });
+      return;
+    }
     addToCart.mutate(
       { listingId: listing.id, quantity },
       { onSuccess: () => toast({ description: t('toast.addedToCart') }) },
@@ -150,7 +159,7 @@ export function MedicineDetailPage() {
           <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
         </div>
         <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
-        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing.id)}>{t('listing.addToCart')}</Button>
+        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing?.id)}>{t('listing.addToCart')}</Button>
       </div>
 
       <PriceTrendDialog
@@ -169,7 +178,7 @@ export function PharmacyProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { data: pharmacy, isLoading } = usePharmacyProfile(id);
   const { data: listingsData, isLoading: listingsLoading } = useListings({ pharmacyId: id });
-  const listings = listingsData?.pages.flatMap((p) => p.data) ?? [];
+  const listings = (listingsData?.pages.flatMap((p) => p.data) ?? []).filter(isRenderableListing);
 
   if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>;
   if (!pharmacy) return <div className="p-4 text-center text-danger">{t('common.error')}</div>;
