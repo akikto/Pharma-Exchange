@@ -34,6 +34,11 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `NODE_ENV` | ✅ | `production` |
 | `OTP_DEV_MODE` | ✅ | `false` |
 | `CORS_ORIGIN` | ✅ | `https://pharma-exchange-frontend.vercel.app` |
+| `RESEND_API_KEY` | ✅ | `re_...` (from [Resend Dashboard](https://resend.com/api-keys)) |
+| `RESEND_FROM` | ✅ | `Pharma-Exchange <onboarding@resend.dev>` (or verified domain address) |
+| `EMAIL_OTP_EXPIRY_MINUTES` | — | `5` |
+| `EMAIL_OTP_MAX_ATTEMPTS` | — | `5` |
+| `EMAIL_OTP_RESEND_COOLDOWN_SECONDS` | — | `60` |
 | `FIREBASE_PROJECT_ID` | — | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | — | Service account email |
 | `FIREBASE_PRIVATE_KEY` | — | Service account private key |

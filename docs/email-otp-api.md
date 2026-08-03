@@ -149,13 +149,9 @@ Sets a new password using the reset token from step 2.
 | `EMAIL_OTP_MAX_ATTEMPTS` | `5` | Max verify attempts per OTP |
 | `EMAIL_OTP_RESEND_COOLDOWN_SECONDS` | `60` | Min seconds between resends |
 | `PASSWORD_RESET_TOKEN_EXPIRES_IN` | `15m` | JWT reset token TTL |
-| `SMTP_HOST` | — | SMTP server host |
-| `SMTP_PORT` | `587` | SMTP port |
-| `SMTP_SECURE` | `false` | Use TLS |
-| `SMTP_USER` | — | SMTP username |
-| `SMTP_PASS` | — | SMTP password |
-| `SMTP_FROM` | `Pharma-Exchange <noreply@pharmex.bd>` | From address |
-| `OTP_DEV_MODE` | `false` | Log OTP in dev (must be false in production) |
+| `RESEND_API_KEY` | — | Resend API key (`re_...`) |
+| `RESEND_FROM` | `Pharma-Exchange <onboarding@resend.dev>` | Verified sender address |
+| `OTP_DEV_MODE` | `false` | Dev-only OTP logging (must be false in prod) |
 
 ---
 

@@ -1,24 +1,15 @@
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
-import { env, isSmtpConfigured } from '../../config/env';
+import { Resend } from 'resend';
+import { env, isResendConfigured } from '../../config/env';
 import { logger } from '../utils/logger';
 
-let transporter: Transporter | null = null;
+let resendClient: Resend | null = null;
 
-function getTransporter(): Transporter | null {
-  if (!isSmtpConfigured()) return null;
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE,
-      auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASS,
-      },
-    });
+function getResendClient(): Resend | null {
+  if (!isResendConfigured()) return null;
+  if (!resendClient) {
+    resendClient = new Resend(env.RESEND_API_KEY);
   }
-  return transporter;
+  return resendClient;
 }
 
 function buildOtpEmailHtml(code: string, expiryMinutes: number): string {
@@ -64,26 +55,39 @@ export async function sendPasswordResetOtpEmail(to: string, code: string): Promi
   const html = buildOtpEmailHtml(code, expiryMinutes);
   const text = `Your Pharma-Exchange password reset code is ${code}. It expires in ${expiryMinutes} minutes. If you did not request this, ignore this email.`;
 
-  const transport = getTransporter();
+  const client = getResendClient();
 
-  if (!transport) {
+  if (!client) {
     if (env.OTP_DEV_MODE || env.NODE_ENV === 'test') {
-      logger.info('[DEV EMAIL] Password reset OTP sent', { to: maskEmail(to) });
+      logger.info('[DEV EMAIL] Password reset OTP (Resend not configured)', { to: maskEmail(to) });
       return;
     }
-    logger.error('SMTP not configured — cannot send password reset OTP', { to: maskEmail(to) });
+    logger.error('Resend not configured — cannot send password reset OTP', { to: maskEmail(to) });
     throw new Error('Email service unavailable');
   }
 
-  await transport.sendMail({
-    from: env.SMTP_FROM,
-    to,
+  const { data, error } = await client.emails.send({
+    from: env.RESEND_FROM,
+    to: [to],
     subject,
-    text,
     html,
+    text,
+    tags: [{ name: 'category', value: 'password_reset_otp' }],
   });
 
-  logger.info('Password reset OTP email sent', { to: maskEmail(to) });
+  if (error) {
+    logger.error('Resend email delivery failed', {
+      to: maskEmail(to),
+      error: error.message,
+      name: error.name,
+    });
+    throw new Error('Failed to send verification email');
+  }
+
+  logger.info('Password reset OTP email sent via Resend', {
+    to: maskEmail(to),
+    messageId: data?.id,
+  });
 }
 
 function maskEmail(email: string): string {
@@ -91,4 +95,9 @@ function maskEmail(email: string): string {
   if (!domain) return '***';
   const masked = local.length <= 2 ? '**' : `${local[0]}***${local[local.length - 1]}`;
   return `${masked}@${domain}`;
+}
+
+/** @internal Reset cached client (tests only) */
+export function resetResendClientForTests(): void {
+  resendClient = null;
 }
