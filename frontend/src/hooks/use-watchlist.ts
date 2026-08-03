@@ -2,6 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import { useWatchlistStore } from '@/stores/watchlist-store';
+import { getIsOnline } from '@/lib/online-utils';
+import {
+  cachePriceAlerts,
+  cacheTriggeredAlerts,
+  cacheWatchlist,
+  getCachedPriceAlerts,
+  getCachedTriggeredAlerts,
+  getCachedWatchlist,
+} from '@/lib/offline-cache';
 import type { Medicine } from '@/types';
 import type { PriceTrend } from '@/lib/watchlist-utils';
 
@@ -45,7 +54,19 @@ export function useWatchlist(options?: { enabled?: boolean }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['watchlist'],
-    queryFn: () => apiClient.get<{ data: WatchlistEntry[] }>('/watchlist'),
+    queryFn: async () => {
+      try {
+        const data = await apiClient.get<{ data: WatchlistEntry[] }>('/watchlist');
+        await cacheWatchlist(data);
+        return data;
+      } catch (error) {
+        if (!getIsOnline()) {
+          const cached = await getCachedWatchlist();
+          if (cached) return cached;
+        }
+        throw error;
+      }
+    },
     enabled: (options?.enabled ?? true) && isAuthenticated,
   });
 }
@@ -112,7 +133,19 @@ export function useWatchlistCount() {
 export function usePriceAlerts() {
   return useQuery({
     queryKey: ['price-alerts'],
-    queryFn: () => apiClient.get<{ data: PriceAlertEntry[] }>('/price-alerts'),
+    queryFn: async () => {
+      try {
+        const data = await apiClient.get<{ data: PriceAlertEntry[] }>('/price-alerts');
+        await cachePriceAlerts(data);
+        return data;
+      } catch (error) {
+        if (!getIsOnline()) {
+          const cached = await getCachedPriceAlerts();
+          if (cached) return cached;
+        }
+        throw error;
+      }
+    },
   });
 }
 
@@ -137,7 +170,19 @@ export function useUpdatePriceAlert() {
 export function useTriggeredAlerts() {
   return useQuery({
     queryKey: ['triggered-alerts'],
-    queryFn: () => apiClient.get<{ data: TriggeredAlertEntry[] }>('/price-alerts/triggered'),
+    queryFn: async () => {
+      try {
+        const data = await apiClient.get<{ data: TriggeredAlertEntry[] }>('/price-alerts/triggered');
+        await cacheTriggeredAlerts(data);
+        return data;
+      } catch (error) {
+        if (!getIsOnline()) {
+          const cached = await getCachedTriggeredAlerts();
+          if (cached) return cached;
+        }
+        throw error;
+      }
+    },
   });
 }
 

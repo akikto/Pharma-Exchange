@@ -220,12 +220,44 @@ export class AuthService {
       where: { id: userId },
       select: {
         id: true, email: true, phone: true, firstName: true, lastName: true,
-        role: true, language: true, theme: true, authProvider: true,
+        role: true, language: true, theme: true, notificationPrefs: true, authProvider: true,
         pharmacy: { select: { id: true, name: true, verificationStatus: true, rating: true } },
       },
     });
     if (!user) throw AppError.notFound('User not found');
     return user;
+  }
+
+  async updateProfile(
+    userId: string,
+    data: { language?: string; theme?: string; notificationPrefs?: Record<string, boolean> },
+  ) {
+    const existing = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationPrefs: true },
+    });
+    if (!existing) throw AppError.notFound('User not found');
+
+    const currentPrefs =
+      existing.notificationPrefs && typeof existing.notificationPrefs === 'object' && !Array.isArray(existing.notificationPrefs)
+        ? (existing.notificationPrefs as Record<string, boolean>)
+        : {};
+
+    return prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(data.language !== undefined && { language: data.language }),
+        ...(data.theme !== undefined && { theme: data.theme }),
+        ...(data.notificationPrefs !== undefined && {
+          notificationPrefs: { ...currentPrefs, ...data.notificationPrefs },
+        }),
+      },
+      select: {
+        id: true, email: true, phone: true, firstName: true, lastName: true,
+        role: true, language: true, theme: true, notificationPrefs: true, authProvider: true,
+        pharmacy: { select: { id: true, name: true, verificationStatus: true, rating: true } },
+      },
+    });
   }
 
   async registerFcmToken(userId: string, token: string, deviceId?: string, platform?: string) {

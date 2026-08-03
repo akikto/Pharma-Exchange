@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { idbStorage } from '@/lib/idb-storage';
 
 interface WatchlistState {
   medicineIds: string[];
@@ -30,6 +31,6 @@ export const useWatchlistStore = create<WatchlistState>()(
       has: (medicineId) => get().medicineIds.includes(medicineId),
       count: () => get().medicineIds.length,
     }),
-    { name: 'pharmex-watchlist' },
+    { name: 'pharmex-watchlist', storage: createJSONStorage(() => idbStorage) },
   ),
 );

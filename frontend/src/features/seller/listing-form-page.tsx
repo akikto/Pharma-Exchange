@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
@@ -7,14 +8,38 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { apiClient } from '@/lib/api';
+import {
+  clearListingDraft,
+  isListingDraftEmpty,
+  loadListingDraft,
+  saveListingDraft,
+  type ListingDraft,
+} from '@/lib/listing-draft';
 import type { Listing, Medicine } from '@/types';
 
+const EMPTY_FORM: Omit<ListingDraft, 'updatedAt'> = {
+  medicineId: '',
+  medicineQuery: '',
+  batchNumber: '',
+  mfgDate: '',
+  expiryDate: '',
+  purchasePrice: '',
+  sellingPrice: '',
+  discountPercent: '0',
+  availableQty: '',
+  moq: '1',
+  lowStockThreshold: '',
+};
+
 export function ListingFormPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
   const [medicineQuery, setMedicineQuery] = useState('');
   const [error, setError] = useState('');
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const saveDraftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -28,24 +53,13 @@ export function ListingFormPage() {
     enabled: medicineQuery.length >= 2,
   });
 
-  const [form, setForm] = useState({
-    medicineId: '',
-    batchNumber: '',
-    mfgDate: '',
-    expiryDate: '',
-    purchasePrice: '',
-    sellingPrice: '',
-    discountPercent: '0',
-    availableQty: '',
-    moq: '1',
-    lowStockThreshold: '',
-    status: 'ACTIVE',
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
   useEffect(() => {
     if (existing) {
       setForm({
         medicineId: existing.medicine.id,
+        medicineQuery: existing.medicine.name,
         batchNumber: existing.batchNumber,
         mfgDate: existing.mfgDate.slice(0, 10),
         expiryDate: existing.expiryDate.slice(0, 10),
@@ -55,10 +69,49 @@ export function ListingFormPage() {
         availableQty: String(existing.availableQty),
         moq: String(existing.moq),
         lowStockThreshold: existing.lowStockThreshold != null ? String(existing.lowStockThreshold) : '',
-        status: existing.status,
       });
+      setMedicineQuery(existing.medicine.name);
     }
   }, [existing]);
+
+  useEffect(() => {
+    if (isEdit || draftLoaded) return;
+    void loadListingDraft().then((draft) => {
+      if (draft && !isListingDraftEmpty(draft)) {
+        setForm({
+          medicineId: draft.medicineId,
+          medicineQuery: draft.medicineQuery,
+          batchNumber: draft.batchNumber,
+          mfgDate: draft.mfgDate,
+          expiryDate: draft.expiryDate,
+          purchasePrice: draft.purchasePrice,
+          sellingPrice: draft.sellingPrice,
+          discountPercent: draft.discountPercent,
+          availableQty: draft.availableQty,
+          moq: draft.moq,
+          lowStockThreshold: draft.lowStockThreshold,
+        });
+        setMedicineQuery(draft.medicineQuery);
+      }
+      setDraftLoaded(true);
+    });
+  }, [isEdit, draftLoaded]);
+
+  useEffect(() => {
+    if (isEdit || !draftLoaded) return;
+    if (saveDraftTimer.current) clearTimeout(saveDraftTimer.current);
+    saveDraftTimer.current = setTimeout(() => {
+      const draft = { ...form, medicineQuery, updatedAt: new Date().toISOString() };
+      if (isListingDraftEmpty(draft)) {
+        void clearListingDraft();
+      } else {
+        void saveListingDraft(draft);
+      }
+    }, 500);
+    return () => {
+      if (saveDraftTimer.current) clearTimeout(saveDraftTimer.current);
+    };
+  }, [form, medicineQuery, isEdit, draftLoaded]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -73,21 +126,41 @@ export function ListingFormPage() {
         availableQty: Number(form.availableQty),
         moq: Number(form.moq),
         ...(form.lowStockThreshold ? { lowStockThreshold: Number(form.lowStockThreshold) } : {}),
-        status: form.status,
+        status: 'ACTIVE',
       };
       if (isEdit) return apiClient.patch(`/listings/${id}`, body);
       return apiClient.post('/listings', body);
     },
-    onSuccess: () => navigate('/seller/inventory'),
+    onSuccess: async () => {
+      if (!isEdit) await clearListingDraft();
+      navigate('/seller/inventory');
+    },
     onError: (e) => setError((e as Error).message),
   });
 
+  const clearDraft = async () => {
+    await clearListingDraft();
+    setForm(EMPTY_FORM);
+    setMedicineQuery('');
+  };
+
   if (isEdit && isLoading) return <div className="p-4"><ListSkeleton /></div>;
+
+  const hasDraft = !isEdit && draftLoaded && !isListingDraftEmpty({ ...form, medicineQuery, updatedAt: '' });
 
   return (
     <div>
       <TopBar title={isEdit ? 'Edit Listing' : 'Add Listing'} showBack />
       <form className="p-4 space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+        {!isEdit && hasDraft && (
+          <div className="rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle/30 p-3 flex items-center justify-between gap-3">
+            <p className="text-sm">{t('listing.draftRestored')}</p>
+            <Button type="button" variant="ghost" size="sm" onClick={() => void clearDraft()}>
+              {t('listing.clearDraft')}
+            </Button>
+          </div>
+        )}
+
         {!isEdit && (
           <div>
             <Label>Search Medicine</Label>
@@ -99,7 +172,10 @@ export function ListingFormPage() {
                     key={m.id}
                     type="button"
                     className="w-full text-left p-2 text-sm hover:bg-surface-raised"
-                    onClick={() => { setForm((f) => ({ ...f, medicineId: m.id })); setMedicineQuery(m.name); }}
+                    onClick={() => {
+                      setForm((f) => ({ ...f, medicineId: m.id }));
+                      setMedicineQuery(m.name);
+                    }}
                   >
                     {m.name} — {m.company}
                   </button>
