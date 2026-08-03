@@ -28,6 +28,7 @@ const OrderDetailPage = lazy(() => import('@/features/buyer/order-detail-page').
 const BuyRequestDetailPage = lazy(() => import('@/features/buyer/buy-request-detail-page').then(m => ({ default: m.BuyRequestDetailPage })));
 const ChatListPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatListPage })));
 const ChatPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatPage })));
+const WatchlistPage = lazy(() => import('@/features/watchlist/watchlist-page').then(m => ({ default: m.WatchlistPage })));
 const NotificationsPage = lazy(() => import('@/features/notifications/notifications-page').then(m => ({ default: m.NotificationsPage })));
 const ProfilePage = lazy(() => import('@/features/profile/profile-page').then(m => ({ default: m.ProfilePage })));
 const SettingsPage = lazy(() => import('@/features/profile/profile-page').then(m => ({ default: m.SettingsPage })));
@@ -90,6 +91,7 @@ export function AppRouter() {
             <Route path="/buy-requests/:id" element={<BuyRequestDetailPage />} />
             <Route path="/chat" element={<ChatListPage />} />
             <Route path="/chat/:id" element={<ChatPage />} />
+            <Route path="/watchlist" element={<ProtectedRoute><WatchlistPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<SettingsPage />} />

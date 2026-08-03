@@ -558,6 +558,37 @@
     "sellerRequiredDesc": "Register and verify your pharmacy to post bulk procurement requests.",
     "fabLabel": "Bulk request"
   },
+  "watchlist": {
+    "title": "Watchlist",
+    "tabList": "Saved",
+    "tabAlerts": "Alerts",
+    "empty": "No medicines saved yet",
+    "browse": "Browse medicines",
+    "loadError": "Failed to load watchlist",
+    "noOffers": "No active offers",
+    "sellers": "{{count}} sellers",
+    "sellers_one": "{{count}} seller",
+    "compare": "Compare",
+    "remove": "Remove",
+    "maxPrice": "Max price alert",
+    "alertSet": "Price alert saved",
+    "simulate": "Simulate alert",
+    "simulateSuccess": "Demo alert triggered",
+    "addToCart": "Add to cart",
+    "activeAlerts": "Your price alerts",
+    "noAlerts": "No price alerts set",
+    "enabled": "On",
+    "disabled": "Off",
+    "triggeredInbox": "Triggered alerts",
+    "noTriggered": "No triggered alerts",
+    "simulated": "Demo",
+    "dismiss": "Dismiss",
+    "trend": {
+      "up": "Trending up",
+      "down": "Trending down",
+      "stable": "Stable"
+    }
+  },
   "admin": {
     "dashboard": "Admin Dashboard",
     "dashboardSub": "অ্যাডমিন ড্যাশবোর্ড",

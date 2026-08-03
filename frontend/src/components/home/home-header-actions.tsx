@@ -4,16 +4,14 @@ import { Heart, ShoppingCart, ScanBarcode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NavBadge } from '@/components/ui/nav-badge';
 import { useNavBadges } from '@/hooks/use-nav-badges';
-import { useWatchlistStore } from '@/stores/watchlist-store';
-import { useShellStore } from '@/stores/shell-store';
+import { useWatchlistCount } from '@/hooks/use-watchlist';
 import { useToast } from '@/hooks/use-toast';
 
 export function HomeHeaderActions() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const badges = useNavBadges();
-  const watchlistCount = useWatchlistStore((s) => s.medicineIds.length);
-  const openModal = useShellStore((s) => s.openModal);
+  const watchlistCount = useWatchlistCount();
   const { toast } = useToast();
 
   return (
@@ -31,7 +29,7 @@ export function HomeHeaderActions() {
         size="icon"
         className="relative"
         aria-label={t('home.watchlistShortcut', { count: watchlistCount })}
-        onClick={() => openModal('watchlist')}
+        onClick={() => navigate('/watchlist')}
       >
         <Heart className="h-5 w-5" />
         <NavBadge count={watchlistCount} />

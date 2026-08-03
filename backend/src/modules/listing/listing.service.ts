@@ -4,6 +4,7 @@ import { AppError } from '../../shared/errors/AppError';
 import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
 import { haversineKm } from '../../shared/utils/geo';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
+import { priceAlertService } from '../watchlist/priceAlert.service';
 
 type SearchQuery = Record<string, unknown>;
 
@@ -265,7 +266,7 @@ export class ListingService {
     const pharmacy = await getPharmacyForUser(userId);
     const finalPrice = computeFinalPrice(Number(data.sellingPrice), Number(data.discountPercent ?? 0));
 
-    return prisma.listing.create({
+    const listing = await prisma.listing.create({
       data: {
         pharmacyId: pharmacy.id,
         medicineId: data.medicineId as string,
@@ -285,6 +286,12 @@ export class ListingService {
       },
       include: { medicine: true },
     });
+
+    if (listing.status === ListingStatus.ACTIVE) {
+      await priceAlertService.evaluateListing(listing).catch(() => undefined);
+    }
+
+    return listing;
   }
 
   async update(userId: string, id: string, data: Record<string, unknown>) {
@@ -304,11 +311,17 @@ export class ListingService {
     if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
     if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
 
-    return prisma.listing.update({
+    const updated = await prisma.listing.update({
       where: { id },
       data: updateData as never,
       include: { medicine: true },
     });
+
+    if (updated.status === ListingStatus.ACTIVE) {
+      await priceAlertService.evaluateListing(updated).catch(() => undefined);
+    }
+
+    return updated;
   }
 
   async updatePrice(userId: string, id: string, sellingPrice?: number, discountPercent?: number) {

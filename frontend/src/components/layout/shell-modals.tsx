@@ -17,36 +17,6 @@ import { Input } from '@/components/ui/input';
 import { BuyRequestDialog } from '@/components/buy-request/buy-request-dialog';
 import { BulkProcurementDialog } from '@/components/bulk/bulk-procurement-dialog';
 
-function ComingSoonModal({
-  open,
-  onClose,
-  titleKey,
-  subKey,
-}: {
-  open: boolean;
-  onClose: () => void;
-  titleKey: string;
-  subKey: string;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t(titleKey)}</DialogTitle>
-          <DialogDescription>
-            {t(subKey)}
-            <span className="block mt-1 text-text-disabled">{t('common.comingSoonDesc')}</span>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button onClick={onClose}>{t('common.close')}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -188,7 +158,6 @@ export function ShellModals() {
       <BuyRequestModal open={activeModal === 'buyRequest' && isAuthenticated} onClose={closeModal} />
       <AuthModal open={activeModal === 'buyRequest' && !isAuthenticated} onClose={closeModal} />
       <ListingEditModal open={activeModal === 'listingEdit'} onClose={closeModal} />
-      <ComingSoonModal open={activeModal === 'watchlist'} onClose={closeModal} titleKey="modal.watchlistTitle" subKey="modal.watchlistSub" />
       <BulkModal open={activeModal === 'bulk' && isAuthenticated && isVerifiedSeller} onClose={closeModal} />
       <AuthModal open={activeModal === 'bulk' && !isAuthenticated} onClose={closeModal} />
       <BulkSellerRequiredModal open={activeModal === 'bulk' && isAuthenticated && !isVerifiedSeller} onClose={closeModal} />

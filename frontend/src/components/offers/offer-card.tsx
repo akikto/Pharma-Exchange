@@ -9,7 +9,7 @@ import { isLowStock, calculateSavings, formatSavingsPercent } from '@/lib/offer-
 import { StatusChip } from '@/components/ui/status-chip';
 import { Button } from '@/components/ui/button';
 import { useAddToCart } from '@/hooks/use-api';
-import { useWatchlistStore } from '@/stores/watchlist-store';
+import { useToggleWatchlist, useIsWatched } from '@/hooks/use-watchlist';
 import { useShellStore } from '@/stores/shell-store';
 import { useToast } from '@/hooks/use-toast';
 import { ContactActions } from '@/components/offers/contact-actions';
@@ -34,13 +34,13 @@ export function OfferCard({
   const { t } = useTranslation();
   const { toast } = useToast();
   const addToCart = useAddToCart();
-  const { toggle, has } = useWatchlistStore();
+  const toggleWatchlist = useToggleWatchlist();
   const openModal = useShellStore((s) => s.openModal);
   const [trendOpen, setTrendOpen] = useState(false);
 
   const expiryStatus = getExpiryStatus(listing.expiryDate);
   const hasDiscount = listing.discountPercent > 0;
-  const watched = has(listing.medicine.id);
+  const watched = useIsWatched(listing.medicine.id);
   const lowStock = isLowStock(listing.availableQty, listing.moq);
   const verified = listing.pharmacy.verificationStatus === 'APPROVED';
   const price = Number(listing.finalPrice);
@@ -82,8 +82,9 @@ export function OfferCard({
   const handleWatchlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggle(listing.medicine.id);
-    toast({ title: watched ? t('search.removedWatchlist') : t('search.addedWatchlist') });
+    toggleWatchlist.mutate(listing.medicine.id, {
+      onSuccess: (r) => toast({ title: r.added ? t('search.addedWatchlist') : t('search.removedWatchlist') }),
+    });
   };
 
   const compareUrl = `/medicine/${listing.medicine.id}/compare`;
