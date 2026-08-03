@@ -54,6 +54,9 @@
     "pendingRequests_other": "{{count}} অপেক্ষমাণ অনুরোধ",
     "viewCart": "কার্ট দেখুন",
     "viewRequests": "অনুরোধ দেখুন",
+    "moreCartItems": "আরও {{count}} আইটেম",
+    "moreCartItems_one": "আরও {{count}} আইটেম",
+    "moreCartItems_other": "আরও {{count}} আইটেম",
     "expand": "বিস্তার করুন",
     "collapse": "সংকুচিত করুন",
     "notifications": "বিজ্ঞপ্তি",
@@ -300,7 +303,16 @@
     "removeItem": "আইটেম সরান",
     "loadError": "কার্ট লোড করতে ব্যর্থ",
     "note": "নোট (ঐচ্ছিক)",
-    "notePlaceholder": "বিক্রেতাকে বার্তা…"
+    "notePlaceholder": "বিক্রেতাকে বার্তা…",
+    "checkoutHint": "প্রতিটি বিক্রেতা আলাদা ক্রয় অনুরোধ পাবেন — স্বতন্ত্রভাবে আলোচনা করুন।",
+    "grandTotalLabel": "কার্ট মোট",
+    "grandTotalHint": "নিচে প্রতি বিক্রেতাকে ক্রয় অনুরোধ পাঠান",
+    "sellerGroups": "{{count}} বিক্রেতা",
+    "sellerGroups_one": "{{count}} বিক্রেতা",
+    "sellerGroups_other": "{{count}} বিক্রেতা",
+    "quantityUpdated": "পরিমাণ আপডেট হয়েছে",
+    "quantityFor": "{{name}} এর পরিমাণ",
+    "chatUnavailable": "বিক্রেতার যোগাযোগ উপলব্ধ নয়"
   },
   "buyRequest": {
     "title": "ক্রয় অনুরোধ",
