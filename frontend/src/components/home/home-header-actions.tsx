@@ -13,24 +13,24 @@ export function HomeHeaderActions() {
   const { toast } = useToast();
 
   return (
-    <div className="flex items-center gap-0" data-testid="home-header-actions">
+    <div className="flex items-center" data-testid="home-header-actions">
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-9"
+        className="h-8 w-8"
         aria-label={t('home.barcodeScan')}
         onClick={() => toast({ description: t('home.barcodeComingSoon') })}
       >
-        <ScanBarcode className="h-5 w-5" />
+        <ScanBarcode className="h-4 w-4" />
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className="relative h-9 w-9"
+        className="relative h-8 w-8"
         aria-label={t('home.watchlistShortcut', { count: watchlistCount })}
         onClick={() => navigate('/watchlist')}
       >
-        <Heart className="h-5 w-5" />
+        <Heart className="h-4 w-4" />
         <NavBadge count={watchlistCount} />
       </Button>
     </div>
