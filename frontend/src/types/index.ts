@@ -115,6 +115,9 @@ export interface Order {
 
 export interface Conversation {
   id: string;
+  orderId?: string | null;
+  buyRequestId?: string | null;
+  listingId?: string | null;
   updatedAt: string;
   members: { user: { id: string; firstName: string; lastName: string } }[];
   messages: Message[];

@@ -54,7 +54,11 @@ export function BuyRequestDetailPage() {
     const userId = role === 'seller' ? request?.buyer?.id : request?.seller?.userId;
     if (!userId) return;
     try {
-      const conv = await startChat.mutateAsync({ participantId: userId, listingId: request?.items[0]?.listing.id });
+      const conv = await startChat.mutateAsync({
+        participantId: userId,
+        listingId: request?.items[0]?.listing.id,
+        buyRequestId: request?.id,
+      });
       navigate(`/chat/${conv.id}`);
     } catch (e) {
       toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });

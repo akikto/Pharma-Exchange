@@ -200,7 +200,7 @@ export function useSellerAnalytics(options?: { enabled?: boolean }) {
 export function useStartConversation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { participantId: string; listingId?: string; orderId?: string }) =>
+    mutationFn: (data: { participantId: string; listingId?: string; orderId?: string; buyRequestId?: string }) =>
       apiClient.post<{ id: string }>('/chat/conversations', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['conversations'] }),
   });

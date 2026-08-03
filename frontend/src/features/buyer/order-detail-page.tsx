@@ -94,13 +94,13 @@ export function OrderDetailPage() {
   };
 
   const handleChat = async () => {
-    const userId = order?.seller?.userId;
+    const userId = role === 'seller' ? order?.buyer?.id : order?.seller?.userId;
     if (!userId) {
       toast({ title: t('toast.error'), description: t('cart.chatUnavailable'), variant: 'destructive' });
       return;
     }
     try {
-      const conv = await startChat.mutateAsync({ participantId: userId });
+      const conv = await startChat.mutateAsync({ participantId: userId, orderId: order?.id });
       navigate(`/chat/${conv.id}`);
     } catch (e) {
       toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });

@@ -421,7 +421,19 @@
     "send": "Send",
     "attach": "Attach file",
     "voice": "Voice message",
-    "typing": "Typing…"
+    "typing": "Typing…",
+    "filterLabel": "Filter by order or request",
+    "filterAll": "All conversations",
+    "filterOrder": "Order {{number}}",
+    "filterRequest": "Request {{number}}",
+    "markPacked": "Mark packed",
+    "markShipped": "Mark shipped",
+    "markDelivered": "Mark delivered",
+    "acceptRequest": "Accept request",
+    "rejectRequest": "Reject request",
+    "statusUpdated": "Order status updated",
+    "requestUpdated": "Request updated",
+    "whatsappGreeting": "Hello, I have a question about our order on Pharma Exchange."
   },
   "notifications": {
     "title": "Notifications",

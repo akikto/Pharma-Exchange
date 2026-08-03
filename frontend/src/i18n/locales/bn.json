@@ -421,7 +421,19 @@
     "send": "পাঠান",
     "attach": "ফাইল সংযুক্ত",
     "voice": "ভয়েস",
-    "typing": "টাইপ করছে…"
+    "typing": "টাইপ করছে…",
+    "filterLabel": "অর্ডার বা অনুরোধ অনুযায়ী ফিল্টার",
+    "filterAll": "সব কথোপকথন",
+    "filterOrder": "অর্ডার {{number}}",
+    "filterRequest": "অনুরোধ {{number}}",
+    "markPacked": "প্যাক করা হয়েছে",
+    "markShipped": "পাঠানো হয়েছে",
+    "markDelivered": "ডেলিভারি সম্পন্ন",
+    "acceptRequest": "অনুরোধ গ্রহণ",
+    "rejectRequest": "অনুরোধ প্রত্যাখ্যান",
+    "statusUpdated": "অর্ডার স্ট্যাটাস আপডেট হয়েছে",
+    "requestUpdated": "অনুরোধ আপডেট হয়েছে",
+    "whatsappGreeting": "হ্যালো, Pharma Exchange-এ আমাদের অর্ডার সম্পর্কে একটি প্রশ্ন আছে।"
   },
   "notifications": {
     "title": "বিজ্ঞপ্তি",
