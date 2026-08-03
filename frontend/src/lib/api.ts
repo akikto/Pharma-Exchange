@@ -127,7 +127,8 @@ export const apiClient = {
     api<T>(path, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body) }),
   patch: <T>(path: string, body?: unknown) =>
     api<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
-  delete: <T>(path: string) => api<T>(path, { method: 'DELETE' }),
+  delete: <T>(path: string, body?: unknown) =>
+    api<T>(path, { method: 'DELETE', ...(body !== undefined ? { body: JSON.stringify(body) } : {}) }),
   upload: <T>(path: string, file: File) => {
     const form = new FormData();
     form.append('file', file);

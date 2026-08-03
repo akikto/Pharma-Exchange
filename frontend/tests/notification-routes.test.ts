@@ -14,6 +14,11 @@ describe('getNotificationRoute', () => {
     expect(getNotificationRoute({ buyRequestId: 'br1' })).toBe('/buy-requests/br1');
   });
 
+  it('maps listing and pharmacy notifications', () => {
+    expect(getNotificationRoute({ listingId: 'l1' })).toBe('/medicine/l1');
+    expect(getNotificationRoute({ pharmacyId: 'p1' })).toBe('/pharmacy/p1');
+  });
+
   it('returns null when no known keys', () => {
     expect(getNotificationRoute({})).toBeNull();
     expect(getNotificationRoute(undefined)).toBeNull();

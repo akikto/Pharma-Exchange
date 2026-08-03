@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { User, AppMode } from '@/types';
 import { disconnectSocket } from '@/lib/socket';
 import { apiClient, setTokens, clearTokens, loadRefreshToken } from '@/lib/api';
+import { unregisterFcmTokenFromBackend } from '@/lib/push-notifications';
 
 interface AuthState {
   user: User | null;
@@ -89,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
+        await unregisterFcmTokenFromBackend();
         try { await apiClient.post('/auth/logout'); } catch { /* ignore */ }
         disconnectSocket();
         clearTokens();
