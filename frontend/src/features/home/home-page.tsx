@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Search, LayoutGrid, Layers, X, RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { ListingCard } from '@/components/listing-card';
@@ -16,57 +16,36 @@ import { PullToRefreshIndicator } from '@/components/home/pull-to-refresh-indica
 import { useListings } from '@/hooks/use-listings';
 import { useInfiniteScroll } from '@/hooks/use-chat';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
-import { useAuthStore } from '@/stores/auth-store';
-import { apiClient } from '@/lib/api';
-import type { Pharmacy } from '@/types';
 import {
   filterListingsByQuery,
-  filterListingsNearby,
   groupListingsByMedicine,
 } from '@/lib/catalog-groups';
+import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
+import { useGeolocation } from '@/hooks/use-geolocation';
 import { cn } from '@/lib/utils';
 
-const filterKeys = ['filterAll', 'filterNearby', 'filterNew', 'filterDiscounted'] as const;
-type QuickFilter = (typeof filterKeys)[number];
 type FeedView = 'grid' | 'catalog';
 
 export function HomePage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const user = useAuthStore((s) => s.user);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<QuickFilter>('filterAll');
+  const [activeFilter, setActiveFilter] = useState<HomeQuickFilter>('filterAll');
   const [feedView, setFeedView] = useState<FeedView>('grid');
-
-  const { data: myPharmacy } = useQuery({
-    queryKey: ['pharmacy', 'me'],
-    queryFn: () => apiClient.get<Pharmacy>('/pharmacies/me'),
-    enabled: Boolean(user?.pharmacy),
-    retry: false,
-  });
+  const { coords, requestLocation } = useGeolocation();
 
   const listingParams = useMemo(() => {
-    switch (activeFilter) {
-      case 'filterDiscounted':
-        return { sortBy: 'discount', minDiscount: '1' };
-      case 'filterNew':
-        return { sortBy: 'createdAt' };
-      default:
-        return { sortBy: 'createdAt' };
+    if (activeFilter === 'filterNearby' && !coords) {
+      requestLocation();
     }
-  }, [activeFilter]);
+    return homeFilterToParams(activeFilter, coords);
+  }, [activeFilter, coords, requestLocation]);
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, isFetching, refetch } = useListings(listingParams);
   const rawListings = data?.pages.flatMap((p) => p.data) ?? [];
   const totalFromApi = data?.pages[0]?.pagination.total;
 
-  const listings = useMemo(() => {
-    let result = rawListings;
-    if (activeFilter === 'filterNearby' && myPharmacy?.city) {
-      result = filterListingsNearby(result, myPharmacy.city);
-    }
-    return filterListingsByQuery(result, searchQuery);
-  }, [rawListings, activeFilter, searchQuery, myPharmacy?.city]);
+  const listings = useMemo(() => filterListingsByQuery(rawListings, searchQuery), [rawListings, searchQuery]);
 
   const catalogGroups = useMemo(() => groupListingsByMedicine(listings), [listings]);
 
@@ -152,8 +131,8 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-          {filterKeys.map((key) => (
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" data-testid="home-quick-filters">
+          {HOME_QUICK_FILTERS.map((key) => (
             <button
               key={key}
               type="button"

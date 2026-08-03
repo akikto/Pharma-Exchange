@@ -18,6 +18,13 @@ export class MedicineController {
     } catch (err) { next(err); }
   }
 
+  async getAlternatives(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await medicineService.getAlternatives(req.params.id as string);
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async create(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const medicine = await medicineService.create(req.body);
