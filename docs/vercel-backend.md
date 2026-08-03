@@ -46,8 +46,10 @@ Set these in Vercel → Project → Settings → Environment Variables:
 
 - **Root Directory:** `backend`
 - **Framework Preset:** Other
-- **Build Command:** `npx prisma generate && npm run build` (auto from `vercel.json`)
+- **Build Command:** `npm run vercel-build` (auto from `vercel.json`)
 - **Install Command:** `cd .. && npm ci` (auto from `vercel.json`)
+
+The Vercel build runs `prisma migrate deploy` and `prisma db push` so the production database schema stays in sync with `prisma/schema.prisma`. If auth endpoints return 500 after a schema change, redeploy the backend project so migrations run during build.
 
 ## Preview deployments
 

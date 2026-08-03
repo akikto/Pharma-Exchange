@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { Prisma } from '@prisma/client';
 import { AppError } from './AppError';
+import { mapPrismaError, mapPrismaInitError } from './prismaErrors';
 import { logger } from '../utils/logger';
 import { env } from '../../config/env';
 
@@ -20,6 +22,22 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
       code: 'VALIDATION_ERROR',
       details: err.errors.map((e) => ({ path: e.path.join('.'), message: e.message })),
     });
+    return;
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    const mapped = mapPrismaError(err);
+    if (mapped) {
+      logger.error('Prisma request error', { code: err.code, message: err.message });
+      res.status(mapped.statusCode).json({ error: mapped.message, code: mapped.code });
+      return;
+    }
+  }
+
+  if (err instanceof Prisma.PrismaClientInitializationError) {
+    const mapped = mapPrismaInitError(err);
+    logger.error('Prisma initialization error', { message: err.message });
+    res.status(mapped.statusCode).json({ error: mapped.message, code: mapped.code });
     return;
   }
 

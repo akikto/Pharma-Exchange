@@ -30,6 +30,10 @@ export class AppError extends Error {
     return new AppError(409, message, 'CONFLICT');
   }
 
+  static serviceUnavailable(message: string): AppError {
+    return new AppError(503, message, 'SERVICE_UNAVAILABLE');
+  }
+
   static internal(message = 'Internal server error'): AppError {
     return new AppError(500, message, 'INTERNAL_ERROR');
   }
