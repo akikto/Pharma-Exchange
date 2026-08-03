@@ -44,8 +44,26 @@ export const otpRateLimiter = rateLimit({
   ...baseOptions,
   windowMs: 60 * 1000,
   max: 5,
+  keyGenerator: (req) => {
+    const body = req.body as { email?: string } | undefined;
+    return body?.email ? `otp:${body.email.toLowerCase()}` : `otp-ip:${req.ip}`;
+  },
   message: rateLimitMessage(
     'অনেকবার OTP চেয়েছেন। ১ মিনিট পর আবার চেষ্টা করুন।',
     'Too many OTP requests',
+  ),
+});
+
+export const emailOtpVerifyRateLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  keyGenerator: (req) => {
+    const body = req.body as { email?: string } | undefined;
+    return body?.email ? `otp-verify:${body.email.toLowerCase()}` : `otp-verify-ip:${req.ip}`;
+  },
+  message: rateLimitMessage(
+    'অনেকবার ভুল কোড দিয়েছেন। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+    'Too many verification attempts',
   ),
 });

@@ -3,6 +3,7 @@ import { ListingStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { logger } from '../shared/utils/logger';
 import { notificationService } from '../modules/notification';
+import { emailOtpService } from '../modules/auth/email-otp.service';
 
 export function startBackgroundJobs() {
   // Short expiry alerts — daily at 8 AM
@@ -69,6 +70,15 @@ export function startBackgroundJobs() {
       if (result.count > 0) logger.info(`Marked ${result.count} listings as expired`);
     } catch (err) {
       logger.error('Listing cleanup job failed', { error: (err as Error).message });
+    }
+  });
+
+  // Clean expired email OTP records — every 30 minutes
+  cron.schedule('*/30 * * * *', async () => {
+    try {
+      await emailOtpService.cleanupExpiredOtps();
+    } catch (err) {
+      logger.error('Email OTP cleanup job failed', { error: (err as Error).message });
     }
   });
 

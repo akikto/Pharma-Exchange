@@ -15,7 +15,9 @@ interface AuthState {
   register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string; accessToken?: string; refreshToken?: string; user?: User }>;
   sendOtp: (data: { phone?: string; email?: string }) => Promise<{ devOtp?: string }>;
   verifyOtp: (data: { phone?: string; email?: string; code: string; purpose: string }) => Promise<void>;
-  resetPassword: (email: string, newPassword: string) => Promise<void>;
+  requestPasswordResetOtp: (email: string) => Promise<{ message: string }>;
+  verifyPasswordResetOtp: (email: string, code: string) => Promise<{ resetToken: string; expiresIn: number }>;
+  resetPasswordWithToken: (resetToken: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setMode: (mode: AppMode) => void;
@@ -73,10 +75,19 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      resetPassword: async (email, newPassword) => {
-        const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/reset-password', { email, newPassword });
-        setTokens(data.accessToken, data.refreshToken);
-        set({ user: data.user, isAuthenticated: true });
+      requestPasswordResetOtp: async (email) => {
+        return apiClient.post<{ message: string }>('/auth/forgot-password', { email });
+      },
+
+      verifyPasswordResetOtp: async (email, code) => {
+        return apiClient.post<{ resetToken: string; expiresIn: number; message: string }>(
+          '/auth/verify-email-otp',
+          { email, code },
+        );
+      },
+
+      resetPasswordWithToken: async (resetToken, newPassword) => {
+        await apiClient.post('/auth/reset-password', { resetToken, newPassword });
       },
 
       logout: async () => {

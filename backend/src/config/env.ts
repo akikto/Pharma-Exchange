@@ -15,6 +15,12 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
   OTP_EXPIRY_MINUTES: z.coerce.number().default(10),
   OTP_DEV_MODE: booleanFromEnv.default(false),
+  EMAIL_OTP_EXPIRY_MINUTES: z.coerce.number().default(5),
+  EMAIL_OTP_MAX_ATTEMPTS: z.coerce.number().default(5),
+  EMAIL_OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().default(60),
+  PASSWORD_RESET_TOKEN_EXPIRES_IN: z.string().default('15m'),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM: z.string().default('Pharma-Exchange <onboarding@resend.dev>'),
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
@@ -40,6 +46,9 @@ function loadEnv(): Env {
   if (env.NODE_ENV === 'production' && env.OTP_DEV_MODE) {
     throw new Error('OTP_DEV_MODE must be false in production');
   }
+  if (env.NODE_ENV === 'production' && !env.RESEND_API_KEY) {
+    console.warn('WARNING: RESEND_API_KEY not set — password reset emails will fail in production.');
+  }
   return env;
 }
 
@@ -47,3 +56,6 @@ export const env = loadEnv();
 
 export const isFirebaseConfigured = (): boolean =>
   Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+
+export const isResendConfigured = (): boolean =>
+  Boolean(env.RESEND_API_KEY && env.RESEND_FROM);

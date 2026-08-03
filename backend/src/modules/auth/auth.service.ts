@@ -6,6 +6,7 @@ import { verifyFirebaseToken } from '../../config/firebase';
 import { AppError } from '../../shared/errors/AppError';
 import { generateOtp } from '../../shared/utils/helpers';
 import { signAccessToken, signRefreshToken } from '../../shared/middleware/auth.middleware';
+import { emailOtpService } from './email-otp.service';
 import { logger } from '../../shared/utils/logger';
 
 export class AuthService {
@@ -63,6 +64,9 @@ export class AuthService {
   }
 
   async sendOtp(data: { phone?: string; email?: string; purpose: 'login' | 'password_reset' }) {
+    if (data.purpose === 'password_reset') {
+      throw AppError.badRequest('Use POST /auth/forgot-password for password reset OTP');
+    }
     const user = await prisma.user.findFirst({
       where: data.phone ? { phone: data.phone } : { email: data.email },
     });
@@ -86,18 +90,9 @@ export class AuthService {
     return { message: 'OTP sent', ...(env.OTP_DEV_MODE && { devOtp: otp }) };
   }
 
-  async resetPassword(data: { email: string; newPassword: string }) {
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
-    if (!user) throw AppError.notFound('No account found with this email');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
-
-    const passwordHash = await bcrypt.hash(data.newPassword, 12);
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash },
-    });
-
-    return this.issueTokens(updated);
+  async resetPassword(data: { resetToken: string; newPassword: string }) {
+    await emailOtpService.resetPasswordWithToken(data.resetToken, data.newPassword);
+    return { message: 'Password updated successfully' };
   }
 
   async login(data: { email?: string; phone?: string; password: string }) {
@@ -158,6 +153,9 @@ export class AuthService {
   }
 
   async verifyOtp(data: { phone?: string; email?: string; code: string; purpose: string }) {
+    if (data.purpose === 'password_reset') {
+      throw AppError.badRequest('Use POST /auth/verify-email-otp for password reset verification');
+    }
     const otpRecord = await prisma.otpToken.findFirst({
       where: {
         code: data.code,

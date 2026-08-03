@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../shared/middleware/auth.middleware';
 import { authService } from './auth.service';
+import { emailOtpService } from './email-otp.service';
 
 export class AuthController {
   async register(req: AuthRequest, res: Response, next: NextFunction) {
@@ -45,7 +46,22 @@ export class AuthController {
   async resetPassword(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.resetPassword(req.body);
-      res.json({ message: 'Password updated', ...result });
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
+  async forgotPassword(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await emailOtpService.requestPasswordResetOtp(req.body.email);
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
+  async verifyEmailOtp(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { email, code } = req.body;
+      const result = await emailOtpService.verifyEmailOtp(email, code);
+      res.json({ message: 'Verification successful', ...result });
     } catch (err) { next(err); }
   }
 

@@ -172,6 +172,21 @@ model OtpToken {
   @@index([email, code])
 }
 
+/// Secure email OTP for password reset (hashed, rate-limited, one-time use)
+model EmailOtp {
+  id        String   @id @default(uuid())
+  email     String
+  hashedOtp String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([email, createdAt])
+}
+
 model RefreshToken {
   id        String   @id @default(uuid())
   userId    String
