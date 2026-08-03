@@ -27,6 +27,7 @@ router.post('/register', authRateLimiter, validate(registerSchema), authControll
  *     summary: Email or phone login
  */
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login.bind(authController));
+router.post('/demo-login', authRateLimiter, authController.demoLogin.bind(authController));
 
 /**
  * @openapi

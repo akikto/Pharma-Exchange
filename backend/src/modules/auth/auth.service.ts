@@ -113,6 +113,18 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async demoLogin() {
+    if (env.NODE_ENV === 'production') {
+      throw AppError.forbidden('Demo login is not available in production');
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: 'buyer@pharmex.bd' } });
+    if (!user) throw AppError.notFound('Demo account not found. Run database seed.');
+
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, isDemo: true };
+  }
+
   async firebaseAuth(idToken: string, firstName?: string, lastName?: string) {
     const decoded = await verifyFirebaseToken(idToken);
     if (!decoded) throw AppError.unauthorized('Invalid Firebase token');

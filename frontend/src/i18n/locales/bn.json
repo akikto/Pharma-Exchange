@@ -121,7 +121,28 @@
     "onboardingSlide3Title": "রিয়েল-টাইমে অর্ডার ট্র্যাক",
     "onboardingSlide3Desc": "নিশ্চিতকরণ থেকে ডেলিভারি — প্রতিটি অর্ডার স্ট্যাটাসে আপডেট থাকুন।",
     "next": "পরবর্তী",
-    "splashTagline": "বি২বি ফার্মেসি মার্কেটপ্লেস"
+    "splashTagline": "বি২বি ফার্মেসি মার্কেটপ্লেস",
+    "createAccountDesc": "আপনার ফার্মেসি অ্যাকাউন্ট তৈরি করুন",
+    "tryDemo": "ডেমো চেষ্টা করুন (ক্রেতা)",
+    "demoLoginSuccess": "ডেমো অ্যাকাউন্টে প্রবেশ হয়েছে",
+    "demoModeHint": "আপনি ডেমো ক্রেতা অ্যাকাউন্টে ব্রাউজ করছেন।",
+    "welcomeTitle": "স্বাগতম, {{name}}!",
+    "accountRole": "অ্যাকাউন্ট ধরন",
+    "pharmacyStatus": "ফার্মেসি",
+    "noPharmacyYet": "এখনো কোনো ফার্মেসি নিবন্ধিত নয়",
+    "continueToApp": "অ্যাপে যান",
+    "continueGoogle": "Google দিয়ে চালিয়ে যান",
+    "accountExists": "এই ইমেইল বা ফোন ইতিমধ্যে রেজিস্টার করা। পাসওয়ার্ড রিসেট করুন বা লগইন করুন।",
+    "registerFailed": "রেজিস্ট্রেশন ব্যর্থ",
+    "otpFailed": "OTP যাচাই ব্যর্থ",
+    "otpLength": "৬ অঙ্কের কোড দিন",
+    "resetPasswordTitle": "পাসওয়ার্ড রিসেট",
+    "resetPasswordDesc": "ইমেইল দিন এবং নতুন পাসওয়ার্ড সেট করুন",
+    "newPassword": "নতুন পাসওয়ার্ড",
+    "updatePassword": "পাসওয়ার্ড আপডেট করুন",
+    "backToLogin": "লগইনে ফিরে যান",
+    "emailNotFound": "এই ইমেইলে কোনো অ্যাকাউন্ট নেই।",
+    "resetFailed": "পাসওয়ার্ড রিসেট ব্যর্থ"
   },
   "home": {
     "title": "হোম",
@@ -633,6 +654,7 @@
   "validation": {
     "required": "এই ক্ষেত্রটি আবশ্যক",
     "passwordMin": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে",
+    "email": "সঠিক ইমেইল দিন",
     "emailOrPhone": "ইমেইল বা ফোন আবশ্যক",
     "quantityMin": "পরিমাণ কমপক্ষে {{min}} হতে হবে",
     "quantityMax": "পরিমাণ সর্বোচ্চ {{max}}"
