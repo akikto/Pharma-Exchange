@@ -28,6 +28,9 @@
 - [ ] Set root directory to `frontend`
 - [ ] Set `VITE_API_BASE_URL` to production API
 - [ ] Set `VITE_SOCKET_URL` to production API origin
+- [ ] Set `VITE_FIREBASE_VAPID_KEY` for web push (Firebase Console → Cloud Messaging)
+- [ ] Set `GEMINI_API_KEY` on backend for AI match enrichment (optional)
+- [ ] Set `GEMINI_MODEL` if overriding default (`gemini-2.0-flash`)
 - [ ] Verify PWA installable (Lighthouse)
 - [ ] Verify icons and manifest load
 
