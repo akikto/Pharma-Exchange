@@ -19,6 +19,7 @@ export const createListingSchema = z.object({
   availableQty: z.number().int().positive(),
   moq: z.number().int().positive().default(1),
   unit: z.string().default('strip'),
+  lowStockThreshold: z.number().int().positive().optional(),
   imageUrl: z.string().url().optional(),
   status: z.nativeEnum(ListingStatus).default(ListingStatus.DRAFT),
 });
@@ -68,4 +69,16 @@ export const compareListingsSchema = z.object({
   sortBy: z.enum(['price', 'expiry', 'distance']).default('price'),
   latitude: z.coerce.number().optional(),
   longitude: z.coerce.number().optional(),
+});
+
+export const inventoryQuerySchema = z.object({
+  status: z.nativeEnum(ListingStatus).optional(),
+  q: z.string().optional(),
+  filter: z.enum(['low_stock']).optional(),
+  page: z.coerce.number().default(1),
+  limit: z.coerce.number().default(50),
+});
+
+export const restockSchema = z.object({
+  amount: z.number().int().positive().default(50),
 });

@@ -73,6 +73,7 @@ export interface Listing {
   availableQty: number;
   moq: number;
   unit: string;
+  lowStockThreshold?: number | null;
   status: string;
   imageUrl?: string;
   medicine: Medicine;

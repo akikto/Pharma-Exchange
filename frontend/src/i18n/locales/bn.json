@@ -483,6 +483,47 @@
     "editListingModalSub": "Edit Listing",
     "editListingHint": "সম্পূর্ণ ফর্মের জন্য ইনভেন্টরি পৃষ্ঠায় যান"
   },
+  "inventory": {
+    "stat": {
+      "ACTIVE": "সক্রিয়",
+      "PAUSED": "বিরতি",
+      "SOLD_OUT": "শেষ",
+      "LOW_STOCK": "কম স্টক"
+    },
+    "tab": {
+      "ACTIVE": "সক্রিয়",
+      "PAUSED": "বিরতি",
+      "SOLD_OUT": "শেষ",
+      "LOW_STOCK": "কম স্টক"
+    },
+    "searchPlaceholder": "নাম, জেনেরিক বা ব্যাচ দিয়ে খুঁজুন…",
+    "batch": "ব্যাচ {{batch}}",
+    "qty": "পরিমাণ {{qty}}",
+    "lowStock": "কম স্টক",
+    "pause": "বিরতি",
+    "resume": "চালু",
+    "markSoldOut": "শেষ",
+    "restock": "+৫০",
+    "remove": "সরান",
+    "export": "CSV রপ্তানি",
+    "share": "CSV শেয়ার",
+    "exportTitle": "ইনভেন্টরি রপ্তানি",
+    "exportSuccess": "ইনভেন্টরি রপ্তানি হয়েছে",
+    "shareCopied": "CSV ক্লিপবোর্ডে কপি হয়েছে",
+    "paused": "তালিকা বিরতিতে",
+    "activated": "তালিকা সক্রিয়",
+    "soldOut": "শেষ হিসেবে চিহ্নিত",
+    "deleted": "তালিকা সরানো হয়েছে",
+    "restocked": "৫০ ইউনিট যোগ হয়েছে",
+    "authPromptTitle": "ইনভেন্টরি পরিচালনার জন্য লগ ইন করুন",
+    "authPromptDesc": "পরিসংখ্যান ও তালিকা দেখতে বিক্রেতা অ্যাকাউন্টে প্রবেশ করুন।",
+    "signedInAs": "সাইন ইন",
+    "verifiedSeller": "যাচাইকৃত",
+    "registerPharmacy": "বিক্রি শুরু করতে ফার্মেসি নিবন্ধন করুন।",
+    "registerPharmacyCta": "ফার্মেসি নিবন্ধন",
+    "pendingVerification": "আপনার ফার্মেসি যাচাইয়ের অপেক্ষায়।",
+    "viewProfile": "প্রোফাইল দেখুন"
+  },
   "admin": {
     "dashboard": "অ্যাডমিন ড্যাশবোর্ড",
     "dashboardSub": "Admin Dashboard",

@@ -38,6 +38,7 @@ export function ListingFormPage() {
     discountPercent: '0',
     availableQty: '',
     moq: '1',
+    lowStockThreshold: '',
     status: 'ACTIVE',
   });
 
@@ -53,6 +54,7 @@ export function ListingFormPage() {
         discountPercent: String(existing.discountPercent),
         availableQty: String(existing.availableQty),
         moq: String(existing.moq),
+        lowStockThreshold: existing.lowStockThreshold != null ? String(existing.lowStockThreshold) : '',
         status: existing.status,
       });
     }
@@ -70,6 +72,7 @@ export function ListingFormPage() {
         discountPercent: Number(form.discountPercent),
         availableQty: Number(form.availableQty),
         moq: Number(form.moq),
+        ...(form.lowStockThreshold ? { lowStockThreshold: Number(form.lowStockThreshold) } : {}),
         status: form.status,
       };
       if (isEdit) return apiClient.patch(`/listings/${id}`, body);
@@ -120,6 +123,7 @@ export function ListingFormPage() {
           <div><Label>Available Qty</Label><Input type="number" value={form.availableQty} onChange={(e) => setForm({ ...form, availableQty: e.target.value })} required /></div>
         </div>
         <div><Label>MOQ</Label><Input type="number" value={form.moq} onChange={(e) => setForm({ ...form, moq: e.target.value })} required /></div>
+        <div><Label>Low Stock Threshold (optional)</Label><Input type="number" value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })} placeholder="Default: max(MOQ×2, 20)" /></div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
         <Button type="submit" className="w-full" loading={save.isPending}>

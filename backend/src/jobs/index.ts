@@ -3,6 +3,7 @@ import { ListingStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { logger } from '../shared/utils/logger';
 import { notificationService } from '../modules/notification';
+import { isListingLowStock } from '../modules/listing/listing.service';
 
 export function startBackgroundJobs() {
   // Short expiry alerts — daily at 8 AM
@@ -55,6 +56,49 @@ export function startBackgroundJobs() {
       if (result.count > 0) logger.info(`Expired ${result.count} buy requests`);
     } catch (err) {
       logger.error('Buy request expiry job failed', { error: (err as Error).message });
+    }
+  });
+
+  // Low stock alerts — daily at 9 AM
+  cron.schedule('0 9 * * *', async () => {
+    logger.info('Running low stock alert job');
+    try {
+      const activeListings = await prisma.listing.findMany({
+        where: { status: ListingStatus.ACTIVE },
+        select: {
+          pharmacyId: true,
+          availableQty: true,
+          moq: true,
+          lowStockThreshold: true,
+          status: true,
+          pharmacy: { select: { userId: true } },
+        },
+      });
+
+      const pharmacyAlerts = new Map<string, { userId: string; count: number }>();
+      for (const listing of activeListings) {
+        if (!isListingLowStock(listing)) continue;
+        const existing = pharmacyAlerts.get(listing.pharmacyId);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          pharmacyAlerts.set(listing.pharmacyId, { userId: listing.pharmacy.userId, count: 1 });
+        }
+      }
+
+      for (const { userId, count } of pharmacyAlerts.values()) {
+        await notificationService.create({
+          userId,
+          type: NotificationType.SYSTEM,
+          title: 'Low Stock Alert',
+          body: `${count} listing(s) are below your low-stock threshold. Consider restocking.`,
+          data: { count },
+        });
+      }
+
+      logger.info(`Low stock alerts sent for ${pharmacyAlerts.size} pharmacies`);
+    } catch (err) {
+      logger.error('Low stock alert job failed', { error: (err as Error).message });
     }
   });
 

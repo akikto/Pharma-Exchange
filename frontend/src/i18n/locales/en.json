@@ -483,6 +483,47 @@
     "editListingModalSub": "তালিকা সম্পাদনা",
     "editListingHint": "Go to inventory page for the full form"
   },
+  "inventory": {
+    "stat": {
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "SOLD_OUT": "Sold out",
+      "LOW_STOCK": "Low stock"
+    },
+    "tab": {
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "SOLD_OUT": "Sold out",
+      "LOW_STOCK": "Low stock"
+    },
+    "searchPlaceholder": "Search by name, generic, or batch…",
+    "batch": "Batch {{batch}}",
+    "qty": "Qty {{qty}}",
+    "lowStock": "Low stock",
+    "pause": "Pause",
+    "resume": "Resume",
+    "markSoldOut": "Sold out",
+    "restock": "+50",
+    "remove": "Remove",
+    "export": "Export CSV",
+    "share": "Share CSV",
+    "exportTitle": "Inventory export",
+    "exportSuccess": "Inventory exported",
+    "shareCopied": "CSV copied to clipboard",
+    "paused": "Listing paused",
+    "activated": "Listing activated",
+    "soldOut": "Marked as sold out",
+    "deleted": "Listing removed",
+    "restocked": "Added 50 units",
+    "authPromptTitle": "Sign in to manage inventory",
+    "authPromptDesc": "Log in with your seller account to view stats and manage listings.",
+    "signedInAs": "Signed in",
+    "verifiedSeller": "Verified",
+    "registerPharmacy": "Register your pharmacy to start selling.",
+    "registerPharmacyCta": "Register pharmacy",
+    "pendingVerification": "Your pharmacy is pending verification.",
+    "viewProfile": "View profile"
+  },
   "admin": {
     "dashboard": "Admin Dashboard",
     "dashboardSub": "অ্যাডমিন ড্যাশবোর্ড",

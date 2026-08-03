@@ -1,28 +1,83 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Package, Inbox, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Plus, Package, Inbox, TrendingUp, AlertTriangle, LogIn, ShieldCheck } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
-import { useSellerAnalytics, useBuyRequests, useSellerInventory } from '@/hooks/use-api';
+import { useSellerAnalytics, useBuyRequests } from '@/hooks/use-api';
+import { useAuthStore } from '@/stores/auth-store';
 import { formatPrice } from '@/lib/utils';
 import { useShellStore } from '@/stores/shell-store';
 
 export function SellerDashboardPage() {
   const { t } = useTranslation();
   const openModal = useShellStore((s) => s.openModal);
-  const { data: analytics, isLoading, isError } = useSellerAnalytics();
-  const { data: requests } = useBuyRequests('seller');
+  const { isAuthenticated, user } = useAuthStore();
+  const pharmacy = user?.pharmacy;
+  const isApprovedSeller = Boolean(pharmacy && pharmacy.verificationStatus === 'APPROVED');
+
+  const { data: analytics, isLoading, isError } = useSellerAnalytics({ enabled: isApprovedSeller });
+  const { data: requests } = useBuyRequests('seller', { enabled: isApprovedSeller });
+
+  if (!isAuthenticated) {
+    return (
+      <div>
+        <TopBar showLogo title={t('seller.title')} />
+        <div className="p-4">
+          <div className="rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle p-6 text-center space-y-4">
+            <LogIn className="h-10 w-10 mx-auto text-primary" />
+            <div>
+              <p className="font-semibold">{t('inventory.authPromptTitle')}</p>
+              <p className="text-sm text-text-secondary mt-1">{t('inventory.authPromptDesc')}</p>
+            </div>
+            <Link to="/login"><Button className="w-full">{t('auth.signIn')}</Button></Link>
+            <Link to="/register" className="text-sm text-primary block">{t('auth.createAccount')}</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pharmacy) {
+    return (
+      <div>
+        <TopBar showLogo title={t('seller.title')} />
+        <div className="p-4 text-center space-y-4">
+          <p className="text-text-secondary">{t('inventory.registerPharmacy')}</p>
+          <Link to="/pharmacy/register"><Button>{t('inventory.registerPharmacyCta')}</Button></Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isApprovedSeller) {
+    return (
+      <div>
+        <TopBar showLogo title={t('seller.title')} />
+        <div className="p-4">
+          <AuthStatusPill name={pharmacy.name} status={pharmacy.verificationStatus} />
+          <p className="text-center text-text-secondary mt-8">{t('inventory.pendingVerification')}</p>
+          <Link to="/profile" className="block text-center mt-4 text-sm text-primary">{t('inventory.viewProfile')}</Link>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) return <div className="p-4"><ListSkeleton count={3} /></div>;
   if (isError) return <div className="p-4 text-center text-danger">{t('common.error')}</div>;
 
   return (
     <div>
-      <TopBar showLogo title={t('seller.title')} />
+      <TopBar
+        showLogo
+        title={t('seller.title')}
+        actions={<AuthStatusPill name={pharmacy.name} status="APPROVED" compact />}
+      />
       <div className="p-4 space-y-6">
+        <AuthStatusPill name={pharmacy.name} status="APPROVED" />
+
         <div className="grid grid-cols-2 gap-3">
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">{t('seller.sales30d')}</p><p className="text-lg font-bold tabular-nums">{formatPrice(analytics?.todaySales ?? 0)}</p></CardContent></Card>
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">{t('seller.pendingRequests')}</p><p className="text-lg font-bold">{analytics?.pendingBuyRequests ?? 0}</p></CardContent></Card>
@@ -67,43 +122,40 @@ export function SellerDashboardPage() {
   );
 }
 
-export function SellerInventoryPage() {
+function AuthStatusPill({
+  name,
+  status,
+  compact = false,
+}: {
+  name: string;
+  status: string;
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = useSellerInventory();
-  const listings = data?.data ?? [];
-  const openModal = useShellStore((s) => s.openModal);
+  const isApproved = status === 'APPROVED';
+
+  if (compact) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs bg-success/10 text-success px-2 py-1 rounded-full max-w-[140px]">
+        <ShieldCheck className="h-3 w-3 shrink-0" />
+        <span className="truncate">{name}</span>
+      </span>
+    );
+  }
 
   return (
-    <div>
-      <TopBar title={t('seller.inventoryTitle')} showBack actions={<Link to="/seller/listing/new"><Button size="sm"><Plus className="h-4 w-4" /></Button></Link>} />
-      <div className="p-4">
-        {isLoading ? <ListSkeleton /> : isError ? (
-          <p className="text-center text-danger py-12">{t('seller.loadError')}</p>
-        ) : listings.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-text-secondary">{t('seller.noListings')}</p>
-            <Link to="/seller/listing/new"><Button className="mt-4">{t('seller.addFirst')}</Button></Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {listings.map((l) => (
-              <button
-                key={l.id}
-                type="button"
-                className="flex w-full gap-3 p-3 rounded-[var(--radius-md)] border border-border-subtle text-left hover:bg-surface-raised"
-                onClick={() => openModal('listingEdit', { listingId: l.id })}
-              >
-                <div className="h-14 w-14 rounded bg-surface-sunken flex items-center justify-center">💊</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{l.medicine.name}</p>
-                  <p className="text-xs text-text-secondary">{formatPrice(l.finalPrice)} · Qty {l.availableQty}</p>
-                  <StatusChip label={l.status} variant={l.status === 'ACTIVE' ? 'success' : 'neutral'} className="mt-1" />
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3" data-testid="seller-auth-pill">
+      <div className="h-10 w-10 rounded-full bg-primary-subtle flex items-center justify-center text-primary font-bold shrink-0">
+        {name[0]}
       </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-sm truncate">{name}</p>
+        <p className="text-xs text-text-secondary">{t('inventory.signedInAs')}</p>
+      </div>
+      <StatusChip
+        label={isApproved ? t('inventory.verifiedSeller') : status}
+        variant={isApproved ? 'success' : 'warning'}
+      />
     </div>
   );
 }
