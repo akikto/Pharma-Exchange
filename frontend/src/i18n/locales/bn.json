@@ -153,6 +153,10 @@
     "addToCart": "কার্টে যোগ",
     "addedToCart": "কার্টে যোগ হয়েছে"
   },
+  "sync": {
+    "offlineBanner": "আপনি অফলাইনে আছেন — যেখানে সম্ভব সংরক্ষিত তথ্য দেখানো হচ্ছে",
+    "offlineBannerSub": "You're offline — showing saved data where available"
+  },
   "home": {
     "title": "হোম",
     "titleSub": "Home",

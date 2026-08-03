@@ -153,6 +153,10 @@
     "addToCart": "Add to cart",
     "addedToCart": "Added to cart"
   },
+  "sync": {
+    "offlineBanner": "You're offline — showing saved data where available",
+    "offlineBannerSub": "আপনি অফলাইনে আছেন — যেখানে সম্ভব সংরক্ষিত তথ্য দেখানো হচ্ছে"
+  },
   "home": {
     "title": "Home",
     "titleSub": "হোম",
