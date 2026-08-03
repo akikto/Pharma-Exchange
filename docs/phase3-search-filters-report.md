@@ -142,7 +142,16 @@ backend: tsc --noEmit — success
 
 ## GitHub CI / Vercel Preview
 
-Status will be updated after push. CI runs backend + frontend test jobs on PR.
+| Check | Status |
+|-------|--------|
+| GitHub CI — backend | ✅ Pass |
+| GitHub CI — frontend | ✅ Pass |
+| Vercel — pharma-exchange-backend | ✅ Pass |
+| Vercel — pharma-exchange-frontend | ✅ Pass |
+
+**PR:** [#33](https://github.com/akikto/Pharma-Exchange/pull/33)  
+**Frontend preview:** https://pharma-exchange-frontend-56jqf2ltp-akikto1.vercel.app  
+**Backend preview:** https://pharma-exchange-backend-re0143lvx-akikto1.vercel.app
 
 ---
 
