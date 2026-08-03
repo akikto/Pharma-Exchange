@@ -6,6 +6,7 @@ import { listingController } from './listing.controller';
 import {
   createListingSchema, updateListingSchema,
   updatePriceSchema, updateQuantitySchema, marketplaceSearchSchema, compareListingsSchema,
+  inventoryQuerySchema, restockSchema,
 } from './listing.validation';
 
 const router = Router();
@@ -14,14 +15,18 @@ const router = Router();
 router.get('/search', validate(marketplaceSearchSchema, 'query'), listingController.search.bind(listingController));
 router.get('/compare', validate(compareListingsSchema, 'query'), listingController.compare.bind(listingController));
 
-// Seller inventory
-router.get('/inventory', authenticate, listingController.getSellerListings.bind(listingController));
+// Seller inventory (specific paths before /:id)
+router.get('/inventory/stats', authenticate, listingController.getInventoryStats.bind(listingController));
+router.get('/inventory/export', authenticate, listingController.exportInventory.bind(listingController));
+router.get('/inventory', authenticate, validate(inventoryQuerySchema, 'query'), listingController.getSellerListings.bind(listingController));
 
 router.get('/:id', listingController.getById.bind(listingController));
 router.post('/', authenticate, requireVerifiedPharmacy, validate(createListingSchema), listingController.create.bind(listingController));
 router.patch('/:id', authenticate, requireVerifiedPharmacy, validate(updateListingSchema), listingController.update.bind(listingController));
 router.patch('/:id/price', authenticate, requireVerifiedPharmacy, validate(updatePriceSchema), listingController.updatePrice.bind(listingController));
 router.patch('/:id/quantity', authenticate, requireVerifiedPharmacy, validate(updateQuantitySchema), listingController.updateQuantity.bind(listingController));
+router.post('/:id/restock', authenticate, requireVerifiedPharmacy, validate(restockSchema), listingController.restock.bind(listingController));
+router.post('/:id/sold-out', authenticate, requireVerifiedPharmacy, listingController.markSoldOut.bind(listingController));
 router.post('/:id/pause', authenticate, requireVerifiedPharmacy, listingController.pause.bind(listingController));
 router.post('/:id/activate', authenticate, requireVerifiedPharmacy, listingController.activate.bind(listingController));
 router.delete('/:id', authenticate, requireVerifiedPharmacy, listingController.delete.bind(listingController));

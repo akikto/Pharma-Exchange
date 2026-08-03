@@ -7,6 +7,17 @@ import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware'
 
 type SearchQuery = Record<string, unknown>;
 
+const DEFAULT_LOW_STOCK_THRESHOLD = 20;
+
+export function resolveLowStockThreshold(listing: { availableQty: number; moq: number; lowStockThreshold?: number | null }): number {
+  if (listing.lowStockThreshold != null) return listing.lowStockThreshold;
+  return Math.max(listing.moq * 2, DEFAULT_LOW_STOCK_THRESHOLD);
+}
+
+export function isListingLowStock(listing: { availableQty: number; moq: number; lowStockThreshold?: number | null; status: ListingStatus }): boolean {
+  return listing.status === ListingStatus.ACTIVE && listing.availableQty <= resolveLowStockThreshold(listing);
+}
+
 export class ListingService {
   async search(query: SearchQuery) {
     const { page, limit, skip } = parsePagination(query);
@@ -268,6 +279,7 @@ export class ListingService {
         availableQty: data.availableQty as number,
         moq: Number(data.moq ?? 1),
         unit: (data.unit as string) ?? 'strip',
+        lowStockThreshold: data.lowStockThreshold != null ? Number(data.lowStockThreshold) : undefined,
         imageUrl: data.imageUrl as string | undefined,
         status: (data.status as ListingStatus) ?? ListingStatus.DRAFT,
       },
@@ -351,21 +363,113 @@ export class ListingService {
     return this.pause(userId, id);
   }
 
+  async restock(userId: string, id: string, amount = 50) {
+    const pharmacy = await getPharmacyForUser(userId);
+    const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
+    if (!existing) throw AppError.notFound('Listing not found');
+
+    const availableQty = existing.availableQty + amount;
+    return prisma.listing.update({
+      where: { id },
+      data: {
+        availableQty,
+        status: existing.status === ListingStatus.SOLD_OUT ? ListingStatus.ACTIVE : existing.status,
+      },
+      include: { medicine: true },
+    });
+  }
+
+  async markSoldOut(userId: string, id: string) {
+    const pharmacy = await getPharmacyForUser(userId);
+    const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
+    if (!existing) throw AppError.notFound('Listing not found');
+
+    return prisma.listing.update({
+      where: { id },
+      data: { status: ListingStatus.SOLD_OUT, availableQty: 0 },
+      include: { medicine: true },
+    });
+  }
+
+  async getInventoryStats(userId: string) {
+    const pharmacy = await getPharmacyForUser(userId);
+    const listings = await prisma.listing.findMany({
+      where: { pharmacyId: pharmacy.id },
+      select: { status: true, availableQty: true, moq: true, lowStockThreshold: true },
+    });
+
+    let active = 0;
+    let paused = 0;
+    let soldOut = 0;
+    let lowStock = 0;
+    for (const listing of listings) {
+      if (listing.status === ListingStatus.ACTIVE) active += 1;
+      if (listing.status === ListingStatus.PAUSED) paused += 1;
+      if (listing.status === ListingStatus.SOLD_OUT) soldOut += 1;
+      if (isListingLowStock({ ...listing, status: listing.status })) lowStock += 1;
+    }
+
+    return { active, paused, soldOut, lowStock, total: listings.length };
+  }
+
+  async exportInventoryCsv(userId: string): Promise<string> {
+    const pharmacy = await getPharmacyForUser(userId);
+    const listings = await prisma.listing.findMany({
+      where: { pharmacyId: pharmacy.id },
+      orderBy: { createdAt: 'desc' },
+      include: { medicine: true },
+    });
+
+    const header = 'Medicine,Generic,Company,Batch,Status,Qty,MOQ,LowStockThreshold,Price,Expiry';
+    const rows = listings.map((l) => [
+      l.medicine.name,
+      l.medicine.genericName ?? '',
+      l.medicine.company,
+      l.batchNumber,
+      l.status,
+      l.availableQty,
+      l.moq,
+      l.lowStockThreshold ?? '',
+      Number(l.finalPrice).toFixed(2),
+      l.expiryDate.toISOString().slice(0, 10),
+    ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+    return [header, ...rows].join('\n');
+  }
+
   async getSellerListings(userId: string, query: Record<string, unknown>) {
     const pharmacy = await getPharmacyForUser(userId);
     const { page, limit, skip } = parsePagination(query);
     const status = query.status as ListingStatus | undefined;
+    const q = typeof query.q === 'string' ? query.q.trim() : '';
+    const filter = typeof query.filter === 'string' ? query.filter : undefined;
 
-    const where = { pharmacyId: pharmacy.id, ...(status && { status }) };
-    const [data, total] = await Promise.all([
-      prisma.listing.findMany({
-        where, skip, take: limit, orderBy: { createdAt: 'desc' },
-        include: { medicine: true },
-      }),
-      prisma.listing.count({ where }),
-    ]);
+    const where: Record<string, unknown> = { pharmacyId: pharmacy.id };
+    if (status) where.status = status;
 
-    return { data, total, page, limit };
+    if (q) {
+      where.OR = [
+        { batchNumber: { contains: q, mode: 'insensitive' } },
+        { medicine: { name: { contains: q, mode: 'insensitive' } } },
+        { medicine: { genericName: { contains: q, mode: 'insensitive' } } },
+        { medicine: { company: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+
+    let data = await prisma.listing.findMany({
+      where: where as never,
+      orderBy: { createdAt: 'desc' },
+      include: { medicine: true },
+    });
+
+    if (filter === 'low_stock') {
+      data = data.filter((l) => isListingLowStock(l));
+    }
+
+    const total = data.length;
+    const paged = data.slice(skip, skip + limit);
+
+    return { data: paged, total, page, limit };
   }
 }
 

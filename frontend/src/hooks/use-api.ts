@@ -51,10 +51,11 @@ export function useOrder(id?: string) {
   });
 }
 
-export function useBuyRequests(role: 'buyer' | 'seller' = 'buyer') {
+export function useBuyRequests(role: 'buyer' | 'seller' = 'buyer', options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['buy-requests', role],
     queryFn: () => apiClient.get<PaginatedResponse<BuyRequest>>(`/buy-requests?role=${role}`),
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -66,11 +67,79 @@ export function useBuyRequest(id?: string) {
   });
 }
 
-export function useSellerInventory(status?: string) {
-  const params = status ? `?status=${status}` : '';
+export function useSellerInventory(tab?: string, search?: string) {
+  const params = new URLSearchParams();
+  if (tab === 'LOW_STOCK') {
+    params.set('filter', 'low_stock');
+    params.set('status', 'ACTIVE');
+  } else if (tab) {
+    params.set('status', tab);
+  }
+  if (search?.trim()) params.set('q', search.trim());
+  params.set('limit', '100');
+  const qs = params.toString();
   return useQuery({
-    queryKey: ['seller-inventory', status],
-    queryFn: () => apiClient.get<PaginatedResponse<Listing>>(`/listings/inventory${params}`),
+    queryKey: ['seller-inventory', tab, search],
+    queryFn: () => apiClient.get<PaginatedResponse<Listing>>(`/listings/inventory${qs ? `?${qs}` : ''}`),
+  });
+}
+
+export function useInventoryStats() {
+  return useQuery({
+    queryKey: ['inventory-stats'],
+    queryFn: () => apiClient.get<{ active: number; paused: number; soldOut: number; lowStock: number; total: number }>('/listings/inventory/stats'),
+  });
+}
+
+function invalidateInventory(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['seller-inventory'] });
+  qc.invalidateQueries({ queryKey: ['inventory-stats'] });
+}
+
+export function usePauseListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.post(`/listings/${id}/pause`),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
+export function useActivateListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.post(`/listings/${id}/activate`),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
+export function useMarkSoldOut() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.post(`/listings/${id}/sold-out`),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
+export function useDeleteListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/listings/${id}`),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
+export function useRestockListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount = 50 }: { id: string; amount?: number }) =>
+      apiClient.post(`/listings/${id}/restock`, { amount }),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
+export function useExportInventory() {
+  return useMutation({
+    mutationFn: () => apiClient.getText('/listings/inventory/export'),
   });
 }
 
@@ -89,10 +158,11 @@ export function useNotifications() {
   });
 }
 
-export function useSellerAnalytics() {
+export function useSellerAnalytics(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['analytics', 'seller'],
     queryFn: () => apiClient.get<SellerAnalytics>('/analytics/seller'),
+    enabled: options?.enabled ?? true,
   });
 }
 

@@ -17,7 +17,7 @@ const MedicineDetailPage = lazy(() => import('@/features/medicine/medicine-detai
 const ComparisonPage = lazy(() => import('@/features/medicine/comparison-page').then(m => ({ default: m.ComparisonPage })));
 const PharmacyProfilePage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.PharmacyProfilePage })));
 const SellerDashboardPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerDashboardPage })));
-const SellerInventoryPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerInventoryPage })));
+const SellerInventoryPage = lazy(() => import('@/features/seller/seller-inventory-page').then(m => ({ default: m.SellerInventoryPage })));
 const SellerAnalyticsPage = lazy(() => import('@/features/seller/seller-analytics-page').then(m => ({ default: m.SellerAnalyticsPage })));
 const ListingFormPage = lazy(() => import('@/features/seller/listing-form-page').then(m => ({ default: m.ListingFormPage })));
 const PharmacyRegisterPage = lazy(() => import('@/features/seller/pharmacy-register-page').then(m => ({ default: m.PharmacyRegisterPage })));
@@ -94,7 +94,7 @@ export function AppRouter() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/pharmacy/register" element={<PharmacyRegisterPage />} />
-            <Route path="/seller" element={<SellerRoute><SellerDashboardPage /></SellerRoute>} />
+            <Route path="/seller" element={<SellerDashboardPage />} />
             <Route path="/seller/inventory" element={<SellerRoute><SellerInventoryPage /></SellerRoute>} />
             <Route path="/seller/requests" element={<SellerRoute><BuyRequestsPage /></SellerRoute>} />
             <Route path="/seller/requests/:id" element={<SellerRoute><BuyRequestDetailPage /></SellerRoute>} />
