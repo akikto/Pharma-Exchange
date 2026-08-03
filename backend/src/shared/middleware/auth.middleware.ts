@@ -21,6 +21,27 @@ interface TokenPayload {
   role: UserRole;
 }
 
+interface PasswordResetPayload {
+  email: string;
+  userId: string;
+  purpose: 'password_reset';
+}
+
+export function signPasswordResetToken(email: string, userId: string): string {
+  const payload: PasswordResetPayload = { email, userId, purpose: 'password_reset' };
+  return jwt.sign(payload, env.JWT_SECRET, {
+    expiresIn: env.PASSWORD_RESET_TOKEN_EXPIRES_IN as SignOptions['expiresIn'],
+  });
+}
+
+export function verifyPasswordResetToken(token: string): PasswordResetPayload {
+  const payload = jwt.verify(token, env.JWT_SECRET) as PasswordResetPayload;
+  if (payload.purpose !== 'password_reset' || !payload.email || !payload.userId) {
+    throw new Error('Invalid reset token');
+  }
+  return payload;
+}
+
 export function signAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'] });
 }

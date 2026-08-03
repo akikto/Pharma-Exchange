@@ -15,6 +15,16 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
   OTP_EXPIRY_MINUTES: z.coerce.number().default(10),
   OTP_DEV_MODE: booleanFromEnv.default(false),
+  EMAIL_OTP_EXPIRY_MINUTES: z.coerce.number().default(5),
+  EMAIL_OTP_MAX_ATTEMPTS: z.coerce.number().default(5),
+  EMAIL_OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().default(60),
+  PASSWORD_RESET_TOKEN_EXPIRES_IN: z.string().default('15m'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_SECURE: booleanFromEnv.default(false),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('Pharma-Exchange <noreply@pharmex.bd>'),
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
@@ -47,3 +57,6 @@ export const env = loadEnv();
 
 export const isFirebaseConfigured = (): boolean =>
   Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+
+export const isSmtpConfigured = (): boolean =>
+  Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);

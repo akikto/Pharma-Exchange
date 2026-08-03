@@ -38,8 +38,20 @@ export const refreshTokenSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
+  resetToken: z.string().min(1),
+  newPassword: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Za-z]/, 'Password must contain at least one letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
+});
+
+export const forgotPasswordSchema = z.object({
   email: z.string().email(),
-  newPassword: z.string().min(8),
+});
+
+export const verifyEmailOtpSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6).regex(/^\d{6}$/, 'OTP must be 6 digits'),
 });
 
 export const fcmTokenSchema = z.object({

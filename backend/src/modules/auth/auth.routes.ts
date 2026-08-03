@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { authController } from './auth.controller';
 import { authenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
-import { authRateLimiter, otpRateLimiter } from '../../shared/middleware/rateLimit.middleware';
+import { authRateLimiter, otpRateLimiter, emailOtpVerifyRateLimiter } from '../../shared/middleware/rateLimit.middleware';
 import {
   registerSchema, loginSchema, firebaseAuthSchema,
-  otpVerifySchema, sendOtpSchema, refreshTokenSchema, fcmTokenSchema, resetPasswordSchema,
+  otpVerifySchema, sendOtpSchema, refreshTokenSchema, fcmTokenSchema,
+  resetPasswordSchema, forgotPasswordSchema, verifyEmailOtpSchema,
 } from './auth.validation';
 
 const router = Router();
@@ -38,6 +39,8 @@ router.post('/login', authRateLimiter, validate(loginSchema), authController.log
 router.post('/firebase', authRateLimiter, validate(firebaseAuthSchema), authController.firebaseAuth.bind(authController));
 
 router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
+router.post('/forgot-password', otpRateLimiter, validate(forgotPasswordSchema), authController.forgotPassword.bind(authController));
+router.post('/verify-email-otp', emailOtpVerifyRateLimiter, validate(verifyEmailOtpSchema), authController.verifyEmailOtp.bind(authController));
 router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authController.verifyOtp.bind(authController));
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));
