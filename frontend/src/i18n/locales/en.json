@@ -53,6 +53,7 @@
     "pendingRequests_one": "{{count}} pending request",
     "pendingRequests_other": "{{count}} pending requests",
     "viewCart": "View cart",
+    "viewOrders": "Orders",
     "viewRequests": "View requests",
     "moreCartItems": "+{{count}} more items",
     "moreCartItems_one": "+{{count}} more item",
@@ -314,6 +315,15 @@
     "quantityFor": "Quantity for {{name}}",
     "chatUnavailable": "Seller contact is not available"
   },
+  "hub": {
+    "title": "Cart & Orders",
+    "titleSub": "কার্ট ও অর্ডার",
+    "tabs": {
+      "cart": "Cart",
+      "orders": "Orders",
+      "requests": "Requests"
+    }
+  },
   "buyRequest": {
     "title": "Buy Requests",
     "titleSub": "ক্রয় অনুরোধ",
@@ -332,7 +342,23 @@
     "submit": "Send request",
     "incomingTitle": "Incoming Requests",
     "noSent": "You haven't sent any requests",
-    "loadError": "Failed to load requests"
+    "loadError": "Failed to load requests",
+    "searchPlaceholder": "Search requests…",
+    "accepted": "Request accepted",
+    "rejected": "Request rejected",
+    "filter": {
+      "all": "All",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "steps": {
+      "pending": "Pending review",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    }
   },
   "orders": {
     "title": "Order History",
@@ -345,7 +371,47 @@
     "notFound": "Order not found",
     "back": "Back",
     "noOrders": "No orders yet",
-    "loadError": "Failed to load orders"
+    "loadError": "Failed to load orders",
+    "searchPlaceholder": "Search orders…",
+    "statsActive": "Active",
+    "statsDelivered": "Delivered",
+    "statsTotal": "Total orders",
+    "statsSpent": "Total spent",
+    "reorder": "Reorder",
+    "reorderSuccess": "Items added to cart",
+    "reorderUnavailable": "Cannot reorder — listings unavailable",
+    "track": "Track",
+    "trackOrder": "Track shipment",
+    "receipt": "Receipt",
+    "receiptTitle": "Order receipt",
+    "shareReceipt": "Share",
+    "downloadReceipt": "Download",
+    "status": "Status",
+    "total": "Total",
+    "lineItems": "Items",
+    "chatCounterparty": "Message",
+    "statusUpdated": "Status updated",
+    "cancelled": "Order cancelled",
+    "cancelledByBuyer": "Cancelled by buyer",
+    "trackingSimulated": "Simulated delivery map for preview",
+    "inTransit": "In transit",
+    "estimatedDelivery": "Estimated delivery in ~{{hours}} hours",
+    "defaultCity": "Dhaka",
+    "stepCurrent": "Current step",
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "steps": {
+      "created": "Created",
+      "confirmed": "Confirmed",
+      "packed": "Packed",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    }
   },
   "chat": {
     "title": "Messages",
