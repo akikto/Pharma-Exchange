@@ -157,7 +157,7 @@ export function LoginPage() {
 
   if (welcomeUser) {
     return (
-      <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto edge-to-edge justify-center">
+      <div className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto edge-to-edge justify-center">
         <AuthWelcomeCard
           user={welcomeUser}
           isDemo={isDemoSession}
@@ -168,24 +168,24 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col p-6 max-w-md mx-auto edge-to-edge">
-      <div className="flex-1 flex flex-col justify-center gap-6">
+    <div className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto edge-to-edge">
+      <div className="flex w-full min-w-0 flex-1 flex-col justify-center gap-6">
         <div className="text-center flex flex-col items-center gap-3">
           <Logo size="xl" className="justify-center" />
           <p className="text-text-secondary">{tab === 'signIn' ? t('auth.signInDesc') : t('auth.createAccountDesc')}</p>
         </div>
 
-        <div className="flex gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]" data-testid="auth-tabs">
+        <div className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]" data-testid="auth-tabs">
           <button
             type="button"
-            className={`flex-1 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'signIn' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
+            className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'signIn' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
             onClick={() => { setTab('signIn'); setError(''); setRegisterStep('form'); }}
           >
             {t('auth.signIn')}
           </button>
           <button
             type="button"
-            className={`flex-1 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'register' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
+            className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'register' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
             onClick={() => { setTab('register'); setError(''); }}
           >
             {t('auth.createAccount')}
@@ -193,10 +193,10 @@ export function LoginPage() {
         </div>
 
         {tab === 'signIn' ? (
-          <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4" data-testid="login-form">
-            <div className="flex gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]">
-              <button type="button" className={`flex-1 py-2 text-sm rounded-[var(--radius-sm)] ${isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(true)}>{t('auth.email')}</button>
-              <button type="button" className={`flex-1 py-2 text-sm rounded-[var(--radius-sm)] ${!isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(false)}>{t('auth.phone')}</button>
+          <form onSubmit={loginForm.handleSubmit(onLogin)} className="w-full min-w-0 space-y-4" data-testid="login-form">
+            <div className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]">
+              <button type="button" className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(true)}>{t('auth.email')}</button>
+              <button type="button" className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${!isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(false)}>{t('auth.phone')}</button>
             </div>
 
             <div className="space-y-2">
@@ -230,7 +230,7 @@ export function LoginPage() {
               </Link>
             </p>
 
-            <Button type="submit" className="w-full" size="lg" loading={loading}>{t('auth.signIn')}</Button>
+            <Button type="submit" className="w-full max-w-full" size="lg" loading={loading}>{t('auth.signIn')}</Button>
           </form>
         ) : registerStep === 'otp' ? (
           <form onSubmit={otpForm.handleSubmit(onVerifyOtp)} className="space-y-4" data-testid="register-otp-form">
@@ -290,11 +290,11 @@ export function LoginPage() {
 
         <GoogleSignInButton onSuccess={() => void showWelcome()} onError={setError} />
 
-        <Button variant="secondary" className="w-full" loading={loading} onClick={() => void onDemoLogin()} data-testid="demo-login">
+        <Button variant="secondary" className="w-full max-w-full whitespace-normal text-center h-auto min-h-12 py-2.5" loading={loading} onClick={() => void onDemoLogin()} data-testid="demo-login">
           {t('auth.tryDemo')}
         </Button>
 
-        <Button variant="ghost" className="w-full" onClick={() => navigate('/otp')}>
+        <Button variant="ghost" className="w-full max-w-full whitespace-normal text-center h-auto min-h-12 py-2.5" onClick={() => navigate('/otp')}>
           {t('auth.continueOtp')}
         </Button>
 
