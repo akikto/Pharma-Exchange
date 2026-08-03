@@ -7,6 +7,7 @@ import {
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock, calculateSavings, formatSavingsPercent } from '@/lib/offer-utils';
+import { isRenderableListing } from '@/lib/catalog-groups';
 import { StatusChip } from '@/components/ui/status-chip';
 import { Button } from '@/components/ui/button';
 import { useAddToCart } from '@/hooks/use-api';
@@ -25,13 +26,18 @@ interface OfferCardProps {
   bestPrice?: number;
 }
 
-export function OfferCard({
+export function OfferCard(props: OfferCardProps) {
+  if (!isRenderableListing(props.listing)) return null;
+  return <OfferCardContent {...props} listing={props.listing} />;
+}
+
+function OfferCardContent({
   listing,
   className,
   variant = 'grid',
   showActions = false,
   bestPrice,
-}: OfferCardProps) {
+}: OfferCardProps & { listing: Listing }) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const addToCart = useAddToCart();

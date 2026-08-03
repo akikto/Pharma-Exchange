@@ -36,7 +36,7 @@ export function useAddToCart() {
     mutationFn: (data: { listingId: string; quantity: number }) => apiClient.post('/cart', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['cart'] }),
     onSettled: (_data, _error, variables) => {
-      removeLoading(variables.listingId);
+      if (variables?.listingId) removeLoading(variables.listingId);
     },
   });
 

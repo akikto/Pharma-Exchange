@@ -22,6 +22,7 @@ import {
   setParam,
 } from '@/lib/search-params';
 import type { Medicine } from '@/types';
+import { isRenderableListing } from '@/lib/catalog-groups';
 
 export function SearchPage() {
   const { t } = useTranslation();
@@ -44,7 +45,7 @@ export function SearchPage() {
   }, [filters, coords]);
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage } = useListings(listingFilters);
-  const listings = data?.pages.flatMap((p) => p.data) ?? [];
+  const listings = (data?.pages.flatMap((p) => p.data) ?? []).filter(isRenderableListing);
 
   const { data: suggestionMatch } = useMedicineSuggestions(query, Boolean(query.trim()));
   const topMedicine = suggestionMatch?.data?.[0] ?? null;

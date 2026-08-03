@@ -73,7 +73,7 @@ export function WatchlistPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {data?.data.map((item) => <WatchlistRow key={item.id} item={item} />)}
+              {data?.data.filter((item) => item?.id).map((item) => <WatchlistRow key={item.id} item={item} />)}
             </div>
           )
         ) : (
@@ -129,9 +129,9 @@ function WatchlistRow({ item }: { item: WatchlistEntry }) {
           <div className="h-14 w-14 rounded bg-surface-sunken flex items-center justify-center shrink-0">💊</div>
           <div className="flex-1 min-w-0">
             <Link to={`/medicine/${item.medicineId}`} className="font-medium text-sm truncate block hover:text-primary">
-              {item.medicine.name}
+              {item.medicine?.name ?? '—'}
             </Link>
-            <p className="text-xs text-text-secondary">{item.medicine.company}</p>
+            <p className="text-xs text-text-secondary">{item.medicine?.company ?? ''}</p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {item.bestPrice != null ? (
                 <span className="text-sm font-semibold tabular-nums">{formatPrice(item.bestPrice)}</span>
@@ -217,7 +217,7 @@ function AlertsPanel() {
             {alerts?.data.map((alert) => (
               <div key={alert.id} className="flex items-center justify-between p-3 rounded-[var(--radius-md)] border border-border-subtle">
                 <div>
-                  <p className="text-sm font-medium">{alert.medicine.name}</p>
+                  <p className="text-sm font-medium">{alert.medicine?.name ?? '—'}</p>
                   <p className="text-xs text-text-secondary">{t('watchlist.maxPrice')}: {formatPrice(alert.maxPrice)}</p>
                 </div>
                 <Button
@@ -243,7 +243,7 @@ function AlertsPanel() {
               <div key={alert.id} className="p-3 rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle/30">
                 <div className="flex justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium">{alert.medicine.name}</p>
+                    <p className="text-sm font-medium">{alert.medicine?.name ?? '—'}</p>
                     <p className="text-xs text-text-secondary">
                       {formatPrice(alert.listingPrice)} ≤ {formatPrice(alert.maxPrice)}
                       {alert.isSimulated && ` · ${t('watchlist.simulated')}`}

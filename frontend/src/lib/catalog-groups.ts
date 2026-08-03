@@ -1,5 +1,9 @@
 import type { Listing } from '@/types';
 
+export function isRenderableListing(listing: Listing | null | undefined): listing is Listing {
+  return Boolean(listing?.id && listing.medicine?.id && listing.pharmacy?.id);
+}
+
 export interface CatalogGroup {
   medicineId: string;
   medicineName: string;
@@ -15,6 +19,7 @@ export function groupListingsByMedicine(listings: Listing[]): CatalogGroup[] {
   const map = new Map<string, Listing[]>();
 
   for (const listing of listings) {
+    if (!isRenderableListing(listing)) continue;
     const key = listing.medicine.id;
     const existing = map.get(key) ?? [];
     existing.push(listing);
@@ -32,7 +37,7 @@ export function groupListingsByMedicine(listings: Listing[]): CatalogGroup[] {
       company: best.medicine.company,
       packSize: best.medicine.packSize,
       listings: sorted,
-      sellerCount: new Set(sorted.map((l) => l.pharmacy.id)).size,
+      sellerCount: new Set(sorted.map((l) => l.pharmacy?.id).filter(Boolean)).size,
       bestPrice: Number(best.finalPrice),
       bestListingId: best.id,
     };
@@ -41,8 +46,9 @@ export function groupListingsByMedicine(listings: Listing[]): CatalogGroup[] {
 
 export function filterListingsByQuery(listings: Listing[], query: string): Listing[] {
   const q = query.trim().toLowerCase();
-  if (!q) return listings;
+  if (!q) return listings.filter(isRenderableListing);
   return listings.filter((l) => {
+    if (!isRenderableListing(l)) return false;
     const m = l.medicine;
     return (
       m.name.toLowerCase().includes(q)

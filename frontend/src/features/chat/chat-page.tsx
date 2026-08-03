@@ -33,7 +33,7 @@ export function ChatListPage() {
         ) : (
           <div className="space-y-2">
             {data.map((conv) => {
-              const other = conv.members.find((m) => m.user.id !== userId);
+              const other = conv.members.find((m) => m.user?.id !== userId);
               const lastMsg = conv.messages[0];
               return (
                 <Link key={conv.id} to={`/chat/${conv.id}`} className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] hover:bg-surface-raised border border-border-subtle">
@@ -119,7 +119,7 @@ export function ChatPage() {
             );
           }
 
-          const isOwn = msg.sender.id === userId;
+          const isOwn = msg.sender?.id === userId;
           return (
             <div key={msg.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
               <div className={cn(
