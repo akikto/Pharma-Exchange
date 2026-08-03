@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search, LayoutGrid, Layers, X, RefreshCw } from 'lucide-react';
-import { TopBar } from '@/components/layout/top-bar';
+import { HomeAppBar } from '@/components/home/home-app-bar';
 import { ListingCard } from '@/components/listing-card';
 import { ListingCardSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ShopHeader } from '@/components/home/shop-header';
-import { HomeHeaderActions } from '@/components/home/home-header-actions';
 import { BulkProcurementBanner } from '@/components/home/bulk-procurement-banner';
 import { AiMatchSection } from '@/components/home/ai-match-section';
 import { CatalogGroupCard } from '@/components/home/catalog-group-card';
@@ -90,7 +89,7 @@ export function HomePage() {
 
   return (
     <div {...handlers}>
-      <TopBar showLogo title={t('home.title')} large actions={<HomeHeaderActions />} />
+      <HomeAppBar />
 
       <BulkProcurementBanner />
 

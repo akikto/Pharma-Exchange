@@ -15,7 +15,7 @@ export function HomeHeaderActions() {
   const { toast } = useToast();
 
   return (
-    <div className="flex items-center gap-0.5" data-testid="home-header-actions">
+    <div className="flex items-center gap-0.5 -mr-1" data-testid="home-header-actions">
       <Button
         variant="ghost"
         size="icon"
