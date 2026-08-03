@@ -108,7 +108,7 @@ export function BuyRequestDialog({ open, onClose, context, onSuccess }: BuyReque
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="secondary" onClick={handleAddToCart} loading={addToCart.isPending}>
+          <Button variant="secondary" onClick={handleAddToCart} loading={addToCart.isAddingToCart(context.listingId)}>
             {t('listing.addToCart')}
           </Button>
           <Button onClick={handleSubmit} loading={loading}>

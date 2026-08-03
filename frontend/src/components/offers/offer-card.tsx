@@ -170,7 +170,7 @@ export function OfferCard({
               <Button variant="secondary" size="sm" className="flex-1 h-8 text-xs" onClick={handleBuyRequest}>
                 {t('listing.buyNow')}
               </Button>
-              <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={handleAddToCart} loading={addToCart.isPending}>
+              <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing.id)}>
                 <ShoppingCart className="h-3.5 w-3.5" />
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t('search.watchlist')} onClick={handleWatchlist}>
