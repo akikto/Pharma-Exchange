@@ -46,9 +46,24 @@ Set these in Vercel → Project → Settings → Environment Variables:
 - **Build Command:** `npx prisma generate && npm run build` (auto from `vercel.json`)
 - **Install Command:** `cd .. && npm ci` (auto from `vercel.json`)
 
+## Preview deployments
+
+Vercel can scope environment variables to **Production** only. Preview deployments (PR branches) need the same variables enabled for **Preview** (and optionally **Development**) in **Settings → Environment Variables**.
+
+| Variable | Preview value |
+|----------|---------------|
+| `DATABASE_URL` | Same as production (or a staging database) |
+| `JWT_SECRET` | Same as production |
+| `NODE_ENV` | `production` |
+| `OTP_DEV_MODE` | `false` (required when `NODE_ENV=production`) |
+| `CORS_ORIGIN` | Frontend preview URL or `https://pharma-exchange-frontend.vercel.app` |
+
+If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON. The lightweight probes `/` and `/health` still respond without loading Express.
+
 ## Verify deployment
 
 ```bash
+curl https://your-api.vercel.app/
 curl https://your-api.vercel.app/health
 curl https://your-api.vercel.app/api/v1/health
 ```
