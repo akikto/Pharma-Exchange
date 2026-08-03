@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { AppLayout } from '@/components/layout/app-layout';
+import { AdminLayout } from '@/components/layout/admin-layout';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const SplashPage = lazy(() => import('@/features/auth/splash-page').then(m => ({ default: m.SplashPage })));
@@ -101,9 +102,11 @@ export function AppRouter() {
             <Route path="/seller/listing/:id" element={<SellerRoute><ListingFormPage /></SellerRoute>} />
           </Route>
 
-          <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboardPage /></AdminRoute></ProtectedRoute>} />
-          <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerificationsPage /></AdminRoute></ProtectedRoute>} />
-          <Route path="/admin/reports" element={<ProtectedRoute><AdminRoute><AdminReportsPage /></AdminRoute></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="verifications" element={<AdminVerificationsPage />} />
+            <Route path="reports" element={<AdminReportsPage />} />
+          </Route>
           <Route path="*" element={<Navigate to="/splash" replace />} />
         </Routes>
       </Suspense>
