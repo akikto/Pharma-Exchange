@@ -49,9 +49,16 @@ Set these in Vercel → Project → Settings → Environment Variables:
 ## Verify deployment
 
 ```bash
+curl https://your-api.vercel.app/
 curl https://your-api.vercel.app/health
 curl https://your-api.vercel.app/api/v1/health
 ```
+
+`/` and `/health` respond without bootstrapping Express. On Vercel, the root path is rewritten to `/api` before the handler runs, so the serverless entry treats `/`, `/health`, `/api`, and `/api/` as lightweight liveness probes.
+
+## Preview deployments
+
+Enable the same environment variables for **Preview** (not only Production) in **Settings → Environment Variables**. If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON while `/`, `/health`, and `/api` still respond.
 
 ## Limitations on Vercel serverless
 
