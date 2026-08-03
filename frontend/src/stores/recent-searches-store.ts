@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { idbStorage } from '@/lib/idb-storage';
 
 const MAX_RECENT = 10;
 
@@ -24,6 +25,6 @@ export const useRecentSearchesStore = create<RecentSearchesState>()(
       remove: (query) => set((s) => ({ queries: s.queries.filter((q) => q !== query) })),
       clearAll: () => set({ queries: [] }),
     }),
-    { name: 'pharmex-recent-searches' },
+    { name: 'pharmex-recent-searches', storage: createJSONStorage(() => idbStorage) },
   ),
 );

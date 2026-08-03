@@ -77,6 +77,13 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
+  async updateProfile(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await authService.updateProfile(req.user!.userId, req.body);
+      res.json(user);
+    } catch (err) { next(err); }
+  }
+
   async registerFcmToken(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { token, deviceId, platform } = req.body;

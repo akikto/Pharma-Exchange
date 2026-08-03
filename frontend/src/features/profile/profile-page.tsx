@@ -7,14 +7,18 @@ import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
+import { useUpdateProfile } from '@/hooks/use-user-settings';
 import { useToast } from '@/hooks/use-toast';
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
+import { normalizeNotificationPrefs } from '@/lib/notification-prefs';
 import type { AppLocale } from '@/i18n';
+import type { NotificationPrefs } from '@/lib/notification-prefs';
 
 export function ProfilePage() {
   const { t } = useTranslation();
   const { user, mode, setMode, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
+  const updateProfile = useUpdateProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isVerified = user?.pharmacy?.verificationStatus === 'APPROVED';
@@ -72,7 +76,14 @@ export function ProfilePage() {
           <Link to="/settings" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
             <span className="flex items-center gap-2"><Settings className="h-4 w-4" /> {t('profile.settings')}</span><ChevronRight className="h-4 w-4 text-text-secondary" />
           </Link>
-          <button className="w-full flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+          <button
+            className="w-full flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised"
+            onClick={() => {
+              const next = theme === 'dark' ? 'light' : 'dark';
+              setTheme(next);
+              void updateProfile.mutateAsync({ theme: next }).catch(() => undefined);
+            }}
+          >
             <span className="flex items-center gap-2">{theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {t('profile.theme')}</span>
             <span className="text-sm text-text-secondary capitalize">{theme}</span>
           </button>
@@ -89,11 +100,23 @@ export function ProfilePage() {
 export function SettingsPage() {
   const { t, i18n: i18nInstance } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuthStore();
+  const updateProfile = useUpdateProfile();
+  const prefs = normalizeNotificationPrefs(user?.notificationPrefs);
 
   const handleLanguageChange = (lng: AppLocale) => {
     void i18nInstance.changeLanguage(lng);
     localStorage.setItem(LOCALE_STORAGE_KEY, lng);
-    toast({ description: t('toast.languageChanged') });
+    void updateProfile.mutateAsync({ language: lng }).then(() => {
+      toast({ description: t('toast.languageChanged') });
+    }).catch(() => undefined);
+  };
+
+  const togglePref = (key: keyof NotificationPrefs) => {
+    const next = { ...prefs, [key]: !prefs[key] };
+    void updateProfile.mutateAsync({ notificationPrefs: next }).then(() => {
+      toast({ description: t('toast.settingsSaved') });
+    }).catch(() => undefined);
   };
 
   return (
@@ -115,15 +138,20 @@ export function SettingsPage() {
         <div className="space-y-2">
           <label className="text-sm font-medium">{t('profile.notificationPrefs')}</label>
           <div className="space-y-2">
-            {[
-              { key: 'prefBuyRequests', label: t('profile.prefBuyRequests') },
-              { key: 'prefOrders', label: t('profile.prefOrders') },
-              { key: 'prefChat', label: t('profile.prefChat') },
-              { key: 'prefPromotions', label: t('profile.prefPromotions') },
-            ].map((pref) => (
-              <label key={pref.key} className="flex items-center justify-between p-3 rounded-[var(--radius-md)] border border-border-subtle">
-                <span className="text-sm">{pref.label}</span>
-                <input type="checkbox" defaultChecked className="h-4 w-4 accent-primary" />
+            {([
+              ['prefBuyRequests', 'buyRequests'],
+              ['prefOrders', 'orders'],
+              ['prefChat', 'chat'],
+              ['prefPromotions', 'promotions'],
+            ] as const).map(([labelKey, prefKey]) => (
+              <label key={prefKey} className="flex items-center justify-between p-3 rounded-[var(--radius-md)] border border-border-subtle">
+                <span className="text-sm">{t(`profile.${labelKey}`)}</span>
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={prefs[prefKey]}
+                  onChange={() => togglePref(prefKey)}
+                />
               </label>
             ))}
           </div>

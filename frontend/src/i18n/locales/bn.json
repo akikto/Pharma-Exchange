@@ -74,7 +74,8 @@
     "loginSuccess": "সফলভাবে লগ ইন হয়েছে",
     "logoutSuccess": "লগ আউট হয়েছে",
     "saved": "সংরক্ষিত হয়েছে",
-    "languageChanged": "ভাষা পরিবর্তন হয়েছে"
+    "languageChanged": "ভাষা পরিবর্তন হয়েছে",
+    "settingsSaved": "সেটিংস সংরক্ষিত হয়েছে"
   },
   "auth": {
     "signIn": "লগ ইন",
@@ -286,7 +287,9 @@
     "composition": "গঠন",
     "notFound": "তালিকা খুঁজে পাওয়া যায়নি",
     "listings": "তালিকা",
-    "noListings": "কোনো সক্রিয় তালিকা নেই"
+    "noListings": "কোনো সক্রিয় তালিকা নেই",
+    "draftRestored": "খসড়া পুনরুদ্ধার হয়েছে — যেখানে ছেড়েছিলেন সেখান থেকে চালিয়ে যান",
+    "clearDraft": "খসড়া মুছুন"
   },
   "offer": {
     "lowStock": "কম স্টক",

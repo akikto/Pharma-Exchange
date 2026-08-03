@@ -47,3 +47,16 @@ export const fcmTokenSchema = z.object({
   deviceId: z.string().optional(),
   platform: z.enum(['ios', 'android', 'web']).optional(),
 });
+
+export const notificationPrefsSchema = z.object({
+  buyRequests: z.boolean().optional(),
+  orders: z.boolean().optional(),
+  chat: z.boolean().optional(),
+  promotions: z.boolean().optional(),
+});
+
+export const updateProfileSchema = z.object({
+  language: z.enum(['en', 'bn']).optional(),
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+  notificationPrefs: notificationPrefsSchema.optional(),
+});

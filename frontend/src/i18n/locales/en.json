@@ -74,7 +74,8 @@
     "loginSuccess": "Signed in successfully",
     "logoutSuccess": "Signed out",
     "saved": "Saved",
-    "languageChanged": "Language changed"
+    "languageChanged": "Language changed",
+    "settingsSaved": "Settings saved"
   },
   "auth": {
     "signIn": "Log In",
@@ -286,7 +287,9 @@
     "composition": "Composition",
     "notFound": "Listing not found",
     "listings": "Listings",
-    "noListings": "No active listings"
+    "noListings": "No active listings",
+    "draftRestored": "Draft restored — continue where you left off",
+    "clearDraft": "Clear draft"
   },
   "offer": {
     "lowStock": "Low stock",

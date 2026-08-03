@@ -9,6 +9,7 @@ import { useThemeStore } from '@/stores/theme-store';
 import { Toaster } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/query-client';
 import { prefetchCloudData } from '@/lib/cloud-sync';
+import { migrateLegacyLocalStorage } from '@/lib/local-db';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import i18n from '@/i18n';
 
@@ -24,6 +25,7 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setUnauthorizedHandler(() => logout());
+    void migrateLegacyLocalStorage();
     initialize();
   }, [initialize, logout]);
 
@@ -35,7 +37,10 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
     if (user?.language === 'bn' || user?.language === 'en') {
       void i18n.changeLanguage(user.language);
     }
-  }, [user?.language]);
+    if (user?.theme === 'light' || user?.theme === 'dark' || user?.theme === 'system') {
+      useThemeStore.getState().setTheme(user.theme);
+    }
+  }, [user?.language, user?.theme]);
 
   useEffect(() => {
     if (isLoading || !isOnline) return;

@@ -7,6 +7,12 @@ export interface User {
   role: 'USER' | 'ADMIN';
   language?: string;
   theme?: string;
+  notificationPrefs?: {
+    buyRequests?: boolean;
+    orders?: boolean;
+    chat?: boolean;
+    promotions?: boolean;
+  };
   authProvider?: string;
   pharmacy?: {
     id: string;
