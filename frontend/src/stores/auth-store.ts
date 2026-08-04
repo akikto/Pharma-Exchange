@@ -110,6 +110,7 @@ export const useAuthStore = create<AuthState>()(
       fetchProfile: async () => {
         const user = await apiClient.get<User>('/auth/me');
         set({ user, isAuthenticated: true });
+        get().applyPostLoginMode();
       },
 
       setMode: (mode, options) => set({

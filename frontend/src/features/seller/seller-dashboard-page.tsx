@@ -114,6 +114,7 @@ export function SellerDashboardPage() {
           <Link to="/seller/listing/new"><Button className="w-full" size="lg"><Plus className="h-4 w-4" /> {t('seller.addListing')}</Button></Link>
           <Link to="/seller/inventory"><Button variant="secondary" className="w-full" size="lg"><Package className="h-4 w-4" /> {t('seller.inventory')}</Button></Link>
           <Link to="/seller/orders"><Button variant="secondary" className="w-full"><Inbox className="h-4 w-4" /> {t('seller.orders')}</Button></Link>
+          <Link to="/seller/requests"><Button variant="secondary" className="w-full"><Inbox className="h-4 w-4" /> {t('seller.pendingBuyRequests')}</Button></Link>
           <Link to="/seller/analytics"><Button variant="secondary" className="w-full"><TrendingUp className="h-4 w-4" /> {t('seller.analytics')}</Button></Link>
           <Button variant="tertiary" className="col-span-2" onClick={() => openModal('bulk')}>{t('modal.bulkTitle')}</Button>
         </div>
