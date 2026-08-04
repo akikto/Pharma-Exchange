@@ -8,6 +8,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { StatusStepper } from '@/components/orders/status-stepper';
 import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
 import { TrackingDialog } from '@/components/orders/tracking-dialog';
+import { PayWithRazorpayButton } from '@/components/payments/pay-with-razorpay-button';
 import { useOrder, useAddToCart, useStartConversation } from '@/hooks/use-api';
 import { usePageRole } from '@/hooks/use-page-role';
 import { apiClient } from '@/lib/api';
@@ -167,6 +168,17 @@ export function OrderDetailPage() {
             {t('orders.chatCounterparty')}
           </Button>
         </div>
+
+        {role === 'buyer' && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && (
+          <PayWithRazorpayButton
+            orderId={order.id}
+            orderNumber={order.orderNumber}
+            buyer={order.buyer as { firstName?: string; lastName?: string; email?: string; phone?: string } | undefined}
+            className="w-full"
+            label={t('orders.payNow', { defaultValue: 'Pay now' })}
+            onSuccess={() => qc.invalidateQueries({ queryKey: ['order', id] })}
+          />
+        )}
 
         {role === 'seller' && nextStatus && (
           <Button className="w-full" loading={loading} onClick={() => updateStatus(nextStatus)}>

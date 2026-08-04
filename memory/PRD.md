@@ -1,7 +1,7 @@
 # Pharma-Exchange — Launch Blockers Sprint · PRD
 
 **Repo:** https://github.com/akikto/Pharma-Exchange
-**Working branch:** `feature/bl-01-msg91-otp`
+**Working branch:** `feature/bl-02-razorpay`
 **Started:** 2026-01-XX (this session)
 
 ## Original problem statement
@@ -42,27 +42,33 @@ PR + completion report per sprint. User approves each sprint before the next.
 
 ## Sprint 1 · BL-01 status
 
-**COMPLETE** (awaiting user approval to open PR + start Sprint 2)
+**COMPLETE** — merged to `main` (per user, pushed directly there once).
 
-- MSG91 REST client at `backend/src/shared/services/msg91.service.ts` with
-  send / verify / resend.
-- Auth service refactored — phone registration requires `verify-otp`; no
-  local OTP storage; no dev-mode fallback.
-- `.env.example`, docker-compose, CI, README, deployment docs updated.
+- MSG91 REST client, phone registration requires verify-otp, no dev fallback.
 - Docs: `docs/BL-01-MSG91.md`, `docs/sprint-reports/sprint-01-bl-01.md`.
-- Tests: 104 backend + 82 frontend + 5 Playwright (auth) — all green.
-- Production build: green for both workspaces.
+
+## Sprint 2 · BL-02 status
+
+**COMPLETE** (awaiting user approval to push PR + start Sprint 3)
+
+- Razorpay Standard Checkout + webhooks + refunds + pre-capture cancel.
+- New schema: `Payment`, `Refund`, `PaymentWebhookEvent` + 3 enums; migration
+  `20260805000000_add_razorpay_payments`.
+- Six endpoints under `/payments/*`; webhook uses `express.raw()` mounted
+  before `express.json()` to preserve HMAC integrity.
+- Frontend `PayWithRazorpayButton` wired into buyer order detail page.
+- Docs: `docs/BL-02-RAZORPAY.md`, `docs/sprint-reports/sprint-02-bl-02.md`.
+- Tests: 20 new backend tests (9 razorpay service + 11 payments API); 5
+  Playwright auth green; production builds green.
 
 ## Backlog (in order)
 
-- **P0** BL-02: Razorpay checkout, order signing, webhook verification,
-  refund/cancel, idempotency.
 - **P0** BL-03/BL-06: audit Vercel, Postgres, Firebase Auth, FCM config.
 - **P0** BL-04/BL-05: Privacy Policy + T&C pages, link from Settings +
   Login, Play Store metadata.
 - **P1** BL-07: `npm audit` clean-up + compatibility verification.
 - **P1** BL-08: rate-limiter test isolation + refresh-token rotation tests +
-  full Playwright green.
+  full Playwright green + pre-existing `Cart API MOQ` regression fix.
 
 ## Personas
 

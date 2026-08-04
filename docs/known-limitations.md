@@ -7,7 +7,7 @@
 | Limitation | Impact | Workaround |
 |------------|--------|------------|
 | ~~OTP delivery not integrated (SMS/email)~~ | ✅ **Resolved in BL-01:** SMS OTP delivered via MSG91. See [BL-01-MSG91.md](BL-01-MSG91.md). | — |
-| `paymentStatus` unused | No payment gateway integration | Manual payment tracking outside app |
+| ~~`paymentStatus` unused~~ | ✅ **Resolved in BL-02:** Razorpay integrated — `paymentStatus` advances via `/payments/verify` and webhooks. See [BL-02-RAZORPAY.md](BL-02-RAZORPAY.md). | — |
 | Google Sign-In / FCM require Firebase env | Social login and push disabled without config | Email/password or demo login |
 | No E2E test suite | Manual QA required | Run `npm run smoke` and deployment checklist |
 | Play Store requires TWA wrapper | No APK in repo | Use Bubblewrap/Capacitor (see play-store-checklist.md) |

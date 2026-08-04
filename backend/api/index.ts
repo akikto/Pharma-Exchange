@@ -33,6 +33,13 @@ function sendLiveness(res: VercelResponse): void {
         process.env.MSG91_SENDER_ID &&
         process.env.MSG91_TEMPLATE_ID,
       ),
+      razorpayEnabled: process.env.RAZORPAY_ENABLED === 'true',
+      razorpayConfigured: Boolean(
+        process.env.RAZORPAY_ENABLED === 'true' &&
+        process.env.RAZORPAY_KEY_ID &&
+        process.env.RAZORPAY_KEY_SECRET &&
+        process.env.RAZORPAY_WEBHOOK_SECRET,
+      ),
     },
   });
 }
@@ -69,6 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         hasJwtSecret: Boolean(process.env.JWT_SECRET),
         nodeEnv: process.env.NODE_ENV,
         msg91Enabled: process.env.MSG91_ENABLED === 'true',
+        razorpayEnabled: process.env.RAZORPAY_ENABLED === 'true',
       },
     });
   }

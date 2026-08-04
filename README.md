@@ -259,6 +259,11 @@ npm run build
 | `MSG91_TEMPLATE_ID` | ✅* | Approved OTP template ID (must contain `##OTP##`) |
 | `MSG91_OTP_LENGTH` | — | OTP length, 4–9 (default: `6`) |
 | `MSG91_BASE_URL` | — | Override for staging (default: MSG91 production URL) |
+| `RAZORPAY_ENABLED` | ✅* | Must be `true` in production to accept payments |
+| `RAZORPAY_KEY_ID` | ✅* | Razorpay API key ID (see [docs/BL-02-RAZORPAY.md](docs/BL-02-RAZORPAY.md)) |
+| `RAZORPAY_KEY_SECRET` | ✅* | Razorpay API key secret |
+| `RAZORPAY_WEBHOOK_SECRET` | ✅* | Razorpay webhook HMAC secret |
+| `RAZORPAY_CURRENCY` | — | ISO-4217 currency (default: `INR`) |
 | `FIREBASE_PROJECT_ID` | ✅* | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | ✅* | Firebase service account email |
 | `FIREBASE_PRIVATE_KEY` | ✅* | Firebase service account private key |
@@ -427,6 +432,7 @@ cd backend && npx prisma migrate deploy
 - [ ] HTTPS on frontend and API
 - [ ] `CORS_ORIGIN` set to production domain
 - [ ] `MSG91_ENABLED=true` with all MSG91 secrets set (see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md))
+- [ ] `RAZORPAY_ENABLED=true` with all Razorpay secrets + webhook configured (see [docs/BL-02-RAZORPAY.md](docs/BL-02-RAZORPAY.md))
 - [ ] Firebase credentials configured
 - [ ] Database migrations applied
 - [ ] Health check monitoring enabled
@@ -564,7 +570,7 @@ MIT License — Copyright (c) 2026 MedLink B2B Contributors
 |----------|---------|
 | 🔴 High | E2E tests with Playwright |
 | ✅ Done | SMS OTP delivery via MSG91 ([BL-01](docs/BL-01-MSG91.md)) |
-| 🔴 High | Payment gateway (Razorpay) — BL-02 |
+| ✅ Done | Payment gateway (Razorpay) ([BL-02](docs/BL-02-RAZORPAY.md)) |
 | 🟡 Medium | Geo/radius search for nearby pharmacies |
 | 🟡 Medium | Firebase Google login UI |
 | 🟡 Medium | Firestore real-time sync for notifications |

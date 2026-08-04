@@ -36,6 +36,12 @@ jobs:
       MSG91_TEMPLATE_ID: ci-msg91-template
       MSG91_OTP_LENGTH: "6"
       MSG91_BASE_URL: https://control.msg91.com/api/v5/otp
+      # Razorpay is mocked at the SDK layer in tests — no real creds needed.
+      RAZORPAY_ENABLED: "true"
+      RAZORPAY_KEY_ID: rzp_test_ci_key
+      RAZORPAY_KEY_SECRET: ci-razorpay-key-secret
+      RAZORPAY_WEBHOOK_SECRET: ci-razorpay-webhook-secret
+      RAZORPAY_CURRENCY: INR
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

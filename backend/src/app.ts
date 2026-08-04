@@ -28,6 +28,7 @@ import uploadRoutes from './modules/upload/upload.routes';
 import { analyticsRouter, adminRouter } from './modules/admin/admin.routes';
 import healthRoutes from './modules/health/health.routes';
 import aiMatchRoutes from './modules/ai-match/aiMatch.routes';
+import paymentsRoutes, { paymentsWebhookRouter } from './modules/payments/payments.routes';
 
 export function createApp(): express.Application {
   initializeFirebase();
@@ -45,6 +46,10 @@ export function createApp(): express.Application {
     credentials: false,
   }));
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+  // Payment webhook must receive the raw body for HMAC verification — mount
+  // it BEFORE express.json() so the body arrives as an unparsed Buffer.
+  app.use('/api/v1/payments/webhook', paymentsWebhookRouter);
+  app.use('/api/payments/webhook', paymentsWebhookRouter);
   app.use(express.json({ limit: '2mb' }));
   app.use(globalRateLimiter);
 
@@ -87,6 +92,7 @@ export function createApp(): express.Application {
   v1.use('/analytics', analyticsRouter);
   v1.use('/admin', adminRouter);
   v1.use('/ai-matches', aiMatchRoutes);
+  v1.use('/payments', paymentsRoutes);
 
   app.use('/api/v1', v1);
 
@@ -111,6 +117,7 @@ export function createApp(): express.Application {
   app.use('/api/analytics', analyticsRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/ai-matches', aiMatchRoutes);
+  app.use('/api/payments', paymentsRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
