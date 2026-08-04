@@ -106,7 +106,7 @@ No functional regressions were found. No UI or architecture changes were made be
 | `DATABASE_URL` | ✅ | PostgreSQL with `?sslmode=require` |
 | `JWT_SECRET` | ✅ | 32+ random characters |
 | `NODE_ENV` | ✅ | `production` |
-| `OTP_DEV_MODE` | ✅ | **`false`** in production |
+| `MSG91_ENABLED` | ✅ | **`false`** in production |
 | `CORS_ORIGIN` | ✅ | Frontend production URL (not `*`) |
 | `FIREBASE_PROJECT_ID` | — | FCM + Firebase Admin |
 | `FIREBASE_CLIENT_EMAIL` | — | Service account |
@@ -187,7 +187,7 @@ See [known-limitations.md](./known-limitations.md). Key items for v1.0:
 - [ ] Push `main` to origin
 - [ ] Set all Vercel environment variables (frontend + backend)
 - [ ] Run `prisma migrate deploy` on production database
-- [ ] Set `OTP_DEV_MODE=false`, strong `JWT_SECRET`, explicit `CORS_ORIGIN`
+- [ ] Set `MSG91_ENABLED=true` + MSG91 secrets, strong `JWT_SECRET`, explicit `CORS_ORIGIN`
 - [ ] Configure Firebase (auth, FCM) if using Google login or push
 
 ### Deploy

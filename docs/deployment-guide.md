@@ -17,7 +17,7 @@
 DATABASE_URL=postgresql://...
 JWT_SECRET=<32+ random bytes>
 NODE_ENV=production
-OTP_DEV_MODE=false
+MSG91_ENABLED=true
 CORS_ORIGIN=https://your-app.vercel.app
 FIREBASE_PROJECT_ID=...
 FIREBASE_CLIENT_EMAIL=...
@@ -77,7 +77,7 @@ docker run -p 3000:3000 --env-file backend/.env pharmex-api
 
 - [ ] HTTPS on frontend and API
 - [ ] `CORS_ORIGIN` matches frontend URL
-- [ ] `OTP_DEV_MODE=false`
+- [ ] `MSG91_ENABLED=true` + MSG91 secrets
 - [ ] Firebase credentials valid
 - [ ] `prisma migrate deploy` completed
 - [ ] Health check: `GET /api/v1/health`

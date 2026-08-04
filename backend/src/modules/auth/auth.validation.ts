@@ -21,17 +21,19 @@ export const firebaseAuthSchema = z.object({
 });
 
 export const otpVerifySchema = z.object({
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
-  code: z.string().length(6),
-  purpose: z.enum(['registration', 'login', 'password_reset']),
+  phone: z.string().min(8, 'Phone is required').max(20),
+  code: z.string().regex(/^\d{4,9}$/, 'OTP must be numeric'),
+  purpose: z.enum(['registration', 'login', 'password_reset']).default('login'),
 });
 
 export const sendOtpSchema = z.object({
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
+  phone: z.string().min(8, 'Phone is required').max(20),
   purpose: z.enum(['login', 'password_reset']).default('login'),
-}).refine((d) => d.phone || d.email, { message: 'Phone or email is required' });
+});
+
+export const resendOtpSchema = z.object({
+  phone: z.string().min(8, 'Phone is required').max(20),
+});
 
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1),

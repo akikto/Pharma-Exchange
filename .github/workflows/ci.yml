@@ -29,7 +29,13 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pharma_exchange?schema=public
       JWT_SECRET: ci-jwt-secret-min-32-characters-long
-      OTP_DEV_MODE: "true"
+      # MSG91 is mocked at the fetch layer in tests (see tests/setup.ts) — no real credentials needed.
+      MSG91_ENABLED: "true"
+      MSG91_AUTH_KEY: ci-msg91-auth-key
+      MSG91_SENDER_ID: MEDLNK
+      MSG91_TEMPLATE_ID: ci-msg91-template
+      MSG91_OTP_LENGTH: "6"
+      MSG91_BASE_URL: https://control.msg91.com/api/v5/otp
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

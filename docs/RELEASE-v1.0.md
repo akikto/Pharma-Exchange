@@ -58,7 +58,7 @@ Pharma Exchange v1.0 is the first production release of the B2B pharmacy marketp
 1. Merge `main` (includes Phases 1–17)
 2. Run `npx prisma migrate deploy` on production PostgreSQL
 3. Configure Vercel env vars per [production-readiness-report.md](./production-readiness-report.md)
-4. Set `OTP_DEV_MODE=false` in production
+4. Set `MSG91_ENABLED=true` + MSG91 secrets in production
 5. Deploy backend, then frontend
 6. Run smoke tests against production API
 

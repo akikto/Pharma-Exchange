@@ -53,7 +53,7 @@
 | `DATABASE_URL` | ✅ | ⬜ |
 | `JWT_SECRET` (32+ chars) | ✅ | ⬜ |
 | `NODE_ENV=production` | ✅ | ⬜ |
-| `OTP_DEV_MODE=false` | ✅ | ⬜ |
+| `MSG91_ENABLED=true` + MSG91 secrets | ✅ | ⬜ |
 | `CORS_ORIGIN` (explicit URL) | ✅ | ⬜ |
 | `FIREBASE_*` | FCM + storage | ⬜ |
 
@@ -103,7 +103,7 @@ API_BASE=https://<backend-host> npm run smoke
 
 | Check | Status | Reference |
 |-------|--------|-----------|
-| `OTP_DEV_MODE=false` enforced at boot | ✅ Code throws in production | `backend/src/config/env.ts` |
+| `MSG91_ENABLED=true` + MSG91 secrets enforced at boot | ✅ Code throws in production | `backend/src/config/env.ts` |
 | JWT access + refresh tokens | ✅ | `auth.middleware.ts` |
 | Refresh token rotation | ✅ | `auth.service.ts` |
 | CORS allowlist + PharmEx Vercel patterns | ✅ | `backend/src/config/cors.ts` |
@@ -125,7 +125,7 @@ API_BASE=https://<backend-host> npm run smoke
 
 | Service | Status | Blocker |
 |---------|--------|---------|
-| OTP / SMS provider | ❌ | `sendOtp` logs only in dev; registration skips OTP when `OTP_DEV_MODE=false` |
+| OTP / SMS provider | ❌ | `sendOtp` logs only in dev; registration skips OTP when `MSG91_ENABLED=true` + MSG91 secrets |
 | Payment gateway (bKash / SSLCommerz) | ❌ | `paymentStatus` unused; manual settlement only |
 | Firebase Cloud Messaging | ⚠️ | Code ready; requires prod Firebase + VAPID |
 | Production push notifications | ⬜ | End-to-end test on HTTPS required |

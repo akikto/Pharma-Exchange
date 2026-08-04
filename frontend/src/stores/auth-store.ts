@@ -16,9 +16,10 @@ interface AuthState {
   login: (emailOrPhone: string, password: string, isEmail: boolean) => Promise<void>;
   demoLogin: () => Promise<{ isDemo?: boolean }>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
-  register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ devOtp?: string; accessToken?: string; refreshToken?: string; user?: User }>;
-  sendOtp: (data: { phone?: string; email?: string }) => Promise<{ devOtp?: string }>;
-  verifyOtp: (data: { phone?: string; email?: string; code: string; purpose: string }) => Promise<void>;
+  register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ requiresOtpVerification?: boolean; otpRequestId?: string; message?: string; accessToken?: string; refreshToken?: string; user?: User }>;
+  sendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
+  resendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
+  verifyOtp: (data: { phone: string; code: string; purpose: string }) => Promise<void>;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
@@ -66,7 +67,9 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (data) => {
         const result = await apiClient.post<{
-          devOtp?: string;
+          requiresOtpVerification?: boolean;
+          otpRequestId?: string;
+          message?: string;
           accessToken?: string;
           refreshToken?: string;
           user?: User;
@@ -80,7 +83,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       sendOtp: async (data) => {
-        return apiClient.post<{ devOtp?: string }>('/auth/send-otp', { ...data, purpose: 'login' });
+        return apiClient.post<{ requestId?: string; message?: string }>('/auth/send-otp', { ...data, purpose: 'login' });
+      },
+
+      resendOtp: async (data) => {
+        return apiClient.post<{ requestId?: string; message?: string }>('/auth/resend-otp', data);
       },
 
       verifyOtp: async (data) => {

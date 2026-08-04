@@ -5,7 +5,7 @@ import { validate } from '../../shared/middleware/validate.middleware';
 import { authRateLimiter, otpRateLimiter } from '../../shared/middleware/rateLimit.middleware';
 import {
   registerSchema, loginSchema, firebaseAuthSchema,
-  otpVerifySchema, sendOtpSchema, refreshTokenSchema, fcmTokenSchema, resetPasswordSchema,
+  otpVerifySchema, sendOtpSchema, resendOtpSchema, refreshTokenSchema, fcmTokenSchema, resetPasswordSchema,
   updateProfileSchema,
 } from './auth.validation';
 
@@ -40,6 +40,7 @@ router.post('/demo-login', authRateLimiter, authController.demoLogin.bind(authCo
 router.post('/firebase', authRateLimiter, validate(firebaseAuthSchema), authController.firebaseAuth.bind(authController));
 
 router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
+router.post('/resend-otp', otpRateLimiter, validate(resendOtpSchema), authController.resendOtp.bind(authController));
 router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authController.verifyOtp.bind(authController));
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));

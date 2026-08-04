@@ -252,8 +252,13 @@ npm run build
 | `JWT_REFRESH_EXPIRES_IN` | — | Refresh token expiry (default: `30d`) |
 | `PORT` | — | HTTP server port (default: `3000`) |
 | `NODE_ENV` | — | `development`, `production`, or `test` |
-| `OTP_EXPIRY_MINUTES` | — | OTP validity in minutes (default: `10`) |
-| `OTP_DEV_MODE` | — | Log OTP to console in dev (`false` in production) |
+| `OTP_EXPIRY_MINUTES` | — | OTP validity in minutes (default: `10`, passed to MSG91) |
+| `MSG91_ENABLED` | ✅* | Must be `true` in production to accept phone auth |
+| `MSG91_AUTH_KEY` | ✅* | MSG91 API auth key (see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md)) |
+| `MSG91_SENDER_ID` | ✅* | Approved Bangladesh sender ID |
+| `MSG91_TEMPLATE_ID` | ✅* | Approved OTP template ID (must contain `##OTP##`) |
+| `MSG91_OTP_LENGTH` | — | OTP length, 4–9 (default: `6`) |
+| `MSG91_BASE_URL` | — | Override for staging (default: MSG91 production URL) |
 | `FIREBASE_PROJECT_ID` | ✅* | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | ✅* | Firebase service account email |
 | `FIREBASE_PRIVATE_KEY` | ✅* | Firebase service account private key |
@@ -421,7 +426,7 @@ cd backend && npx prisma migrate deploy
 
 - [ ] HTTPS on frontend and API
 - [ ] `CORS_ORIGIN` set to production domain
-- [ ] `OTP_DEV_MODE=false`
+- [ ] `MSG91_ENABLED=true` with all MSG91 secrets set (see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md))
 - [ ] Firebase credentials configured
 - [ ] Database migrations applied
 - [ ] Health check monitoring enabled
@@ -445,7 +450,7 @@ See [`docs/deployment-guide.md`](docs/deployment-guide.md) for the full guide.
 | **CORS** | Configurable allowed origins |
 | **Secure Uploads** | Private Firebase Storage with signed URLs |
 | **Socket Security** | JWT auth + conversation membership checks |
-| **OTP Security** | Cryptographic generation; dev mode blocked in production |
+| **OTP Security** | Delegated to MSG91 (production carrier); no local generation or dev-mode fallback — see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md) |
 
 See [`docs/security-report.md`](docs/security-report.md).
 
@@ -558,8 +563,8 @@ MIT License — Copyright (c) 2026 MedLink B2B Contributors
 | Priority | Feature |
 |----------|---------|
 | 🔴 High | E2E tests with Playwright |
-| 🔴 High | SMS/email OTP delivery integration |
-| 🔴 High | Payment gateway (bKash, SSLCommerz) |
+| ✅ Done | SMS OTP delivery via MSG91 ([BL-01](docs/BL-01-MSG91.md)) |
+| 🔴 High | Payment gateway (Razorpay) — BL-02 |
 | 🟡 Medium | Geo/radius search for nearby pharmacies |
 | 🟡 Medium | Firebase Google login UI |
 | 🟡 Medium | Firestore real-time sync for notifications |

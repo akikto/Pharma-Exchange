@@ -31,7 +31,7 @@
 
 ## Recommendations for Production
 
-1. Set `OTP_DEV_MODE=false`, strong `JWT_SECRET`
+1. Set `MSG91_ENABLED=true` + MSG91 secrets, strong `JWT_SECRET`
 2. Restrict `CORS_ORIGIN` to production domains
 3. Enable SSL on `DATABASE_URL`
 4. Use Redis-backed rate limiting for multi-instance

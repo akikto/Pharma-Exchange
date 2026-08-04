@@ -49,6 +49,13 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
+  async resendOtp(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.resendOtp(req.body);
+      res.json(result);
+    } catch (err) { next(err); }
+  }
+
   async resetPassword(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.resetPassword(req.body);

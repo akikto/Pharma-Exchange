@@ -58,7 +58,7 @@ Edit `.env` and set at minimum:
 JWT_SECRET=your-64-character-random-secret-here
 DB_PASSWORD=strong-database-password
 CORS_ALLOWED_ORIGINS=https://yourdomain.com
-OTP_DEV_MODE=false
+MSG91_ENABLED=true
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_CLIENT_EMAIL=...
 FIREBASE_PRIVATE_KEY="..."

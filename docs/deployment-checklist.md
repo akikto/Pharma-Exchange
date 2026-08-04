@@ -3,7 +3,7 @@
 ## Pre-Deploy
 
 - [ ] Set `JWT_SECRET` (32+ random bytes)
-- [ ] Set `OTP_DEV_MODE=false`
+- [ ] Set `MSG91_ENABLED=true` + MSG91 secrets
 - [ ] Configure Firebase credentials
 - [ ] Set `CORS_ORIGIN` to production frontend URL
 - [ ] Set `DATABASE_URL` with SSL (`?sslmode=require`)

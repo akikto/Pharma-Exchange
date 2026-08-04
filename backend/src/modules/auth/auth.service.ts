@@ -1,12 +1,34 @@
 import bcrypt from 'bcryptjs';
-import { User, UserRole } from '@prisma/client';
+import { User } from '@prisma/client';
 import prisma from '../../config/database';
 import { env } from '../../config/env';
 import { verifyFirebaseToken } from '../../config/firebase';
 import { AppError } from '../../shared/errors/AppError';
-import { generateOtp } from '../../shared/utils/helpers';
 import { signAccessToken, signRefreshToken } from '../../shared/middleware/auth.middleware';
-import { logger } from '../../shared/utils/logger';
+import {
+  Msg91ConfigError,
+  Msg91Error,
+  msg91,
+  normalizeBangladeshPhone,
+} from '../../shared/services/msg91.service';
+
+function mapMsg91Error(err: unknown): AppError {
+  if (err instanceof Msg91ConfigError) {
+    return AppError.badRequest('SMS OTP provider is not configured');
+  }
+  if (err instanceof Msg91Error) {
+    if (err.code === 'OTP_PROVIDER_RATE_LIMIT') {
+      return new AppError(429, 'Too many OTP requests. Please try again later.', 'RATE_LIMIT_EXCEEDED');
+    }
+    if (err.code === 'OTP_PROVIDER_UNAVAILABLE') {
+      return new AppError(503, 'OTP provider unavailable. Please try again shortly.', 'OTP_PROVIDER_UNAVAILABLE');
+    }
+    return new AppError(502, 'OTP provider request failed', 'OTP_PROVIDER_ERROR');
+  }
+  const code = (err as { code?: string })?.code;
+  if (code === 'INVALID_PHONE') return AppError.badRequest('Invalid Bangladesh mobile number');
+  return AppError.internal('Unexpected OTP error');
+}
 
 export class AuthService {
   async register(data: {
@@ -35,55 +57,56 @@ export class AuthService {
         lastName: data.lastName,
         authProvider: data.email ? 'email' : 'phone',
       },
-      select: { id: true, email: true, phone: true, firstName: true, lastName: true },
     });
 
-    const otp = generateOtp();
-    await prisma.otpToken.create({
-      data: {
-        userId: user.id,
-        phone: data.phone,
-        email: data.email,
-        code: otp,
-        purpose: 'registration',
-        expiresAt: new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000),
-      },
-    });
-
-    if (env.OTP_DEV_MODE) logger.info(`[DEV OTP] Registration: ${otp}`);
-
-    const fullUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-
-    // No SMS/email OTP provider yet — skip OTP step in production and sign in immediately
-    if (!env.OTP_DEV_MODE) {
-      return this.issueTokens(fullUser);
+    // Phone-based registration must verify OTP before tokens are issued.
+    if (data.phone) {
+      try {
+        const { requestId } = await msg91.sendOtp(data.phone);
+        return {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+          requiresOtpVerification: true,
+          otpRequestId: requestId,
+          message: 'Registration successful. Please verify the OTP sent to your phone.',
+        };
+      } catch (err) {
+        throw mapMsg91Error(err);
+      }
     }
 
-    return { user, devOtp: otp };
+    // Email-only registration: issue tokens immediately (email verification is
+    // a separate flow, out of scope for BL-01).
+    return this.issueTokens(user);
   }
 
-  async sendOtp(data: { phone?: string; email?: string; purpose: 'login' | 'password_reset' }) {
-    const user = await prisma.user.findFirst({
-      where: data.phone ? { phone: data.phone } : { email: data.email },
-    });
-    if (!user) throw AppError.notFound('No account found with this contact');
+  async sendOtp(data: { phone: string; purpose: 'login' | 'password_reset' }) {
+    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
+    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
+      ?? await prisma.user.findUnique({ where: { phone: data.phone } });
+    if (!user) throw AppError.notFound('No account found with this phone number');
     if (!user.isActive) throw AppError.forbidden('Account is deactivated');
 
-    const otp = generateOtp();
-    await prisma.otpToken.create({
-      data: {
-        userId: user.id,
-        phone: data.phone,
-        email: data.email,
-        code: otp,
-        purpose: data.purpose,
-        expiresAt: new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000),
-      },
-    });
+    try {
+      const { requestId } = await msg91.sendOtp(data.phone);
+      return { message: 'OTP sent', requestId };
+    } catch (err) {
+      throw mapMsg91Error(err);
+    }
+  }
 
-    if (env.OTP_DEV_MODE) logger.info(`[DEV OTP] ${data.purpose}: ${otp}`);
-
-    return { message: 'OTP sent', ...(env.OTP_DEV_MODE && { devOtp: otp }) };
+  async resendOtp(data: { phone: string }) {
+    try {
+      const { requestId } = await msg91.resendOtp(data.phone);
+      return { message: 'OTP resent', requestId };
+    } catch (err) {
+      throw mapMsg91Error(err);
+    }
   }
 
   async resetPassword(data: { email: string; newPassword: string }) {
@@ -169,28 +192,22 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
-  async verifyOtp(data: { phone?: string; email?: string; code: string; purpose: string }) {
-    const otpRecord = await prisma.otpToken.findFirst({
-      where: {
-        code: data.code,
-        purpose: data.purpose,
-        usedAt: null,
-        expiresAt: { gt: new Date() },
-        ...(data.phone ? { phone: data.phone } : { email: data.email }),
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!otpRecord) throw AppError.badRequest('Invalid or expired OTP');
-
-    await prisma.otpToken.update({ where: { id: otpRecord.id }, data: { usedAt: new Date() } });
-
-    if (otpRecord.userId) {
-      const user = await prisma.user.findUnique({ where: { id: otpRecord.userId } });
-      if (user) return this.issueTokens(user);
+  async verifyOtp(data: { phone: string; code: string; purpose: 'registration' | 'login' | 'password_reset' }) {
+    let verified: boolean;
+    try {
+      verified = await msg91.verifyOtp(data.phone, data.code);
+    } catch (err) {
+      throw mapMsg91Error(err);
     }
+    if (!verified) throw AppError.badRequest('Invalid or expired OTP');
 
-    return { message: 'OTP verified' };
+    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
+    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
+      ?? await prisma.user.findFirst({ where: { phone: data.phone } });
+    if (!user) throw AppError.notFound('No account found for this phone');
+    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+
+    return this.issueTokens(user);
   }
 
   async refreshToken(token: string) {
@@ -305,6 +322,14 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+}
+
+function normalizeBangladeshPhoneSafe(phone: string): string {
+  try {
+    return normalizeBangladeshPhone(phone);
+  } catch {
+    return phone;
   }
 }
 

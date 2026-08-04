@@ -21,16 +21,16 @@
 
 ---
 
-## 1. OTP_DEV_MODE
+## 1. MSG91_ENABLED
 
 | Check | Result |
 |-------|--------|
 | Default in schema | `false` (`backend/src/config/env.ts`) |
-| Production guard | Throws if `NODE_ENV=production` && `OTP_DEV_MODE=true` |
-| Current dev `.env` | `OTP_DEV_MODE` not set in committed files |
-| **Production requirement** | Set `OTP_DEV_MODE=false` explicitly on Vercel |
+| Production guard | Throws if `NODE_ENV=production` && `MSG91_ENABLED=true` |
+| Current dev `.env` | `MSG91_ENABLED` not set in committed files |
+| **Production requirement** | Set `MSG91_ENABLED=true` + MSG91 secrets explicitly on Vercel |
 
-**Finding SEC-01 (Blocker):** No SMS/email OTP provider integrated. `sendOtp()` only logs OTP in dev; registration auto-signs-in when `OTP_DEV_MODE=false` without verification.
+**Finding SEC-01 (Blocker):** No SMS/email OTP provider integrated. `sendOtp()` only logs OTP in dev; registration auto-signs-in when `MSG91_ENABLED=true` + MSG91 secrets without verification.
 
 ---
 
@@ -151,7 +151,7 @@ npm audit fix
 
 ## 9. Security Checklist (pre-launch)
 
-- [ ] `OTP_DEV_MODE=false` on production backend
+- [ ] `MSG91_ENABLED=true` + MSG91 secrets on production backend
 - [ ] Strong unique `JWT_SECRET` (32+ chars)
 - [ ] Explicit `CORS_ORIGIN` (no wildcard)
 - [ ] HTTPS enforced on frontend + API

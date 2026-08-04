@@ -6,7 +6,7 @@
 
 | Limitation | Impact | Workaround |
 |------------|--------|------------|
-| OTP delivery not integrated (SMS/email) | OTP only works in dev mode or with manual code | Use Firebase phone auth, demo login, or `OTP_DEV_MODE=true` in dev |
+| ~~OTP delivery not integrated (SMS/email)~~ | ✅ **Resolved in BL-01:** SMS OTP delivered via MSG91. See [BL-01-MSG91.md](BL-01-MSG91.md). | — |
 | `paymentStatus` unused | No payment gateway integration | Manual payment tracking outside app |
 | Google Sign-In / FCM require Firebase env | Social login and push disabled without config | Email/password or demo login |
 | No E2E test suite | Manual QA required | Run `npm run smoke` and deployment checklist |

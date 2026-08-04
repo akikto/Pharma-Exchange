@@ -10,19 +10,29 @@ export function OtpLoginPage() {
   const [phone, setPhone] = useState('');
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [code, setCode] = useState('');
-  const [devOtp, setDevOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { sendOtp, verifyOtp } = useAuthStore();
+  const { sendOtp, resendOtp, verifyOtp } = useAuthStore();
 
   const handleSend = async () => {
     setLoading(true);
     setError('');
     try {
-      const result = await sendOtp({ phone });
-      if (result.devOtp) setDevOtp(result.devOtp);
+      await sendOtp({ phone });
       setStep('code');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await resendOtp({ phone });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -50,16 +60,40 @@ export function OtpLoginPage() {
       <h1 className="text-xl font-bold text-center">OTP Login</h1>
       {step === 'phone' ? (
         <>
-          <Input type="tel" placeholder="+8801XXXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <Input
+            type="tel"
+            placeholder="+8801XXXXXXXXX"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            data-testid="otp-phone-input"
+          />
           {error && <p className="text-sm text-danger">{error}</p>}
-          <Button className="w-full" loading={loading} onClick={handleSend}>Send OTP</Button>
+          <Button className="w-full" loading={loading} onClick={handleSend} data-testid="otp-send-button">
+            Send OTP
+          </Button>
         </>
       ) : (
         <>
-          {devOtp && <p className="text-center text-sm text-warning">Dev OTP: {devOtp}</p>}
-          <Input placeholder="000000" maxLength={6} className="text-center text-2xl tracking-widest" value={code} onChange={(e) => setCode(e.target.value)} />
+          <p className="text-center text-sm text-text-secondary">
+            Enter the code we sent to <span dir="ltr">{phone}</span>
+          </p>
+          <Input
+            placeholder="000000"
+            maxLength={6}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            className="text-center text-2xl tracking-widest"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            data-testid="otp-code-input"
+          />
           {error && <p className="text-sm text-danger">{error}</p>}
-          <Button className="w-full" loading={loading} onClick={handleVerify}>Verify & Login</Button>
+          <Button className="w-full" loading={loading} onClick={handleVerify} data-testid="otp-verify-button">
+            Verify & Login
+          </Button>
+          <Button variant="ghost" className="w-full" loading={loading} onClick={handleResend} data-testid="otp-resend-button">
+            Resend OTP
+          </Button>
         </>
       )}
     </div>

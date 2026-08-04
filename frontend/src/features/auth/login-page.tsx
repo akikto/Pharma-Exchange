@@ -30,7 +30,6 @@ export function LoginPage() {
   const [isDemoSession, setIsDemoSession] = useState(false);
   const [registerStep, setRegisterStep] = useState<'form' | 'otp'>('form');
   const [contact, setContact] = useState<{ email?: string; phone?: string }>({});
-  const [devOtp, setDevOtp] = useState('');
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
   const demoLogin = useAuthStore((s) => s.demoLogin);
@@ -110,9 +109,8 @@ export function LoginPage() {
         phone: data.phone || undefined,
         password: data.password,
       });
-      if (result.devOtp) {
+      if (result.requiresOtpVerification) {
         setContact({ email: data.email || undefined, phone: data.phone || undefined });
-        setDevOtp(result.devOtp);
         setRegisterStep('otp');
         return;
       }
@@ -133,7 +131,11 @@ export function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      await verifyOtp({ ...contact, code: data.code, purpose: 'registration' });
+      if (!contact.phone) {
+        setError(t('auth.otpFailed'));
+        return;
+      }
+      await verifyOtp({ phone: contact.phone, code: data.code, purpose: 'registration' });
       toast({ description: t('toast.loginSuccess') });
       await showWelcome();
     } catch (err) {
@@ -242,7 +244,6 @@ export function LoginPage() {
             <p className="text-sm text-text-secondary text-center">
               {t('auth.verifyOtpDesc', { contact: contact.email || contact.phone })}
             </p>
-            {devOtp && <p className="text-center text-sm text-warning">Dev OTP: {devOtp}</p>}
             <Input placeholder="000000" maxLength={6} className="text-center text-2xl tracking-widest" {...otpForm.register('code')} />
             {error && <p className="text-sm text-danger">{error}</p>}
             <Button type="submit" className="w-full" size="lg" loading={loading}>{t('auth.verifyOtp')}</Button>

@@ -33,7 +33,7 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `DATABASE_URL` | ✅ | `postgresql://user:pass@host:5432/db?sslmode=require` |
 | `JWT_SECRET` | ✅ | 32+ random characters |
 | `NODE_ENV` | ✅ | `production` |
-| `OTP_DEV_MODE` | ✅ | `false` |
+| `MSG91_ENABLED` | ✅ | `false` |
 | `CORS_ORIGIN` | ✅ | `https://pharma-exchange-frontend.vercel.app` |
 | `FIREBASE_PROJECT_ID` | — | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | — | Service account email |
@@ -68,7 +68,7 @@ Vercel can scope environment variables to **Production** only. Preview deploymen
 | `DATABASE_URL` | Same as production (or a staging database) |
 | `JWT_SECRET` | Same as production |
 | `NODE_ENV` | `production` |
-| `OTP_DEV_MODE` | `false` (required when `NODE_ENV=production`) |
+| `MSG91_ENABLED` | `false` (required when `NODE_ENV=production`) |
 | `CORS_ORIGIN` | Frontend preview URL or `https://pharma-exchange-frontend.vercel.app` |
 
 If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON. The lightweight probes `/`, `/health`, and the Vercel rewrite path `/api` still respond without loading Express.

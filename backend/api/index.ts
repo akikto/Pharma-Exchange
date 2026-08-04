@@ -26,7 +26,13 @@ function sendLiveness(res: VercelResponse): void {
       hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
       hasJwtSecret: Boolean(process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16),
       nodeEnv: process.env.NODE_ENV ?? 'unset',
-      otpDevMode: process.env.OTP_DEV_MODE ?? 'unset',
+      msg91Enabled: process.env.MSG91_ENABLED === 'true',
+      msg91Configured: Boolean(
+        process.env.MSG91_ENABLED === 'true' &&
+        process.env.MSG91_AUTH_KEY &&
+        process.env.MSG91_SENDER_ID &&
+        process.env.MSG91_TEMPLATE_ID,
+      ),
     },
   });
 }
@@ -62,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
         hasJwtSecret: Boolean(process.env.JWT_SECRET),
         nodeEnv: process.env.NODE_ENV,
-        otpDevMode: process.env.OTP_DEV_MODE,
+        msg91Enabled: process.env.MSG91_ENABLED === 'true',
       },
     });
   }
