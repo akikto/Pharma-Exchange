@@ -67,10 +67,10 @@ export function ProfilePage() {
         )}
 
         <div className="space-y-1">
-          <Link to="/orders" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
+          <Link to="/cart?tab=orders" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
             <span>{t('profile.orderHistory')}</span><ChevronRight className="h-4 w-4 text-text-secondary" />
           </Link>
-          <Link to="/buy-requests" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
+          <Link to="/cart?tab=requests" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
             <span>{t('profile.buyRequests')}</span><ChevronRight className="h-4 w-4 text-text-secondary" />
           </Link>
           <Link to="/settings" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">

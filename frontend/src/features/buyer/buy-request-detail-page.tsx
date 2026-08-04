@@ -42,7 +42,10 @@ export function BuyRequestDetailPage() {
       const result = await apiClient.post<{ order?: { id: string } }>(`/buy-requests/${id}/respond`, { action });
       qc.invalidateQueries({ queryKey: ['buy-request', id] });
       toast({ description: action === 'accept' ? t('buyRequest.accepted') : t('buyRequest.rejected') });
-      if (result.order?.id) navigate(`/orders/${result.order.id}`);
+      if (result.order?.id) {
+        const orderPath = role === 'seller' ? `/seller/orders/${result.order.id}` : `/orders/${result.order.id}`;
+        navigate(orderPath);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isApprovedSeller, getAppHomeRoute } from '@/lib/auth-utils';
+import { isApprovedSeller, getPostLoginRoute } from '@/lib/auth-utils';
 import type { User } from '@/types';
 
 const approvedSeller: User = {
@@ -22,7 +22,17 @@ describe('auth-utils', () => {
   });
 
   it('returns home route by mode', () => {
-    expect(getAppHomeRoute('seller')).toBe('/seller');
-    expect(getAppHomeRoute('buyer')).toBe('/');
+    expect(getPostLoginRoute(null, 'seller')).toBe('/');
+    expect(getPostLoginRoute(null, 'buyer')).toBe('/');
+  });
+
+  it('routes admin to /admin', () => {
+    const admin = { ...approvedSeller, role: 'ADMIN' as const, pharmacy: undefined };
+    expect(getPostLoginRoute(admin, 'buyer')).toBe('/admin');
+  });
+
+  it('routes approved seller to /seller when in seller mode', () => {
+    expect(getPostLoginRoute(approvedSeller, 'seller')).toBe('/seller');
+    expect(getPostLoginRoute(approvedSeller, 'buyer')).toBe('/');
   });
 });

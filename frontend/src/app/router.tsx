@@ -21,8 +21,6 @@ const SellerAnalyticsPage = lazy(() => import('@/features/seller/seller-analytic
 const ListingFormPage = lazy(() => import('@/features/seller/listing-form-page').then(m => ({ default: m.ListingFormPage })));
 const PharmacyRegisterPage = lazy(() => import('@/features/seller/pharmacy-register-page').then(m => ({ default: m.PharmacyRegisterPage })));
 const CartPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.CartPage })));
-const OrdersPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.OrdersPage })));
-const BuyRequestsPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.BuyRequestsPage })));
 const SellerOrdersPage = lazy(() => import('@/features/seller/seller-orders-page').then(m => ({ default: m.SellerOrdersPage })));
 const SellerRequestsPage = lazy(() => import('@/features/seller/seller-requests-page').then(m => ({ default: m.SellerRequestsPage })));
 const OrderDetailPage = lazy(() => import('@/features/buyer/order-detail-page').then(m => ({ default: m.OrderDetailPage })));
@@ -86,13 +84,13 @@ export function AppRouter() {
             <Route path="/medicine/:id" element={<MedicineDetailPage />} />
             <Route path="/pharmacy/:id" element={<PharmacyProfilePage />} />
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders" element={<Navigate to="/cart?tab=orders" replace />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
-            <Route path="/buy-requests" element={<BuyRequestsPage />} />
+            <Route path="/buy-requests" element={<Navigate to="/cart?tab=requests" replace />} />
             <Route path="/buy-requests/:id" element={<BuyRequestDetailPage />} />
             <Route path="/chat" element={<ChatListPage />} />
             <Route path="/chat/:id" element={<ChatPage />} />
-            <Route path="/watchlist" element={<ProtectedRoute><WatchlistPage /></ProtectedRoute>} />
+            <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<SettingsPage />} />

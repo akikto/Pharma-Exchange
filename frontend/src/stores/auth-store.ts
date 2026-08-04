@@ -4,7 +4,7 @@ import type { User, AppMode } from '@/types';
 import { disconnectSocket } from '@/lib/socket';
 import { apiClient, setTokens, clearTokens, loadRefreshToken } from '@/lib/api';
 import { unregisterFcmTokenFromBackend } from '@/lib/push-notifications';
-import { isApprovedSeller } from '@/lib/auth-utils';
+import { isApprovedSeller, isAdminUser } from '@/lib/auth-utils';
 
 interface AuthState {
   user: User | null;
@@ -120,8 +120,14 @@ export const useAuthStore = create<AuthState>()(
 
       applyPostLoginMode: () => {
         const { user, modeUserSet } = get();
+        if (isAdminUser(user)) {
+          set({ mode: 'buyer' });
+          return;
+        }
         if (isApprovedSeller(user) && !modeUserSet) {
           set({ mode: 'seller' });
+        } else if (!isApprovedSeller(user) && !modeUserSet) {
+          set({ mode: 'buyer' });
         }
       },
 

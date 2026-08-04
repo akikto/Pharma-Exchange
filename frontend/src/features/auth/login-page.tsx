@@ -12,7 +12,7 @@ import { AuthWelcomeCard } from '@/components/auth/auth-welcome-card';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiError } from '@/lib/api';
-import { getAppHomeRoute } from '@/lib/auth-utils';
+import { getPostLoginRoute } from '@/lib/auth-utils';
 import { Logo } from '@/components/brand/logo';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/types';
@@ -73,8 +73,8 @@ export function LoginPage() {
       setWelcomeUser(profile);
       setIsDemoSession(demo);
     } else {
-      const { mode } = useAuthStore.getState();
-      navigate(getAppHomeRoute(mode));
+      const { user, mode } = useAuthStore.getState();
+      navigate(getPostLoginRoute(user, mode));
     }
   };
 
@@ -164,8 +164,8 @@ export function LoginPage() {
           user={welcomeUser}
           isDemo={isDemoSession}
           onContinue={() => {
-            const { mode } = useAuthStore.getState();
-            navigate(getAppHomeRoute(mode));
+            const { user, mode } = useAuthStore.getState();
+            navigate(getPostLoginRoute(user, mode));
           }}
         />
       </div>
