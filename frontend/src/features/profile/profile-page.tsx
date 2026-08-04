@@ -156,6 +156,27 @@ export function SettingsPage() {
             ))}
           </div>
         </div>
+        <div className="space-y-2" data-testid="settings-legal-links">
+          <label className="text-sm font-medium">{t('profile.legal', { defaultValue: 'Legal' })}</label>
+          <div className="grid grid-cols-1 gap-2">
+            <Link
+              to="/privacy-policy"
+              data-testid="settings-privacy-link"
+              className="flex items-center justify-between rounded-[var(--radius-md)] border border-border-subtle p-3 text-sm hover:bg-surface-muted"
+            >
+              <span>Privacy Policy</span>
+              <span aria-hidden>→</span>
+            </Link>
+            <Link
+              to="/terms-and-conditions"
+              data-testid="settings-terms-link"
+              className="flex items-center justify-between rounded-[var(--radius-md)] border border-border-subtle p-3 text-sm hover:bg-surface-muted"
+            >
+              <span>Terms &amp; Conditions</span>
+              <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

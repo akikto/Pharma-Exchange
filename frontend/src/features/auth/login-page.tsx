@@ -53,6 +53,9 @@ export function LoginPage() {
     email: z.string().email().optional().or(z.literal('')),
     phone: z.string().min(10).optional().or(z.literal('')),
     password: z.string().min(8, t('validation.passwordMin')),
+    acceptedTerms: z.boolean().refine((v) => v === true, {
+      message: 'You must accept the Terms & Conditions and Privacy Policy',
+    }),
   }).refine((d) => d.email || d.phone, { message: t('validation.emailOrPhone') });
 
   const otpSchema = z.object({ code: z.string().length(6, t('auth.otpLength')) });
@@ -102,12 +105,15 @@ export function LoginPage() {
     setLoading(true);
     setError('');
     try {
+      // `acceptedTerms` is a client-side gate — the backend does not need it.
+      const { acceptedTerms: _, ...payload } = data;
+      void _;
       const result = await registerUser({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
-        password: data.password,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email || undefined,
+        phone: payload.phone || undefined,
+        password: payload.password,
       });
       if (result.requiresOtpVerification) {
         setContact({ email: data.email || undefined, phone: data.phone || undefined });
@@ -281,6 +287,28 @@ export function LoginPage() {
               error={registerForm.formState.errors.password?.message}
               {...registerForm.register('password')}
             />
+            <label className="flex items-start gap-2 text-xs text-text-secondary" data-testid="terms-accept-row">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary"
+                data-testid="accept-terms-checkbox"
+                {...registerForm.register('acceptedTerms')}
+              />
+              <span>
+                I have read and agree to the{' '}
+                <Link className="underline" to="/terms-and-conditions" target="_blank" rel="noreferrer">
+                  Terms &amp; Conditions
+                </Link>{' '}
+                and{' '}
+                <Link className="underline" to="/privacy-policy" target="_blank" rel="noreferrer">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
+            {registerForm.formState.errors.acceptedTerms && (
+              <p className="text-xs text-danger">{registerForm.formState.errors.acceptedTerms.message}</p>
+            )}
             {registerForm.formState.errors.root && (
               <p className="text-xs text-danger">{registerForm.formState.errors.root.message}</p>
             )}
@@ -305,6 +333,11 @@ export function LoginPage() {
         </Button>
 
         <p className="text-center text-xs text-text-secondary">{t('auth.correctSite')}</p>
+        <p className="text-center text-xs text-text-secondary" data-testid="auth-legal-links">
+          <Link className="underline" to="/privacy-policy">Privacy Policy</Link>
+          <span className="mx-2">·</span>
+          <Link className="underline" to="/terms-and-conditions">Terms &amp; Conditions</Link>
+        </p>
       </div>
     </div>
   );

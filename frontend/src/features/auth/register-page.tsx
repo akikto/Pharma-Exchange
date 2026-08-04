@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/stores/auth-store';
@@ -96,6 +96,11 @@ export function OtpLoginPage() {
           </Button>
         </>
       )}
+      <p className="text-center text-xs text-text-secondary" data-testid="otp-legal-links">
+        <Link className="underline" to="/privacy-policy">Privacy Policy</Link>
+        <span className="mx-2">·</span>
+        <Link className="underline" to="/terms-and-conditions">Terms &amp; Conditions</Link>
+      </p>
     </div>
   );
 }
