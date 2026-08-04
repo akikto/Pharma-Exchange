@@ -43,5 +43,9 @@ export function getFirebaseMessaging(): admin.messaging.Messaging | null {
 export async function verifyFirebaseToken(idToken: string): Promise<admin.auth.DecodedIdToken | null> {
   const auth = getFirebaseAuth();
   if (!auth) return null;
-  return auth.verifyIdToken(idToken);
+  // `checkRevoked=true` in production forces Firebase to re-check the user's
+  // token against the revocation list — catches disabled/deleted users and
+  // reset sessions. Skipped in dev/test to avoid the extra RTT.
+  const checkRevoked = env.NODE_ENV === 'production';
+  return auth.verifyIdToken(idToken, checkRevoked);
 }

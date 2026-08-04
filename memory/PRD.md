@@ -1,7 +1,7 @@
 # Pharma-Exchange — Launch Blockers Sprint · PRD
 
 **Repo:** https://github.com/akikto/Pharma-Exchange
-**Working branch:** `feature/bl-02-razorpay`
+**Working branch:** `feature/bl-03-bl-06-production-audit`
 **Started:** 2026-01-XX (this session)
 
 ## Original problem statement
@@ -49,23 +49,32 @@ PR + completion report per sprint. User approves each sprint before the next.
 
 ## Sprint 2 · BL-02 status
 
-**COMPLETE** (awaiting user approval to push PR + start Sprint 3)
+**COMPLETE** — merged to `main`.
 
-- Razorpay Standard Checkout + webhooks + refunds + pre-capture cancel.
-- New schema: `Payment`, `Refund`, `PaymentWebhookEvent` + 3 enums; migration
-  `20260805000000_add_razorpay_payments`.
-- Six endpoints under `/payments/*`; webhook uses `express.raw()` mounted
-  before `express.json()` to preserve HMAC integrity.
-- Frontend `PayWithRazorpayButton` wired into buyer order detail page.
-- Docs: `docs/BL-02-RAZORPAY.md`, `docs/sprint-reports/sprint-02-bl-02.md`.
-- Tests: 20 new backend tests (9 razorpay service + 11 payments API); 5
-  Playwright auth green; production builds green.
+## Sprint 3 · BL-03 + BL-06 status
+
+**COMPLETE** (awaiting user approval to push PR + start Sprint 4)
+
+- Vercel `vercel.json` (backend + frontend) hardened with `sin1` region,
+  HSTS, Permissions-Policy, Referrer-Policy, X-Frame-Options, no-cache SW.
+- Production env boot-time validation: `JWT_SECRET ≥ 32`, `DATABASE_URL`
+  must be `postgresql://…`.
+- Diagnostics endpoint trimmed; bootstrap error handler no longer leaks
+  env / internal messages in production.
+- Firebase: `verifyFirebaseToken()` uses `checkRevoked=true` in prod.
+  Deny-by-default Firestore/Storage rules committed under `firebase/`.
+- Env templates: `backend/.env.production.example`,
+  `frontend/.env.production.example`.
+- Docs: BL-03-VERCEL-AUDIT.md, BL-06-FIREBASE-AUDIT.md,
+  PRODUCTION-CHECKLIST.md, ENVIRONMENT-SETUP.md, sprint-03.md,
+  sprint-03-pr.md.
+- Tests unchanged: 123 backend / 82 frontend / 5 Playwright auth.
+  Builds green.
 
 ## Backlog (in order)
 
-- **P0** BL-03/BL-06: audit Vercel, Postgres, Firebase Auth, FCM config.
-- **P0** BL-04/BL-05: Privacy Policy + T&C pages, link from Settings +
-  Login, Play Store metadata.
+- **P0** BL-04/BL-05 (Sprint 4): Privacy Policy + T&C pages, link from
+  Settings + Login, Play Store metadata.
 - **P1** BL-07: `npm audit` clean-up + compatibility verification.
 - **P1** BL-08: rate-limiter test isolation + refresh-token rotation tests +
   full Playwright green + pre-existing `Cart API MOQ` regression fix.

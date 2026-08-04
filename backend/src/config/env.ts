@@ -48,9 +48,23 @@ function loadEnv(): Env {
     throw new Error('Environment validation failed');
   }
   const env = result.data;
-  if (env.NODE_ENV === 'production' && env.CORS_ORIGIN === '*') {
-    console.warn('WARNING: CORS_ORIGIN is * in production. Set explicit origins.');
+
+  // ─── Production hardening (BL-03/BL-06) ────────────────────────────────
+  if (env.NODE_ENV === 'production') {
+    // JWT_SECRET must be a strong secret in production. 16 chars is fine for
+    // dev/test but nowhere near sufficient for HS256 in prod.
+    if (env.JWT_SECRET.length < 32) {
+      throw new Error('JWT_SECRET must be at least 32 characters in production');
+    }
+    if (env.CORS_ORIGIN === '*') {
+      console.warn('WARNING: CORS_ORIGIN is * in production. Set explicit origins.');
+    }
+    // DATABASE_URL must be a PostgreSQL DSN.
+    if (!/^postgres(?:ql)?:\/\//.test(env.DATABASE_URL)) {
+      throw new Error('DATABASE_URL must use the postgresql:// scheme');
+    }
   }
+
   if (env.NODE_ENV === 'production' && env.MSG91_ENABLED) {
     const missing: string[] = [];
     if (!env.MSG91_AUTH_KEY) missing.push('MSG91_AUTH_KEY');
