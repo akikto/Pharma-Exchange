@@ -1,0 +1,28 @@
+// Firestore security rules for Pharma-Exchange.
+//
+// The Node.js backend is the source of truth — clients never talk to
+// Firestore directly for business data. This rule set therefore defaults to
+// DENY. It exists as a defensive floor if a future feature ever exposes
+// Firestore to the browser.
+//
+// Deploy with:  firebase deploy --only firestore:rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admin SDK bypasses these rules (it authenticates as the service
+    // account).  Regular clients: deny everything.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Example: if you later add a users/{uid} document readable by its
+    // owner, uncomment and adapt:
+    // match /users/{uid} {
+    //   allow read: if request.auth != null && request.auth.uid == uid;
+    //   allow write: if false; // still server-only
+    // }
+  }
+}

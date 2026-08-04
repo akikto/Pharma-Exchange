@@ -1,0 +1,24 @@
+// Firebase Storage security rules for Pharma-Exchange.
+//
+// Uploads flow through the backend (`/api/v1/upload`), which uses the Admin
+// SDK. Direct browser uploads are not permitted — clients receive short-
+// lived signed URLs from the API instead. These rules therefore default to
+// DENY.
+//
+// Deploy with:  firebase deploy --only storage
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Public read for asset paths served through the CDN (logos, brand
+    // marks). Everything else is server-only.
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -18,20 +18,33 @@ function isLivenessRequest(req: VercelRequest): boolean {
 }
 
 function sendLiveness(res: VercelResponse): void {
+  // Deliberately minimal — never leak secret material or the state of PII.
+  // Only booleans describing which providers are wired up.
   res.status(200).json({
     status: 'ok',
     service: 'pharma-exchange-api',
     runtime: 'vercel-serverless',
+    version: '1.0.0',
     env: {
-      hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
-      hasJwtSecret: Boolean(process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16),
       nodeEnv: process.env.NODE_ENV ?? 'unset',
-      msg91Enabled: process.env.MSG91_ENABLED === 'true',
+      hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+      hasJwtSecret: Boolean(process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 32),
+      firebaseConfigured: Boolean(
+        process.env.FIREBASE_PROJECT_ID &&
+        process.env.FIREBASE_CLIENT_EMAIL &&
+        process.env.FIREBASE_PRIVATE_KEY,
+      ),
       msg91Configured: Boolean(
         process.env.MSG91_ENABLED === 'true' &&
         process.env.MSG91_AUTH_KEY &&
         process.env.MSG91_SENDER_ID &&
         process.env.MSG91_TEMPLATE_ID,
+      ),
+      razorpayConfigured: Boolean(
+        process.env.RAZORPAY_ENABLED === 'true' &&
+        process.env.RAZORPAY_KEY_ID &&
+        process.env.RAZORPAY_KEY_SECRET &&
+        process.env.RAZORPAY_WEBHOOK_SECRET,
       ),
     },
   });
@@ -61,15 +74,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     expressApp(req, res);
   } catch (error) {
     console.error('Serverless bootstrap failed:', error);
+    // Never leak internal error strings or env details to the wire in prod.
+    const isProd = process.env.NODE_ENV === 'production';
     res.status(500).json({
       error: 'Server bootstrap failed',
-      message: error instanceof Error ? error.message : String(error),
-      env: {
-        hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
-        hasJwtSecret: Boolean(process.env.JWT_SECRET),
-        nodeEnv: process.env.NODE_ENV,
-        msg91Enabled: process.env.MSG91_ENABLED === 'true',
-      },
+      code: 'BOOTSTRAP_ERROR',
+      ...(isProd ? {} : {
+        message: error instanceof Error ? error.message : String(error),
+      }),
     });
   }
 }

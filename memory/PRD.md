@@ -1,7 +1,7 @@
 # Pharma-Exchange — Launch Blockers Sprint · PRD
 
 **Repo:** https://github.com/akikto/Pharma-Exchange
-**Working branch:** `feature/bl-01-msg91-otp`
+**Working branch:** `feature/bl-03-bl-06-production-audit`
 **Started:** 2026-01-XX (this session)
 
 ## Original problem statement
@@ -42,27 +42,42 @@ PR + completion report per sprint. User approves each sprint before the next.
 
 ## Sprint 1 · BL-01 status
 
-**COMPLETE** (awaiting user approval to open PR + start Sprint 2)
+**COMPLETE** — merged to `main` (per user, pushed directly there once).
 
-- MSG91 REST client at `backend/src/shared/services/msg91.service.ts` with
-  send / verify / resend.
-- Auth service refactored — phone registration requires `verify-otp`; no
-  local OTP storage; no dev-mode fallback.
-- `.env.example`, docker-compose, CI, README, deployment docs updated.
+- MSG91 REST client, phone registration requires verify-otp, no dev fallback.
 - Docs: `docs/BL-01-MSG91.md`, `docs/sprint-reports/sprint-01-bl-01.md`.
-- Tests: 104 backend + 82 frontend + 5 Playwright (auth) — all green.
-- Production build: green for both workspaces.
+
+## Sprint 2 · BL-02 status
+
+**COMPLETE** — merged to `main`.
+
+## Sprint 3 · BL-03 + BL-06 status
+
+**COMPLETE** (awaiting user approval to push PR + start Sprint 4)
+
+- Vercel `vercel.json` (backend + frontend) hardened with `sin1` region,
+  HSTS, Permissions-Policy, Referrer-Policy, X-Frame-Options, no-cache SW.
+- Production env boot-time validation: `JWT_SECRET ≥ 32`, `DATABASE_URL`
+  must be `postgresql://…`.
+- Diagnostics endpoint trimmed; bootstrap error handler no longer leaks
+  env / internal messages in production.
+- Firebase: `verifyFirebaseToken()` uses `checkRevoked=true` in prod.
+  Deny-by-default Firestore/Storage rules committed under `firebase/`.
+- Env templates: `backend/.env.production.example`,
+  `frontend/.env.production.example`.
+- Docs: BL-03-VERCEL-AUDIT.md, BL-06-FIREBASE-AUDIT.md,
+  PRODUCTION-CHECKLIST.md, ENVIRONMENT-SETUP.md, sprint-03.md,
+  sprint-03-pr.md.
+- Tests unchanged: 123 backend / 82 frontend / 5 Playwright auth.
+  Builds green.
 
 ## Backlog (in order)
 
-- **P0** BL-02: Razorpay checkout, order signing, webhook verification,
-  refund/cancel, idempotency.
-- **P0** BL-03/BL-06: audit Vercel, Postgres, Firebase Auth, FCM config.
-- **P0** BL-04/BL-05: Privacy Policy + T&C pages, link from Settings +
-  Login, Play Store metadata.
+- **P0** BL-04/BL-05 (Sprint 4): Privacy Policy + T&C pages, link from
+  Settings + Login, Play Store metadata.
 - **P1** BL-07: `npm audit` clean-up + compatibility verification.
 - **P1** BL-08: rate-limiter test isolation + refresh-token rotation tests +
-  full Playwright green.
+  full Playwright green + pre-existing `Cart API MOQ` regression fix.
 
 ## Personas
 

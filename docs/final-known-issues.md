@@ -12,7 +12,7 @@ This document consolidates known limitations for the RC. Items marked **Blocking
 | ID | Area | Issue | Workaround |
 |----|------|-------|------------|
 | BL-01 | Auth | ✅ **Resolved:** MSG91 SMS OTP integrated. See [BL-01-MSG91.md](BL-01-MSG91.md). | — |
-| BL-02 | Payments | No payment gateway; `paymentStatus` unused | Manual payment outside app |
+| BL-02 | Payments | ✅ **Resolved:** Razorpay Standard Checkout + webhooks + refunds. See [BL-02-RAZORPAY.md](BL-02-RAZORPAY.md). | — |
 | BL-03 | Deploy | Production requires Firebase env, HTTPS, CORS, `DATABASE_URL` on host | Follow `docs/deployment-guide.md` |
 | BL-04 | Legal | Privacy policy URL not bundled | Required for Play Store |
 | BL-05 | QA | Playwright E2E suite added (17 specs); full green requires CI with `RATE_LIMIT_MAX=10000` | Manual smoke + integration tests |

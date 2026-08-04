@@ -31,6 +31,12 @@ const envSchema = z.object({
   MSG91_TEMPLATE_ID: z.string().optional(),
   MSG91_OTP_LENGTH: z.coerce.number().int().min(4).max(9).default(6),
   MSG91_BASE_URL: z.string().url().default('https://control.msg91.com/api/v5/otp'),
+  // Razorpay payment gateway (BL-02)
+  RAZORPAY_ENABLED: booleanFromEnv.default(false),
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  RAZORPAY_CURRENCY: z.string().length(3).default('INR'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -42,9 +48,23 @@ function loadEnv(): Env {
     throw new Error('Environment validation failed');
   }
   const env = result.data;
-  if (env.NODE_ENV === 'production' && env.CORS_ORIGIN === '*') {
-    console.warn('WARNING: CORS_ORIGIN is * in production. Set explicit origins.');
+
+  // ─── Production hardening (BL-03/BL-06) ────────────────────────────────
+  if (env.NODE_ENV === 'production') {
+    // JWT_SECRET must be a strong secret in production. 16 chars is fine for
+    // dev/test but nowhere near sufficient for HS256 in prod.
+    if (env.JWT_SECRET.length < 32) {
+      throw new Error('JWT_SECRET must be at least 32 characters in production');
+    }
+    if (env.CORS_ORIGIN === '*') {
+      console.warn('WARNING: CORS_ORIGIN is * in production. Set explicit origins.');
+    }
+    // DATABASE_URL must be a PostgreSQL DSN.
+    if (!/^postgres(?:ql)?:\/\//.test(env.DATABASE_URL)) {
+      throw new Error('DATABASE_URL must use the postgresql:// scheme');
+    }
   }
+
   if (env.NODE_ENV === 'production' && env.MSG91_ENABLED) {
     const missing: string[] = [];
     if (!env.MSG91_AUTH_KEY) missing.push('MSG91_AUTH_KEY');
@@ -52,6 +72,15 @@ function loadEnv(): Env {
     if (!env.MSG91_TEMPLATE_ID) missing.push('MSG91_TEMPLATE_ID');
     if (missing.length > 0) {
       throw new Error(`MSG91_ENABLED=true but missing: ${missing.join(', ')}`);
+    }
+  }
+  if (env.NODE_ENV === 'production' && env.RAZORPAY_ENABLED) {
+    const missing: string[] = [];
+    if (!env.RAZORPAY_KEY_ID) missing.push('RAZORPAY_KEY_ID');
+    if (!env.RAZORPAY_KEY_SECRET) missing.push('RAZORPAY_KEY_SECRET');
+    if (!env.RAZORPAY_WEBHOOK_SECRET) missing.push('RAZORPAY_WEBHOOK_SECRET');
+    if (missing.length > 0) {
+      throw new Error(`RAZORPAY_ENABLED=true but missing: ${missing.join(', ')}`);
     }
   }
   return env;
@@ -66,3 +95,6 @@ export const isGeminiConfigured = (): boolean => Boolean(env.GEMINI_API_KEY);
 
 export const isMsg91Configured = (): boolean =>
   Boolean(env.MSG91_ENABLED && env.MSG91_AUTH_KEY && env.MSG91_SENDER_ID && env.MSG91_TEMPLATE_ID);
+
+export const isRazorpayConfigured = (): boolean =>
+  Boolean(env.RAZORPAY_ENABLED && env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET && env.RAZORPAY_WEBHOOK_SECRET);

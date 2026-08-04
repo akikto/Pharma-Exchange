@@ -57,6 +57,13 @@ services:
       MSG91_SENDER_ID: ${MSG91_SENDER_ID:-}
       MSG91_TEMPLATE_ID: ${MSG91_TEMPLATE_ID:-}
       MSG91_OTP_LENGTH: ${MSG91_OTP_LENGTH:-6}
+      # Razorpay disabled by default in dev; set the enabled flag + secrets
+      # to test real checkout. See docs/BL-02-RAZORPAY.md.
+      RAZORPAY_ENABLED: ${RAZORPAY_ENABLED:-false}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+      RAZORPAY_CURRENCY: ${RAZORPAY_CURRENCY:-INR}
       CORS_ORIGIN: http://localhost:5173
       LOG_LEVEL: debug
       RUN_MIGRATIONS: "false"
