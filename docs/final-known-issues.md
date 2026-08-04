@@ -15,7 +15,7 @@ This document consolidates known limitations for the RC. Items marked **Blocking
 | BL-02 | Payments | No payment gateway; `paymentStatus` unused | Manual payment outside app |
 | BL-03 | Deploy | Production requires Firebase env, HTTPS, CORS, `DATABASE_URL` on host | Follow `docs/deployment-guide.md` |
 | BL-04 | Legal | Privacy policy URL not bundled | Required for Play Store |
-| BL-05 | QA | No automated E2E suite | Manual smoke + integration tests |
+| BL-05 | QA | Playwright E2E suite added (17 specs); full green requires CI with `RATE_LIMIT_MAX=10000` | Manual smoke + integration tests |
 
 ---
 

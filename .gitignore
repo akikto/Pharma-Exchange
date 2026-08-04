@@ -7,6 +7,9 @@ build/
 *.log
 .DS_Store
 coverage/
+e2e/.auth/
+e2e-report/
+test-results/
 .prisma/
 *.db
 *.db-journal
