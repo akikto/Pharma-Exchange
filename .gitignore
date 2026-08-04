@@ -13,3 +13,8 @@ test-results/
 .prisma/
 *.db
 *.db-journal
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
