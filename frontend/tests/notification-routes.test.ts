@@ -4,6 +4,7 @@ import { getNotificationRoute } from '@/lib/notification-routes';
 describe('getNotificationRoute', () => {
   it('maps order notifications', () => {
     expect(getNotificationRoute({ orderId: 'abc' })).toBe('/orders/abc');
+    expect(getNotificationRoute({ orderId: 'abc', role: 'seller' })).toBe('/seller/orders/abc');
   });
 
   it('maps chat notifications', () => {
@@ -12,6 +13,7 @@ describe('getNotificationRoute', () => {
 
   it('maps buy request notifications', () => {
     expect(getNotificationRoute({ buyRequestId: 'br1' })).toBe('/buy-requests/br1');
+    expect(getNotificationRoute({ buyRequestId: 'br1', role: 'seller' })).toBe('/seller/requests/br1');
   });
 
   it('maps listing and pharmacy notifications', () => {

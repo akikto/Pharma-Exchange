@@ -128,7 +128,7 @@ function WatchlistRow({ item }: { item: WatchlistEntry }) {
         <div className="flex gap-3">
           <div className="h-14 w-14 rounded bg-surface-sunken flex items-center justify-center shrink-0">💊</div>
           <div className="flex-1 min-w-0">
-            <Link to={`/medicine/${item.medicineId}`} className="font-medium text-sm truncate block hover:text-primary">
+            <Link to={`/medicine/${item.medicineId}/compare`} className="font-medium text-sm truncate block hover:text-primary">
               {item.medicine?.name ?? '—'}
             </Link>
             <p className="text-xs text-text-secondary">{item.medicine?.company ?? ''}</p>

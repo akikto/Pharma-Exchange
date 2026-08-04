@@ -28,7 +28,7 @@ export function SellerAnalyticsPage() {
           <h2 className="font-semibold mb-3">Recent Orders</h2>
           <div className="space-y-2">
             {data.recentOrders.map((o) => (
-              <Link key={o.id} to={`/orders/${o.id}`} className="block p-3 rounded-[var(--radius-md)] border border-border-subtle">
+              <Link key={o.id} to={`/seller/orders/${o.id}`} className="block p-3 rounded-[var(--radius-md)] border border-border-subtle">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">{o.orderNumber}</span>
                   <span>{formatPrice(o.totalAmount)}</span>

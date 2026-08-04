@@ -200,6 +200,24 @@ export function useRestockListing() {
   });
 }
 
+export function useUpdateListingPrice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, sellingPrice, discountPercent }: { id: string; sellingPrice?: number; discountPercent?: number }) =>
+      apiClient.patch<Listing>(`/listings/${id}/price`, { sellingPrice, discountPercent }),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
+export function useUpdateListingQuantity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, availableQty }: { id: string; availableQty: number }) =>
+      apiClient.patch<Listing>(`/listings/${id}/quantity`, { availableQty }),
+    onSuccess: () => invalidateInventory(qc),
+  });
+}
+
 export function useExportInventory() {
   return useMutation({
     mutationFn: () => apiClient.getText('/listings/inventory/export'),

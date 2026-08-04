@@ -55,10 +55,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query'],
-          ui: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('react-router') || id.includes('/react/') || id.includes('/react-dom/')) return 'vendor';
+          if (id.includes('@tanstack/react-query')) return 'query';
+          if (id.includes('lucide-react') || id.includes('@radix-ui')) return 'ui';
+          if (id.includes('firebase')) return 'firebase';
+          if (id.includes('i18next')) return 'i18n';
         },
       },
     },

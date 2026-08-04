@@ -12,6 +12,7 @@ export function BottomNav() {
     if (key === 'cart') return badges.cart;
     if (key === 'chat') return badges.chat;
     if (key === 'requests') return badges.requests;
+    if (key === 'watchlist') return badges.watchlist;
     return 0;
   };
 

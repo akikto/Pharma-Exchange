@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Plus, Search, Download, Share2, Pause, Play, PackageX, Trash2, PackagePlus, AlertTriangle,
+  Plus, Search, Download, Share2, Pause, Play, PackageX, Trash2, PackagePlus, AlertTriangle, Check,
 } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,8 @@ import {
   useDeleteListing,
   useRestockListing,
   useExportInventory,
+  useUpdateListingPrice,
+  useUpdateListingQuantity,
 } from '@/hooks/use-api';
 import { useShellStore } from '@/stores/shell-store';
 import { formatPrice } from '@/lib/utils';
@@ -41,6 +43,8 @@ export function SellerInventoryPage() {
   const markSoldOut = useMarkSoldOut();
   const deleteListing = useDeleteListing();
   const restockListing = useRestockListing();
+  const updatePrice = useUpdateListingPrice();
+  const updateQuantity = useUpdateListingQuantity();
   const exportInventory = useExportInventory();
 
   const listings = data?.data ?? [];
@@ -179,6 +183,19 @@ export function SellerInventoryPage() {
                 onSoldOut={() => runAction(() => markSoldOut.mutateAsync(l.id), 'inventory.soldOut')}
                 onDelete={() => runAction(() => deleteListing.mutateAsync(l.id), 'inventory.deleted')}
                 onRestock={() => runAction(() => restockListing.mutateAsync({ id: l.id }), 'inventory.restocked')}
+                onUpdatePrice={(sellingPrice) => runAction(
+                  () => updatePrice.mutateAsync({ id: l.id, sellingPrice }),
+                  'inventory.priceUpdated',
+                )}
+                onUpdateDiscount={(discountPercent) => runAction(
+                  () => updatePrice.mutateAsync({ id: l.id, discountPercent }),
+                  'inventory.discountUpdated',
+                )}
+                onUpdateQty={(availableQty) => runAction(
+                  () => updateQuantity.mutateAsync({ id: l.id, availableQty }),
+                  'inventory.qtyUpdated',
+                )}
+                isUpdating={updatePrice.isPending || updateQuantity.isPending}
               />
             ))}
           </div>
@@ -197,13 +214,36 @@ interface InventoryRowProps {
   onSoldOut: () => void;
   onDelete: () => void;
   onRestock: () => void;
+  onUpdatePrice: (sellingPrice: number) => void;
+  onUpdateDiscount: (discountPercent: number) => void;
+  onUpdateQty: (availableQty: number) => void;
+  isUpdating?: boolean;
 }
 
 function InventoryRow({
   listing: l, statusVariant, onEdit, onPause, onActivate, onSoldOut, onDelete, onRestock,
+  onUpdatePrice, onUpdateDiscount, onUpdateQty, isUpdating,
 }: InventoryRowProps) {
   const { t } = useTranslation();
   const lowStock = isListingLowStock(l);
+  const [price, setPrice] = useState(String(l.sellingPrice));
+  const [discount, setDiscount] = useState(String(l.discountPercent));
+  const [qty, setQty] = useState(String(l.availableQty));
+
+  const savePrice = () => {
+    const value = Number(price);
+    if (value > 0) onUpdatePrice(value);
+  };
+
+  const saveDiscount = () => {
+    const value = Number(discount);
+    if (value >= 0 && value <= 100) onUpdateDiscount(value);
+  };
+
+  const saveQty = () => {
+    const value = Number(qty);
+    if (value > 0) onUpdateQty(value);
+  };
 
   return (
     <div
@@ -233,6 +273,35 @@ function InventoryRow({
           </div>
         </div>
       </button>
+      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border-subtle" data-testid={`inventory-inline-${l.id}`}>
+        <div>
+          <label className="text-[10px] text-text-secondary">{t('inventory.inlinePrice')}</label>
+          <div className="flex gap-1 mt-1">
+            <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="h-8 text-xs" />
+            <Button size="sm" variant="secondary" className="h-8 px-2" onClick={savePrice} disabled={isUpdating} aria-label={t('inventory.update')}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] text-text-secondary">{t('inventory.inlineDiscount')}</label>
+          <div className="flex gap-1 mt-1">
+            <Input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} className="h-8 text-xs" />
+            <Button size="sm" variant="secondary" className="h-8 px-2" onClick={saveDiscount} disabled={isUpdating} aria-label={t('inventory.update')}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] text-text-secondary">{t('inventory.inlineQty')}</label>
+          <div className="flex gap-1 mt-1">
+            <Input type="number" value={qty} onChange={(e) => setQty(e.target.value)} className="h-8 text-xs" />
+            <Button size="sm" variant="secondary" className="h-8 px-2" onClick={saveQty} disabled={isUpdating} aria-label={t('inventory.update')}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border-subtle">
         {l.status === 'ACTIVE' ? (
           <Button size="sm" variant="secondary" onClick={onPause}>

@@ -39,6 +39,7 @@ export function OrdersTabPanel() {
   const orders = data?.data ?? [];
   const filtered = filterOrders(orders, filter, query);
   const stats = role === 'buyer' ? computeOrderStats(orders) : null;
+  const orderBasePath = role === 'seller' ? '/seller/orders' : '/orders';
 
   const counterparty = (order: Order) =>
     role === 'seller'
@@ -110,7 +111,7 @@ export function OrdersTabPanel() {
         <div className="space-y-3">
           {filtered.map((order) => (
             <div key={order.id} className="rounded-[var(--radius-md)] border border-border-subtle p-3 space-y-2">
-              <Link to={`/orders/${order.id}`} className="block">
+              <Link to={`${orderBasePath}/${order.id}`} className="block">
                 <div className="flex justify-between items-start gap-2">
                   <span className="font-medium text-sm">{order.orderNumber}</span>
                   <StatusChip

@@ -1,12 +1,8 @@
 import { create } from 'zustand';
 
 export type ShellModal =
-  | 'auth'
-  | 'search'
   | 'buyRequest'
   | 'listingEdit'
-  | 'watchlist'
-  | 'comparison'
   | 'bulk'
   | null;
 
