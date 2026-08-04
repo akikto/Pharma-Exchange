@@ -34,6 +34,8 @@ const SettingsPage = lazy(() => import('@/features/profile/profile-page').then(m
 const AdminDashboardPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminDashboardPage })));
 const AdminVerificationsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminVerificationsPage })));
 const AdminReportsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminReportsPage })));
+const PrivacyPolicyPage = lazy(() => import('@/features/legal/privacy-policy-page').then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsAndConditionsPage = lazy(() => import('@/features/legal/terms-and-conditions-page').then(m => ({ default: m.TermsAndConditionsPage })));
 
 function PageLoader() {
   return (
@@ -76,6 +78,10 @@ export function AppRouter() {
           <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/otp" element={<OtpLoginPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+          <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
+          <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
 
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/" element={<HomePage />} />

@@ -1,7 +1,7 @@
 # Pharma-Exchange — Launch Blockers Sprint · PRD
 
 **Repo:** https://github.com/akikto/Pharma-Exchange
-**Working branch:** `feature/bl-03-bl-06-production-audit`
+**Working branch:** `feature/bl-04-bl-05-legal-compliance`
 **Started:** 2026-01-XX (this session)
 
 ## Original problem statement
@@ -53,31 +53,27 @@ PR + completion report per sprint. User approves each sprint before the next.
 
 ## Sprint 3 · BL-03 + BL-06 status
 
-**COMPLETE** (awaiting user approval to push PR + start Sprint 4)
+**COMPLETE** — merged to `main`.
 
-- Vercel `vercel.json` (backend + frontend) hardened with `sin1` region,
-  HSTS, Permissions-Policy, Referrer-Policy, X-Frame-Options, no-cache SW.
-- Production env boot-time validation: `JWT_SECRET ≥ 32`, `DATABASE_URL`
-  must be `postgresql://…`.
-- Diagnostics endpoint trimmed; bootstrap error handler no longer leaks
-  env / internal messages in production.
-- Firebase: `verifyFirebaseToken()` uses `checkRevoked=true` in prod.
-  Deny-by-default Firestore/Storage rules committed under `firebase/`.
-- Env templates: `backend/.env.production.example`,
-  `frontend/.env.production.example`.
-- Docs: BL-03-VERCEL-AUDIT.md, BL-06-FIREBASE-AUDIT.md,
-  PRODUCTION-CHECKLIST.md, ENVIRONMENT-SETUP.md, sprint-03.md,
-  sprint-03-pr.md.
-- Tests unchanged: 123 backend / 82 frontend / 5 Playwright auth.
-  Builds green.
+## Sprint 4 · BL-04 + BL-05 status
+
+**COMPLETE** (awaiting user approval to push PR + start Sprint 5)
+
+- `/privacy-policy` + `/terms-and-conditions` routes (+ `/privacy` and
+  `/terms` aliases) served unauthenticated.
+- Shared `LegalPage` layout: mobile-first, dark-mode friendly, prints
+  cleanly, sets SEO meta on mount, accessible landmarks.
+- Legal links in login footer, OTP-login footer, Settings; sign-up
+  requires `acceptedTerms` checkbox.
+- Compliance doc `docs/PLAY-STORE-COMPLIANCE.md` covers Data Safety,
+  User Data Policy, sub-processors, permission rationales.
+- Tests: 84 frontend / 124 backend / all builds green.
 
 ## Backlog (in order)
 
-- **P0** BL-04/BL-05 (Sprint 4): Privacy Policy + T&C pages, link from
-  Settings + Login, Play Store metadata.
-- **P1** BL-07: `npm audit` clean-up + compatibility verification.
-- **P1** BL-08: rate-limiter test isolation + refresh-token rotation tests +
-  full Playwright green + pre-existing `Cart API MOQ` regression fix.
+- **P1** BL-07 (Sprint 5): `npm audit` clean-up + compatibility verification.
+- **P1** BL-08 (Sprint 6): rate-limiter test isolation, refresh-token
+  rotation tests, full Playwright green.
 
 ## Personas
 
