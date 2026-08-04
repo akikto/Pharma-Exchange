@@ -23,6 +23,8 @@ const PharmacyRegisterPage = lazy(() => import('@/features/seller/pharmacy-regis
 const CartPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.CartPage })));
 const OrdersPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.OrdersPage })));
 const BuyRequestsPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.BuyRequestsPage })));
+const SellerOrdersPage = lazy(() => import('@/features/seller/seller-orders-page').then(m => ({ default: m.SellerOrdersPage })));
+const SellerRequestsPage = lazy(() => import('@/features/seller/seller-requests-page').then(m => ({ default: m.SellerRequestsPage })));
 const OrderDetailPage = lazy(() => import('@/features/buyer/order-detail-page').then(m => ({ default: m.OrderDetailPage })));
 const BuyRequestDetailPage = lazy(() => import('@/features/buyer/buy-request-detail-page').then(m => ({ default: m.BuyRequestDetailPage })));
 const ChatListPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatListPage })));
@@ -97,9 +99,10 @@ export function AppRouter() {
             <Route path="/pharmacy/register" element={<PharmacyRegisterPage />} />
             <Route path="/seller" element={<SellerDashboardPage />} />
             <Route path="/seller/inventory" element={<SellerRoute><SellerInventoryPage /></SellerRoute>} />
-            <Route path="/seller/requests" element={<SellerRoute><BuyRequestsPage /></SellerRoute>} />
+            <Route path="/seller/requests" element={<SellerRoute><SellerRequestsPage /></SellerRoute>} />
             <Route path="/seller/requests/:id" element={<SellerRoute><BuyRequestDetailPage /></SellerRoute>} />
-            <Route path="/seller/orders" element={<SellerRoute><OrdersPage /></SellerRoute>} />
+            <Route path="/seller/orders" element={<SellerRoute><SellerOrdersPage /></SellerRoute>} />
+            <Route path="/seller/orders/:id" element={<SellerRoute><OrderDetailPage /></SellerRoute>} />
             <Route path="/seller/analytics" element={<SellerRoute><SellerAnalyticsPage /></SellerRoute>} />
             <Route path="/seller/listing/new" element={<SellerRoute><ListingFormPage /></SellerRoute>} />
             <Route path="/seller/listing/:id" element={<SellerRoute><ListingFormPage /></SellerRoute>} />

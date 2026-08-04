@@ -57,10 +57,10 @@ export function ProfilePage() {
 
         {isVerified && (
           <div className="flex gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]">
-            <button className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[var(--radius-sm)] text-sm ${mode === 'buyer' ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => { setMode('buyer'); navigate('/'); }}>
+            <button className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[var(--radius-sm)] text-sm ${mode === 'buyer' ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => { setMode('buyer', { userSet: true }); navigate('/'); }}>
               <ShoppingBag className="h-4 w-4" /> {t('profile.buying')}
             </button>
-            <button className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[var(--radius-sm)] text-sm ${mode === 'seller' ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => { setMode('seller'); navigate('/seller'); }}>
+            <button className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[var(--radius-sm)] text-sm ${mode === 'seller' ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => { setMode('seller', { userSet: true }); navigate('/seller'); }}>
               <Store className="h-4 w-4" /> {t('profile.selling')}
             </button>
           </div>

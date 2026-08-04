@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCart } from '@/hooks/use-api';
 import { apiClient } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
+import { useWatchlistCount } from '@/hooks/use-watchlist';
 import type { BuyRequest, Conversation } from '@/types';
 
 export function useNavBadges() {
@@ -10,6 +11,7 @@ export function useNavBadges() {
 
   const { data: cart } = useCart();
   const cartCount = cart?.items?.reduce((sum, i) => sum + i.quantity, 0) ?? 0;
+  const watchlistCount = useWatchlistCount();
 
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
@@ -43,6 +45,7 @@ export function useNavBadges() {
     cart: cartCount,
     chat: chatUnread,
     requests: pendingRequests,
+    watchlist: watchlistCount,
     notifications: notifications?.unreadCount ?? 0,
   };
 }

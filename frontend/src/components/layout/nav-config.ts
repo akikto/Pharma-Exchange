@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
-import { Home, ShoppingCart, Package, MessageCircle, User, LayoutDashboard, Inbox } from 'lucide-react';
+import { Home, ShoppingCart, Package, MessageCircle, User, LayoutDashboard, Inbox, Heart } from 'lucide-react';
 import type { AppMode } from '@/types';
 
-export type NavBadgeKey = 'cart' | 'chat' | 'requests';
+export type NavBadgeKey = 'cart' | 'chat' | 'requests' | 'watchlist';
 
-export type NavLabelKey = 'home' | 'dashboard' | 'cart' | 'inventory' | 'chat' | 'profile';
+export type NavLabelKey = 'home' | 'dashboard' | 'cart' | 'inventory' | 'chat' | 'profile' | 'orders' | 'watchlist';
 
 export interface NavItem {
   to: string;
@@ -15,19 +15,19 @@ export interface NavItem {
   matchPrefix?: boolean;
 }
 
-/** PRD: Home, Cart, Inventory, Chat, Profile */
+/** PRD: Home, Cart, Watchlist, Chat, Profile */
 export const buyerNav: NavItem[] = [
   { to: '/', icon: Home, labelKey: 'home', matchPrefix: false },
   { to: '/cart', icon: ShoppingCart, labelKey: 'cart', badgeKey: 'cart' },
-  { to: '/search', icon: Package, labelKey: 'inventory' },
+  { to: '/watchlist', icon: Heart, labelKey: 'watchlist', badgeKey: 'watchlist' },
   { to: '/chat', icon: MessageCircle, labelKey: 'chat', badgeKey: 'chat' },
   { to: '/profile', icon: User, labelKey: 'profile' },
 ];
 
 export const sellerNav: NavItem[] = [
   { to: '/seller', icon: LayoutDashboard, labelKey: 'dashboard', matchPrefix: true },
-  { to: '/cart', icon: ShoppingCart, labelKey: 'cart', badgeKey: 'cart' },
-  { to: '/seller/inventory', icon: Package, labelKey: 'inventory', badgeKey: 'requests', matchPrefix: true },
+  { to: '/seller/orders', icon: Inbox, labelKey: 'orders', badgeKey: 'requests' },
+  { to: '/seller/inventory', icon: Package, labelKey: 'inventory', matchPrefix: true },
   { to: '/chat', icon: MessageCircle, labelKey: 'chat', badgeKey: 'chat' },
   { to: '/profile', icon: User, labelKey: 'profile' },
 ];
