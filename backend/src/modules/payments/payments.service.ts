@@ -178,6 +178,20 @@ export class PaymentsService {
     return this.summarize(payment.id);
   }
 
+  /** Cancel the latest outstanding CREATED payment for an order (internal coordination). */
+  async cancelOutstandingForOrder(orderId: string) {
+    const payment = await prisma.payment.findFirst({
+      where: { orderId, status: PaymentAttemptStatus.CREATED },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!payment) return { cancelled: false as const };
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: PaymentAttemptStatus.CANCELLED, cancelledAt: new Date() },
+    });
+    return { cancelled: true as const, paymentId: payment.id };
+  }
+
   /** Buyer cancels an unpaid payment attempt (before capture). */
   async cancelPayment(userId: string, orderId: string) {
     const payment = await prisma.payment.findFirst({
@@ -528,6 +542,35 @@ export class PaymentsService {
     });
     if (!payment) throw AppError.notFound('Payment not found');
     return payment;
+  }
+
+  async listForAdmin(page = 1, limit = 20, status?: PaymentAttemptStatus) {
+    const skip = (page - 1) * limit;
+    const where = status ? { status } : {};
+    const [data, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+              paymentStatus: true,
+              status: true,
+              totalAmount: true,
+              buyer: { select: { id: true, firstName: true, lastName: true, email: true } },
+              seller: { select: { id: true, name: true } },
+            },
+          },
+          refunds: { orderBy: { createdAt: 'desc' } },
+        },
+      }),
+      prisma.payment.count({ where }),
+    ]);
+    return { data, total, page, limit };
   }
 
   async getForOrder(userId: string, actorRole: string, orderId: string) {

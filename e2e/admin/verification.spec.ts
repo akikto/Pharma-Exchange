@@ -19,7 +19,7 @@ test.describe('Admin verification flow', () => {
   });
 
   test('admin reports page loads', async ({ page }) => {
-    await page.goto('/admin/reports');
+    await page.getByRole('link', { name: /reports/i }).click();
     await expect(page).toHaveURL('/admin/reports', { timeout: 15_000 });
   });
 });

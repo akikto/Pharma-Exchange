@@ -22,7 +22,9 @@
     "verifications": "Verifications",
     "verificationsSub": "যাচাইকরণ",
     "reports": "Reports",
-    "reportsSub": "রিপোর্ট"
+    "reportsSub": "রিপোর্ট",
+    "payments": "Payments",
+    "paymentsSub": "পেমেন্ট"
   },
   "common": {
     "appName": "Pharma Exchange",
@@ -468,6 +470,48 @@
       "cancelled": "Cancelled"
     }
   },
+  "payments": {
+    "payNow": "Pay now",
+    "unavailableTitle": "Online payments unavailable",
+    "unavailableBody": "Razorpay checkout is not enabled in this environment. Contact your administrator or try again later.",
+    "verifySuccess": "Payment successful",
+    "verifyFailedTitle": "Payment verification failed",
+    "startFailedTitle": "Payment could not be started",
+    "cancelAttempt": "Cancel payment attempt",
+    "cancelSuccess": "Payment attempt cancelled",
+    "requestRefund": "Request refund",
+    "refundTitle": "Issue refund",
+    "refundDesc": "A full refund of {{amount}} will be sent to the original payment method via Razorpay.",
+    "refundReasonPlaceholder": "Reason (optional)",
+    "confirmRefund": "Confirm refund",
+    "refundSuccess": "Refund initiated",
+    "historyTitle": "Payment history",
+    "historyLoading": "Loading payment history…",
+    "historyEmpty": "No payment attempts yet",
+    "historyLoadError": "Failed to load payment history",
+    "receiptPaymentStatus": "Payment status",
+    "providerOrderId": "Razorpay order",
+    "providerPaymentId": "Razorpay payment",
+    "method": "Method",
+    "refundsTitle": "Refunds",
+    "status": {
+      "pending": "Payment pending",
+      "paid": "Paid",
+      "refunded": "Refunded"
+    },
+    "attemptStatus": {
+      "created": "Awaiting payment",
+      "captured": "Captured",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "refundStatus": {
+      "pending": "Refund pending",
+      "processed": "Refund processed",
+      "failed": "Refund failed"
+    }
+  },
   "chat": {
     "title": "Messages",
     "titleSub": "বার্তা",
@@ -693,7 +737,10 @@
     "broadcastSend": "Send broadcast",
     "broadcastSent": "Broadcast sent",
     "broadcastSentDesc": "Delivered to {{count}} users",
-    "broadcastFailed": "Broadcast failed"
+    "broadcastFailed": "Broadcast failed",
+    "payments": "Payments",
+    "paymentsDesc": "Reconcile Razorpay payment attempts and refunds across orders.",
+    "paymentsEmpty": "No payment records yet"
   },
   "modal": {
     "watchlistTitle": "Watchlist",

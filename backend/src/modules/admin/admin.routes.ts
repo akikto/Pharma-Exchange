@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { Router } from 'express';
 import { z } from 'zod';
-import { ReportStatus } from '@prisma/client';
+import { ReportStatus, PaymentAttemptStatus } from '@prisma/client';
 import { AuthRequest } from '../../shared/middleware/auth.middleware';
 import { authenticate, requireAdmin } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
@@ -12,6 +12,7 @@ import { paginationMeta } from '../../shared/utils/helpers';
 import prisma from '../../config/database';
 import { notificationService } from '../notification';
 import { broadcastSchema } from '../notification/notification.validation';
+import { paymentsService } from '../payments/payments.service';
 
 const verifySchema = z.object({
   action: z.enum(['approve', 'reject']),
@@ -103,6 +104,19 @@ class AdminController {
       res.json({ data, pagination: paginationMeta(p, l, total) });
     } catch (err) { next(err); }
   }
+
+  async payments(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { page = '1', limit = '20', status } = req.query;
+      const p = parseInt(String(page)), l = parseInt(String(limit));
+      const result = await paymentsService.listForAdmin(
+        p,
+        l,
+        status ? (String(status) as PaymentAttemptStatus) : undefined,
+      );
+      res.json({ data: result.data, pagination: paginationMeta(p, l, result.total) });
+    } catch (err) { next(err); }
+  }
 }
 
 const analyticsCtrl = new AnalyticsController();
@@ -119,6 +133,7 @@ adminRouter.post('/verifications/:id', validate(verifySchema), adminCtrl.verifyP
 adminRouter.get('/reports', adminCtrl.reports.bind(adminCtrl));
 adminRouter.post('/reports/:id/resolve', validate(resolveSchema), adminCtrl.resolveReport.bind(adminCtrl));
 adminRouter.get('/users', adminCtrl.users.bind(adminCtrl));
+adminRouter.get('/payments', adminCtrl.payments.bind(adminCtrl));
 adminRouter.post('/notifications/broadcast', validate(broadcastSchema), adminCtrl.broadcastNotification.bind(adminCtrl));
 
 export { analyticsRouter, adminRouter };

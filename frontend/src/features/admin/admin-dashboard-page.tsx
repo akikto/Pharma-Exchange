@@ -54,9 +54,10 @@ export function AdminDashboardPage() {
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Total Orders (30d)</p><p className="text-xl font-bold">{data?.totalOrders ?? 0}</p></CardContent></Card>
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Active Listings</p><p className="text-xl font-bold">{data?.activeListings ?? 0}</p></CardContent></Card>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <Link to="/admin/verifications"><Button>Verification Queue</Button></Link>
           <Link to="/admin/reports"><Button variant="secondary">Reports</Button></Link>
+          <Link to="/admin/payments"><Button variant="secondary">{t('admin.payments')}</Button></Link>
         </div>
         <Card>
           <CardContent className="p-4 space-y-3">

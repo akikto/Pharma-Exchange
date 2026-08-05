@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, DosageForm, ListingStatus, VerificationStatus } from '@prisma/client';
+import { PrismaClient, UserRole, DosageForm, ListingStatus, VerificationStatus, OrderStatus, PaymentStatus, PaymentAttemptStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -198,7 +198,7 @@ async function main() {
     medicines.map((medicine, i) =>
       prisma.listing.upsert({
         where: { id: `00000000-0000-0000-0001-00000000000${i + 1}` },
-        update: {},
+        update: { availableQty: 500 - i * 100, status: ListingStatus.ACTIVE },
         create: {
           id: `00000000-0000-0000-0001-00000000000${i + 1}`,
           pharmacyId: pharmacy.id,
@@ -223,7 +223,7 @@ async function main() {
       medicines.map((medicine, mi) =>
         prisma.listing.upsert({
           where: { id: `00000000-0000-0000-0002-0000000000${pi}${mi + 1}` },
-          update: {},
+          update: { availableQty: 300 - mi * 50, status: ListingStatus.ACTIVE },
           create: {
             id: `00000000-0000-0000-0002-0000000000${pi}${mi + 1}`,
             pharmacyId: ph.id,
@@ -244,12 +244,89 @@ async function main() {
     )
   );
 
+  const demoListingId = '00000000-0000-0000-0001-000000000001';
+  const demoListing = await prisma.listing.findUniqueOrThrow({
+    where: { id: demoListingId },
+    include: { medicine: true },
+  });
+  const unitPrice = Number(demoListing.finalPrice);
+  const quantity = demoListing.moq;
+  const subtotal = unitPrice * quantity;
+
+  const pendingOrder = await prisma.order.upsert({
+    where: { id: '00000000-0000-0000-0003-000000000001' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0003-000000000001',
+      orderNumber: 'ORD-2026-000001',
+      buyerId: buyer.id,
+      sellerId: pharmacy.id,
+      status: OrderStatus.CONFIRMED,
+      paymentStatus: PaymentStatus.PENDING,
+      totalAmount: subtotal,
+      items: {
+        create: {
+          listingId: demoListingId,
+          medicineName: demoListing.medicine.name,
+          batchNumber: demoListing.batchNumber,
+          quantity,
+          unitPrice,
+          subtotal,
+        },
+      },
+      statusHistory: { create: { status: OrderStatus.CONFIRMED, note: 'Demo order for payment E2E' } },
+    },
+  });
+
+  const paidOrder = await prisma.order.upsert({
+    where: { id: '00000000-0000-0000-0003-000000000002' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0003-000000000002',
+      orderNumber: 'ORD-2026-000002',
+      buyerId: buyer.id,
+      sellerId: pharmacy.id,
+      status: OrderStatus.CONFIRMED,
+      paymentStatus: PaymentStatus.PAID,
+      totalAmount: subtotal,
+      items: {
+        create: {
+          listingId: demoListingId,
+          medicineName: demoListing.medicine.name,
+          batchNumber: demoListing.batchNumber,
+          quantity,
+          unitPrice,
+          subtotal,
+        },
+      },
+      statusHistory: { create: { status: OrderStatus.CONFIRMED, note: 'Demo paid order for admin reconciliation' } },
+    },
+  });
+
+  await prisma.payment.upsert({
+    where: { id: '00000000-0000-0000-0004-000000000001' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0004-000000000001',
+      orderId: paidOrder.id,
+      userId: buyer.id,
+      providerOrderId: 'order_seed_demo_paid',
+      providerPaymentId: 'pay_seed_demo_paid',
+      amount: subtotal,
+      currency: 'INR',
+      status: PaymentAttemptStatus.CAPTURED,
+      receipt: 'rcpt_seed_demo_paid',
+      capturedAt: new Date(),
+    },
+  });
+
   console.log('Seed complete:');
   console.log(`  Admin:  admin@pharmex.bd / password123`);
   console.log(`  Seller: seller@pharmex.bd / password123 (${pharmacy.name})`);
   console.log(`  Seller: seller2@pharmex.bd / password123 (${pharmacy2.name})`);
   console.log(`  Seller: seller3@pharmex.bd / password123 (${pharmacy3.name})`);
   console.log(`  Buyer:  buyer@pharmex.bd / password123`);
+  console.log(`  Demo orders: ${pendingOrder.orderNumber} (pending), ${paidOrder.orderNumber} (paid)`);
   console.log(`  Medicines: ${medicines.length}, Demo pharmacies: ${demoPharmacies.length}`);
 }
 

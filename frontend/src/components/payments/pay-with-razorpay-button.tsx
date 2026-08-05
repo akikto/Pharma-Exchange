@@ -7,6 +7,7 @@
  * hosted UI collects it.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { paymentsApi } from '@/lib/payments-api';
 import { useToast } from '@/hooks/use-toast';
@@ -63,10 +64,12 @@ export interface PayWithRazorpayButtonProps {
 }
 
 export function PayWithRazorpayButton({
-  orderId, orderNumber, buyer, onSuccess, className, label = 'Pay now',
+  orderId, orderNumber, buyer, onSuccess, className, label,
 }: PayWithRazorpayButtonProps) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const displayLabel = label ?? t('payments.payNow');
 
   const handlePay = async () => {
     setLoading(true);
@@ -93,11 +96,11 @@ export function PayWithRazorpayButton({
         handler: async (response) => {
           try {
             await paymentsApi.verify(response);
-            toast({ description: 'Payment successful' });
+            toast({ description: t('payments.verifySuccess') });
             onSuccess?.();
           } catch (err) {
             toast({
-              title: 'Payment verification failed',
+              title: t('payments.verifyFailedTitle'),
               description: (err as Error).message,
               variant: 'destructive',
             });
@@ -112,7 +115,7 @@ export function PayWithRazorpayButton({
       rzp.open();
     } catch (err) {
       toast({
-        title: 'Payment failed to start',
+        title: t('payments.startFailedTitle'),
         description: (err as Error).message,
         variant: 'destructive',
       });
@@ -127,7 +130,7 @@ export function PayWithRazorpayButton({
       className={className}
       data-testid="pay-with-razorpay-button"
     >
-      {label}
+      {displayLabel}
     </Button>
   );
 }

@@ -22,7 +22,9 @@
     "verifications": "যাচাইকরণ",
     "verificationsSub": "Verifications",
     "reports": "রিপোর্ট",
-    "reportsSub": "Reports"
+    "reportsSub": "Reports",
+    "payments": "পেমেন্ট",
+    "paymentsSub": "Payments"
   },
   "common": {
     "appName": "Pharma Exchange",
@@ -466,6 +468,48 @@
       "cancelled": "বাতিল"
     }
   },
+  "payments": {
+    "payNow": "এখনই পেমেন্ট করুন",
+    "unavailableTitle": "অনলাইন পেমেন্ট উপলব্ধ নয়",
+    "unavailableBody": "এই পরিবেশে Razorpay চেকআউট সক্রিয় নয়। পরে আবার চেষ্টা করুন বা অ্যাডমিনের সাথে যোগাযোগ করুন।",
+    "verifySuccess": "পেমেন্ট সফল হয়েছে",
+    "verifyFailedTitle": "পেমেন্ট যাচাই ব্যর্থ",
+    "startFailedTitle": "পেমেন্ট শুরু করা যায়নি",
+    "cancelAttempt": "পেমেন্ট বাতিল করুন",
+    "cancelSuccess": "পেমেন্ট প্রচেষ্টা বাতিল হয়েছে",
+    "requestRefund": "রিফান্ড অনুরোধ",
+    "refundTitle": "রিফান্ড ইস্যু করুন",
+    "refundDesc": "Razorpay-এর মাধ্যমে {{amount}} মূল পেমেন্ট পদ্ধতিতে ফেরত পাঠানো হবে।",
+    "refundReasonPlaceholder": "কারণ (ঐচ্ছিক)",
+    "confirmRefund": "রিফান্ড নিশ্চিত করুন",
+    "refundSuccess": "রিফান্ড শুরু হয়েছে",
+    "historyTitle": "পেমেন্ট ইতিহাস",
+    "historyLoading": "পেমেন্ট ইতিহাস লোড হচ্ছে…",
+    "historyEmpty": "এখনো কোনো পেমেন্ট প্রচেষ্টা নেই",
+    "historyLoadError": "পেমেন্ট ইতিহাস লোড ব্যর্থ",
+    "receiptPaymentStatus": "পেমেন্ট স্ট্যাটাস",
+    "providerOrderId": "Razorpay অর্ডার",
+    "providerPaymentId": "Razorpay পেমেন্ট",
+    "method": "পদ্ধতি",
+    "refundsTitle": "রিফান্ড",
+    "status": {
+      "pending": "পেমেন্ট বাকি",
+      "paid": "পরিশোধিত",
+      "refunded": "রিফান্ড হয়েছে"
+    },
+    "attemptStatus": {
+      "created": "পেমেন্টের অপেক্ষায়",
+      "captured": "ক্যাপচার হয়েছে",
+      "failed": "ব্যর্থ",
+      "cancelled": "বাতিল",
+      "refunded": "রিফান্ড হয়েছে"
+    },
+    "refundStatus": {
+      "pending": "রিফান্ড বাকি",
+      "processed": "রিফান্ড সম্পন্ন",
+      "failed": "রিফান্ড ব্যর্থ"
+    }
+  },
   "chat": {
     "title": "বার্তা",
     "titleSub": "Messages",
@@ -682,7 +726,10 @@
     "approve": "অনুমোদন",
     "reject": "প্রত্যাখ্যান",
     "noPending": "কোনো অপেক্ষমাণ যাচাই নেই",
-    "noReports": "কোনো খোলা রিপোর্ট নেই"
+    "noReports": "কোনো খোলা রিপোর্ট নেই",
+    "payments": "পেমেন্ট",
+    "paymentsDesc": "অর্ডার জুড়ে Razorpay পেমেন্ট ও রিফান্ড মিলিয়ে দেখুন।",
+    "paymentsEmpty": "এখনো কোনো পেমেন্ট রেকর্ড নেই"
   },
   "modal": {
     "watchlistTitle": "ওয়াচলিস্ট",
