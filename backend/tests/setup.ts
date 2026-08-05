@@ -17,3 +17,6 @@ process.env.RAZORPAY_KEY_ID ??= 'rzp_test_ci_key';
 process.env.RAZORPAY_KEY_SECRET ??= 'ci-razorpay-key-secret';
 process.env.RAZORPAY_WEBHOOK_SECRET ??= 'ci-razorpay-webhook-secret';
 process.env.RAZORPAY_CURRENCY ??= 'INR';
+
+// BL-09: generous limits in test/CI — rate limiters also skip when NODE_ENV=test.
+process.env.RATE_LIMIT_MAX ??= '10000';

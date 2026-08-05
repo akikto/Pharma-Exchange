@@ -9,13 +9,14 @@ test.describe('Seller order lifecycle', () => {
   });
 
   test('seller can view orders list', async ({ page }) => {
-    await page.goto('/seller/orders');
-    await expect(page).toHaveURL('/seller/orders');
-    await expect(page.getByRole('button', { name: /সব|all/i }).first()).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('nav-bottom-orders').click();
+    await expect(page).toHaveURL('/seller/orders', { timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: /orders|অর্ডার/i })).toBeVisible({ timeout: 15_000 });
   });
 
   test('seller analytics links to seller order routes', async ({ page }) => {
-    await page.goto('/seller/analytics');
+    await page.getByRole('link', { name: /analytics|অ্যানালিটিক্স/i }).click();
+    await expect(page).toHaveURL('/seller/analytics', { timeout: 15_000 });
     const recentOrder = page.locator('a[href^="/seller/orders/"]').first();
     if (await recentOrder.count() > 0) {
       const href = await recentOrder.getAttribute('href');

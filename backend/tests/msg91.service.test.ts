@@ -52,12 +52,12 @@ describe('msg91 service', () => {
       const url = new URL(String(urlArg));
       expect(url.origin + url.pathname).toBe('https://control.msg91.com/api/v5/otp');
       expect(url.searchParams.get('mobile')).toBe('8801712345678');
-      expect(url.searchParams.get('template_id')).toBe('test-msg91-template-id');
+      expect(url.searchParams.get('template_id')).toBe(process.env.MSG91_TEMPLATE_ID);
       expect(url.searchParams.get('otp_length')).toBe('6');
       expect(url.searchParams.get('sender')).toBe('MEDLNK');
       expect((initArg as RequestInit).method).toBe('POST');
       const headers = (initArg as RequestInit).headers as Record<string, string>;
-      expect(headers.authkey).toBe('test-msg91-auth-key');
+      expect(headers.authkey).toBe(process.env.MSG91_AUTH_KEY);
     });
 
     it('maps 429 to OTP_PROVIDER_RATE_LIMIT', async () => {

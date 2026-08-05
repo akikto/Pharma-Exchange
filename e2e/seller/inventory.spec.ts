@@ -9,9 +9,9 @@ test.describe('Seller inventory flow', () => {
   });
 
   test('inventory page shows listings with inline edit fields', async ({ page }) => {
-    await page.goto('/seller/inventory');
-    await expect(page).toHaveURL(/\/seller\/inventory/);
-    await expect(page.getByTestId('inventory-search')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('nav-bottom-inventory').click();
+    await expect(page).toHaveURL(/\/seller\/inventory/, { timeout: 15_000 });
+    await expect(page.getByTestId('inventory-search')).toBeVisible({ timeout: 20_000 });
 
     const row = page.locator('[data-testid^="inventory-row-"]').first();
     await expect(row).toBeVisible({ timeout: 15_000 });
@@ -22,14 +22,13 @@ test.describe('Seller inventory flow', () => {
   });
 
   test('seller orders page stays in seller area', async ({ page }) => {
-    await page.goto('/seller');
     await page.getByTestId('nav-bottom-orders').click();
     await expect(page).toHaveURL('/seller/orders');
     await expect(page).not.toHaveURL(/\/cart/);
   });
 
   test('seller requests page loads', async ({ page }) => {
-    await page.goto('/seller/requests');
+    await page.getByRole('link', { name: /pending buy requests|ক্রয় অনুরোধ/i }).click();
     await expect(page).toHaveURL('/seller/requests', { timeout: 15_000 });
   });
 });

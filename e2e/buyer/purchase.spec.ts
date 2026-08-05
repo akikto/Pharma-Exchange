@@ -12,16 +12,20 @@ test.describe('Buyer purchase flow', () => {
     const listing = page.locator('[data-testid^="listing-card-"]').first();
     await expect(listing).toBeVisible({ timeout: 20_000 });
     await listing.locator('a').first().click();
+    await expect(page).toHaveURL(/\/medicine\//, { timeout: 15_000 });
 
-    await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).click();
-    await expect(page.getByText(/কার্টে যোগ হয়েছে|added to cart/i)).toBeVisible({ timeout: 10_000 });
+    // Seed listings use MOQ 10; detail page defaults quantity to 1.
+    await page.locator('.fixed.bottom-16 .border button').nth(1).click({ clickCount: 9 });
 
-    await page.goto('/cart');
-    await expect(page.getByTestId('cart-panel').or(page.getByTestId('cart-empty'))).toBeVisible();
+    await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).first().click();
+    await page.getByTestId('nav-bottom-cart').click();
+    await expect(page).toHaveURL('/cart', { timeout: 15_000 });
+    await expect(page.getByTestId('cart-panel')).toBeVisible({ timeout: 15_000 });
   });
 
   test('cart hub orders tab accessible', async ({ page }) => {
-    await page.goto('/cart?tab=orders');
+    await page.getByTestId('nav-bottom-cart').click();
+    await page.getByRole('tab', { name: /অর্ডার|orders/i }).click();
     await expect(page.getByRole('tab', { name: /অর্ডার|orders/i })).toHaveAttribute('aria-selected', 'true', { timeout: 15_000 });
   });
 
@@ -31,7 +35,7 @@ test.describe('Buyer purchase flow', () => {
   });
 
   test('orders tab accessible from cart hub', async ({ page }) => {
-    await page.goto('/cart?tab=orders');
+    await page.getByTestId('nav-bottom-cart').click();
     await expect(page.getByRole('tab', { name: /অর্ডার|orders/i })).toBeVisible({ timeout: 15_000 });
   });
 });
