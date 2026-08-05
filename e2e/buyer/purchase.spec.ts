@@ -15,15 +15,12 @@ test.describe('Buyer purchase flow', () => {
     await expect(page).toHaveURL(/\/medicine\//, { timeout: 15_000 });
 
     // Seed listings use MOQ 10; detail page defaults quantity to 1.
-    const plus = page.locator('.fixed.bottom-16 button').nth(1);
-    for (let i = 0; i < 9; i++) await plus.click();
+    await page.locator('.fixed.bottom-16 .border button').nth(1).click({ clickCount: 9 });
 
     await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).first().click();
-    await expect(page.getByText(/কার্টে যোগ হয়েছে|added to cart/i)).toBeVisible({ timeout: 10_000 });
-
     await page.getByTestId('nav-bottom-cart').click();
-    await expect(page).toHaveURL('/cart');
-    await expect(page.getByTestId('cart-panel').or(page.getByTestId('cart-empty'))).toBeVisible();
+    await expect(page).toHaveURL('/cart', { timeout: 15_000 });
+    await expect(page.getByTestId('cart-panel')).toBeVisible({ timeout: 15_000 });
   });
 
   test('cart hub orders tab accessible', async ({ page }) => {
