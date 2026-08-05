@@ -12,28 +12,32 @@ const OtpLoginPage = lazy(() => import('@/features/auth/register-page').then(m =
 const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })));
 const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
 const SearchPage = lazy(() => import('@/features/home/search-page').then(m => ({ default: m.SearchPage })));
-const MedicineDetailPage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.MedicineDetailPage })));
+const loadMedicineDetail = () => import('@/features/medicine/medicine-detail-page');
+const MedicineDetailPage = lazy(() => loadMedicineDetail().then(m => ({ default: m.MedicineDetailPage })));
+const PharmacyProfilePage = lazy(() => loadMedicineDetail().then(m => ({ default: m.PharmacyProfilePage })));
 const ComparisonPage = lazy(() => import('@/features/medicine/comparison-page').then(m => ({ default: m.ComparisonPage })));
-const PharmacyProfilePage = lazy(() => import('@/features/medicine/medicine-detail-page').then(m => ({ default: m.PharmacyProfilePage })));
 const SellerDashboardPage = lazy(() => import('@/features/seller/seller-dashboard-page').then(m => ({ default: m.SellerDashboardPage })));
 const SellerInventoryPage = lazy(() => import('@/features/seller/seller-inventory-page').then(m => ({ default: m.SellerInventoryPage })));
 const SellerAnalyticsPage = lazy(() => import('@/features/seller/seller-analytics-page').then(m => ({ default: m.SellerAnalyticsPage })));
 const ListingFormPage = lazy(() => import('@/features/seller/listing-form-page').then(m => ({ default: m.ListingFormPage })));
 const PharmacyRegisterPage = lazy(() => import('@/features/seller/pharmacy-register-page').then(m => ({ default: m.PharmacyRegisterPage })));
-const CartPage = lazy(() => import('@/features/buyer/cart-page').then(m => ({ default: m.CartPage })));
+const RequestsHubPage = lazy(() => import('@/features/buyer/requests-hub-page').then(m => ({ default: m.RequestsHubPage })));
 const SellerOrdersPage = lazy(() => import('@/features/seller/seller-orders-page').then(m => ({ default: m.SellerOrdersPage })));
 const SellerRequestsPage = lazy(() => import('@/features/seller/seller-requests-page').then(m => ({ default: m.SellerRequestsPage })));
 const OrderDetailPage = lazy(() => import('@/features/buyer/order-detail-page').then(m => ({ default: m.OrderDetailPage })));
 const BuyRequestDetailPage = lazy(() => import('@/features/buyer/buy-request-detail-page').then(m => ({ default: m.BuyRequestDetailPage })));
-const ChatListPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatListPage })));
-const ChatPage = lazy(() => import('@/features/chat/chat-page').then(m => ({ default: m.ChatPage })));
+const loadChat = () => import('@/features/chat/chat-page');
+const ChatListPage = lazy(() => loadChat().then(m => ({ default: m.ChatListPage })));
+const ChatPage = lazy(() => loadChat().then(m => ({ default: m.ChatPage })));
 const WatchlistPage = lazy(() => import('@/features/watchlist/watchlist-page').then(m => ({ default: m.WatchlistPage })));
 const NotificationsPage = lazy(() => import('@/features/notifications/notifications-page').then(m => ({ default: m.NotificationsPage })));
-const ProfilePage = lazy(() => import('@/features/profile/profile-page').then(m => ({ default: m.ProfilePage })));
-const SettingsPage = lazy(() => import('@/features/profile/profile-page').then(m => ({ default: m.SettingsPage })));
-const AdminDashboardPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminDashboardPage })));
-const AdminVerificationsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminVerificationsPage })));
-const AdminReportsPage = lazy(() => import('@/features/admin/admin-dashboard-page').then(m => ({ default: m.AdminReportsPage })));
+const loadProfile = () => import('@/features/profile/profile-page');
+const ProfilePage = lazy(() => loadProfile().then(m => ({ default: m.ProfilePage })));
+const SettingsPage = lazy(() => loadProfile().then(m => ({ default: m.SettingsPage })));
+const loadAdmin = () => import('@/features/admin/admin-dashboard-page');
+const AdminDashboardPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminDashboardPage })));
+const AdminVerificationsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminVerificationsPage })));
+const AdminReportsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminReportsPage })));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/privacy-policy-page').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsAndConditionsPage = lazy(() => import('@/features/legal/terms-and-conditions-page').then(m => ({ default: m.TermsAndConditionsPage })));
 
@@ -89,7 +93,7 @@ export function AppRouter() {
             <Route path="/medicine/:medicineId/compare" element={<ComparisonPage />} />
             <Route path="/medicine/:id" element={<MedicineDetailPage />} />
             <Route path="/pharmacy/:id" element={<PharmacyProfilePage />} />
-            <Route path="/cart" element={<CartPage />} />
+            <Route path="/cart" element={<RequestsHubPage />} />
             <Route path="/orders" element={<Navigate to="/cart?tab=orders" replace />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
             <Route path="/buy-requests" element={<Navigate to="/cart?tab=requests" replace />} />
