@@ -181,8 +181,8 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/pharma_exchange?schem
 | Field | Value |
 |-------|-------|
 | Branch | `feature/release-candidate-v1.0.1-rc1` |
-| Commit SHA | *(set after commit — see PR)* |
-| PR URL | *(set after PR creation)* |
+| Commit SHA | `2cd7138` |
+| PR URL | *(see PR after push)* |
 
 ---
 
