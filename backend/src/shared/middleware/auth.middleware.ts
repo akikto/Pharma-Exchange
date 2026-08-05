@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 import { UserRole } from '@prisma/client';
 import { env } from '../../config/env';
 import { verifyFirebaseToken } from '../../config/firebase';
@@ -26,7 +27,7 @@ export function signAccessToken(payload: TokenPayload): string {
 }
 
 export function signRefreshToken(payload: TokenPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, {
+  return jwt.sign({ ...payload, jti: randomUUID() }, env.JWT_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN as SignOptions['expiresIn'],
   });
 }
