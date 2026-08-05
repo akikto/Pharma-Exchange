@@ -105,6 +105,7 @@ export class PharmacyService {
         ? 'Your pharmacy has been verified. You can now list medicines.'
         : `Verification rejected: ${rejectionReason ?? 'Please resubmit documents.'}`,
       data: { pharmacyId },
+      forcePush: true,
     });
 
     return updated;

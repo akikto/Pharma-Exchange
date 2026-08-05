@@ -129,7 +129,7 @@ export class OrderService {
           type: NotificationType.ORDER_UPDATE,
           title: 'Order Cancelled',
           body: `Order ${order.orderNumber} was cancelled by buyer`,
-          data: { orderId },
+          data: { orderId, role: 'seller' },
         });
       }
 

@@ -99,7 +99,7 @@ export class BuyRequestService {
           type: NotificationType.BUY_REQUEST,
           title: 'New Buy Request',
           body: `New buy request ${request.requestNumber}`,
-          data: { buyRequestId: request.id },
+          data: { buyRequestId: request.id, role: 'seller' },
         });
       }
 

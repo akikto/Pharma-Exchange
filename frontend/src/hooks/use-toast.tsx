@@ -11,6 +11,7 @@ export interface ToastData {
   title?: string;
   description?: string;
   variant?: ToastVariant;
+  onClick?: () => void;
 }
 
 type Listener = (toasts: ToastData[]) => void;
@@ -28,9 +29,9 @@ function emit() {
   listeners.forEach((l) => l([...memoryToasts]));
 }
 
-export function toast({ title, description, variant = 'default' }: Omit<ToastData, 'id'>) {
+export function toast({ title, description, variant = 'default', onClick }: Omit<ToastData, 'id'>) {
   const id = genId();
-  memoryToasts = [{ id, title, description, variant }, ...memoryToasts].slice(0, TOAST_LIMIT);
+  memoryToasts = [{ id, title, description, variant, onClick }, ...memoryToasts].slice(0, TOAST_LIMIT);
   emit();
   window.setTimeout(() => {
     memoryToasts = memoryToasts.filter((t) => t.id !== id);
@@ -60,8 +61,13 @@ export function Toaster() {
 
   return (
     <ToastProvider swipeDirection="right">
-      {toasts.map(({ id, title, description, variant }) => (
-        <Toast key={id} variant={variant}>
+      {toasts.map(({ id, title, description, variant, onClick }) => (
+        <Toast
+          key={id}
+          variant={variant}
+          className={onClick ? 'cursor-pointer' : undefined}
+          onClick={onClick}
+        >
           <div className="grid gap-1 flex-1">
             {title && <ToastTitle>{title}</ToastTitle>}
             {description && <ToastDescription>{description}</ToastDescription>}
