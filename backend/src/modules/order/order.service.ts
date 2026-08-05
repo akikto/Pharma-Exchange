@@ -13,6 +13,12 @@ const SELLER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
 };
 
+const FULFILLMENT_STATUSES: OrderStatus[] = [
+  OrderStatus.PACKED,
+  OrderStatus.SHIPPED,
+  OrderStatus.DELIVERED,
+];
+
 export class OrderService {
   async list(userId: string, role: string, status?: OrderStatus, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
@@ -73,6 +79,10 @@ export class OrderService {
     const allowed = SELLER_TRANSITIONS[order.status];
     if (!allowed?.includes(status)) {
       throw AppError.badRequest(`Cannot transition from ${order.status} to ${status}`);
+    }
+
+    if (FULFILLMENT_STATUSES.includes(status) && order.paymentStatus !== PaymentStatus.PAID) {
+      throw new AppError(400, 'Payment must be completed before order fulfillment', 'PAYMENT_REQUIRED');
     }
 
     if (status === OrderStatus.CANCELLED) {

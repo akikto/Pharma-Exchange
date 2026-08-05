@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { assertProductionCorsConfig } from './cors';
 
 const booleanFromEnv = z.preprocess((value) => {
   if (typeof value === 'boolean') return value;
@@ -56,9 +57,7 @@ function loadEnv(): Env {
     if (env.JWT_SECRET.length < 32) {
       throw new Error('JWT_SECRET must be at least 32 characters in production');
     }
-    if (env.CORS_ORIGIN === '*') {
-      console.warn('WARNING: CORS_ORIGIN is * in production. Set explicit origins.');
-    }
+    assertProductionCorsConfig(env.NODE_ENV, env.CORS_ORIGIN);
     // DATABASE_URL must be a PostgreSQL DSN.
     if (!/^postgres(?:ql)?:\/\//.test(env.DATABASE_URL)) {
       throw new Error('DATABASE_URL must use the postgresql:// scheme');

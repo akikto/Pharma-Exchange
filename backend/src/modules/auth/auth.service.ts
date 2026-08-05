@@ -109,18 +109,28 @@ export class AuthService {
     }
   }
 
-  async resetPassword(data: { email: string; newPassword: string }) {
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
-    if (!user) throw AppError.notFound('No account found with this email');
+  async resetPassword(data: { phone: string; code: string; newPassword: string }) {
+    let verified: boolean;
+    try {
+      verified = await msg91.verifyOtp(data.phone, data.code);
+    } catch (err) {
+      throw mapMsg91Error(err);
+    }
+    if (!verified) throw AppError.badRequest('Invalid or expired OTP');
+
+    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
+    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
+      ?? await prisma.user.findFirst({ where: { phone: data.phone } });
+    if (!user) throw AppError.notFound('No account found for this phone');
     if (!user.isActive) throw AppError.forbidden('Account is deactivated');
 
     const passwordHash = await bcrypt.hash(data.newPassword, 12);
-    const updated = await prisma.user.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash },
     });
 
-    return this.issueTokens(updated);
+    return { message: 'Password updated successfully. Please sign in with your new password.' };
   }
 
   async login(data: { email?: string; phone?: string; password: string }) {
@@ -193,6 +203,14 @@ export class AuthService {
   }
 
   async verifyOtp(data: { phone: string; code: string; purpose: 'registration' | 'login' | 'password_reset' }) {
+    if (data.purpose === 'password_reset') {
+      throw new AppError(
+        400,
+        'Use POST /auth/reset-password with your OTP and new password',
+        'USE_RESET_PASSWORD_ENDPOINT',
+      );
+    }
+
     let verified: boolean;
     try {
       verified = await msg91.verifyOtp(data.phone, data.code);
@@ -206,6 +224,10 @@ export class AuthService {
       ?? await prisma.user.findFirst({ where: { phone: data.phone } });
     if (!user) throw AppError.notFound('No account found for this phone');
     if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+
+    if (data.purpose === 'registration' && user.authProvider !== 'phone') {
+      throw AppError.badRequest('OTP registration verification is only for phone sign-ups');
+    }
 
     return this.issueTokens(user);
   }

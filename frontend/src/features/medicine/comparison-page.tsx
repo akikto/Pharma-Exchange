@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { MessageCircle } from 'lucide-react';
 import { useStartConversation } from '@/hooks/use-api';
 import type { Listing } from '@/types';
+import { getListingPharmacyId } from '@/lib/listing-utils';
 
 const SORT_KEYS: CompareSort[] = ['price', 'expiry', 'distance'];
 
@@ -43,7 +44,7 @@ export function ComparisonPage() {
         finalPrice: Number(listing.finalPrice),
         moq: listing.moq,
         availableQty: listing.availableQty,
-        sellerId: listing.pharmacy.userId ?? listing.pharmacy.id,
+        sellerId: getListingPharmacyId(listing),
       },
     });
   };

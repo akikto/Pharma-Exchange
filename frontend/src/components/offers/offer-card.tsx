@@ -9,6 +9,7 @@ import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock, calculateSavings, formatSavingsPercent } from '@/lib/offer-utils';
 import { isRenderableListing } from '@/lib/catalog-groups';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
+import { getListingPharmacyId } from '@/lib/listing-utils';
 import { StatusChip } from '@/components/ui/status-chip';
 import { Button } from '@/components/ui/button';
 import { useAddToCart } from '@/hooks/use-api';
@@ -88,7 +89,7 @@ function OfferCardContent({
         finalPrice: price,
         moq: listing.moq,
         availableQty: listing.availableQty,
-        sellerId: listing.pharmacy.userId ?? listing.pharmacy.id,
+        sellerId: getListingPharmacyId(listing),
       },
     });
   };

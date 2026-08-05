@@ -17,10 +17,10 @@ interface AuthState {
   demoLogin: () => Promise<{ isDemo?: boolean }>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
   register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ requiresOtpVerification?: boolean; otpRequestId?: string; message?: string; accessToken?: string; refreshToken?: string; user?: User }>;
-  sendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
+  sendOtp: (data: { phone: string; purpose?: 'login' | 'password_reset' }) => Promise<{ requestId?: string; message?: string }>;
   resendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
   verifyOtp: (data: { phone: string; code: string; purpose: string }) => Promise<void>;
-  resetPassword: (email: string, newPassword: string) => Promise<void>;
+  resetPassword: (phone: string, code: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setMode: (mode: AppMode, options?: { userSet?: boolean }) => void;
@@ -83,7 +83,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       sendOtp: async (data) => {
-        return apiClient.post<{ requestId?: string; message?: string }>('/auth/send-otp', { ...data, purpose: 'login' });
+        return apiClient.post<{ requestId?: string; message?: string }>('/auth/send-otp', {
+          phone: data.phone,
+          purpose: data.purpose ?? 'login',
+        });
       },
 
       resendOtp: async (data) => {
@@ -99,11 +102,8 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      resetPassword: async (email, newPassword) => {
-        const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/reset-password', { email, newPassword });
-        setTokens(data.accessToken, data.refreshToken);
-        set({ user: data.user, isAuthenticated: true });
-        get().applyPostLoginMode();
+      resetPassword: async (phone, code, newPassword) => {
+        await apiClient.post<{ message: string }>('/auth/reset-password', { phone, code, newPassword });
       },
 
       logout: async () => {

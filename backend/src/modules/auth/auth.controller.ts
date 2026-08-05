@@ -59,7 +59,7 @@ export class AuthController {
   async resetPassword(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.resetPassword(req.body);
-      res.json({ message: 'Password updated', ...result });
+      res.json(result);
     } catch (err) { next(err); }
   }
 

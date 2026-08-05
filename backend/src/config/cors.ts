@@ -15,6 +15,20 @@ function configuredOrigins(): string[] {
   return env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean);
 }
 
+/** Fail fast in production when CORS is left wide open or unset. */
+export function assertProductionCorsConfig(nodeEnv: string, corsOrigin: string): void {
+  if (nodeEnv !== 'production') return;
+  if (corsOrigin === '*' || !corsOrigin.trim()) {
+    throw new Error(
+      'CORS_ORIGIN must be set to explicit origin(s) in production (comma-separated). Wildcard * is not allowed.',
+    );
+  }
+  const origins = corsOrigin.split(',').map((origin) => origin.trim()).filter(Boolean);
+  if (origins.length === 0) {
+    throw new Error('CORS_ORIGIN must include at least one explicit origin in production.');
+  }
+}
+
 export function isAllowedCorsOrigin(origin: string | undefined): boolean {
   if (!origin) return true;
   const configured = configuredOrigins();
