@@ -1,6 +1,6 @@
 # Sprint 8 · BL-10 — Dependency Security Audit · Completion Report
 
-**Branch:** `feature/bl-10-security-audit-51d7`  
+**Branch:** `cursor/bl-10-security-audit-51d7`  
 **Status:** ✅ Complete
 
 ---
