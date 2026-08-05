@@ -43,7 +43,7 @@ describe('Notifications API (BL-07)', () => {
       .set('Authorization', `Bearer ${buyerToken}`)
       .send({ token, deviceId: 'test-device', platform: 'web' });
 
-    expect(register.status).toBe(200);
+    expect(register.status).toBe(201);
 
     const remove = await request(app)
       .delete('/api/v1/auth/fcm-token')

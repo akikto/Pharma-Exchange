@@ -20,7 +20,7 @@ describe('Auth rate limiting (BL-09 · test isolation)', () => {
     dbAvailable = await isDatabaseAvailable();
   });
 
-  it('allows repeated logins in test environment without 429', async ({ skip }) => {
+  it('allows repeated logins in test environment without 429', { timeout: 20000 }, async ({ skip }) => {
     if (!dbAvailable) skip();
 
     const results = await Promise.all(

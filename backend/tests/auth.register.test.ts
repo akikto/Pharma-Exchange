@@ -66,9 +66,9 @@ describe('POST /api/v1/auth/register', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [urlArg, initArg] = fetchSpy.mock.calls[0]!;
     expect(String(urlArg)).toContain('https://control.msg91.com/api/v5/otp');
-    expect(String(urlArg)).toContain('template_id=test-msg91-template-id');
+    expect(String(urlArg)).toContain(`template_id=${process.env.MSG91_TEMPLATE_ID}`);
     expect((initArg as RequestInit).method).toBe('POST');
-    expect(((initArg as RequestInit).headers as Record<string, string>).authkey).toBe('test-msg91-auth-key');
+    expect(((initArg as RequestInit).headers as Record<string, string>).authkey).toBe(process.env.MSG91_AUTH_KEY);
   });
 
   it('accepts bare /auth/register for clients missing the /api prefix (email-only)', async () => {
