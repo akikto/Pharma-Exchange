@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
+const skipWebServer = Boolean(process.env.PLAYWRIGHT_SKIP_WEBSERVER);
 
 export default defineConfig({
   testDir: './e2e',
@@ -23,12 +24,28 @@ export default defineConfig({
     { name: 'admin', testMatch: /admin\/.*\.spec\.ts/ },
     { name: 'auth', testMatch: /auth\/login\.spec\.ts/ },
   ],
-  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
+  webServer: skipWebServer
     ? undefined
-    : {
-        command: 'npm run dev --workspace=frontend',
-        url: baseURL,
-        reuseExistingServer: true,
-        timeout: 120_000,
-      },
+    : [
+        {
+          command: 'npm run dev --workspace=backend',
+          url: 'http://localhost:3000/health',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+          env: {
+            NODE_ENV: 'development',
+            DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/pharma_exchange?schema=public',
+            JWT_SECRET: process.env.JWT_SECRET ?? 'dev-jwt-secret-min-32-characters-long',
+            RATE_LIMIT_MAX: '10000',
+            MSG91_ENABLED: 'false',
+            RAZORPAY_ENABLED: 'false',
+          },
+        },
+        {
+          command: 'npm run dev --workspace=frontend',
+          url: baseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ],
 });
