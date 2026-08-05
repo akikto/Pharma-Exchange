@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, AppMode } from '@/types';
-import { disconnectSocket } from '@/lib/socket';
+import { disconnectSocket, connectSocket } from '@/lib/socket';
 import { apiClient, setTokens, clearTokens, loadRefreshToken } from '@/lib/api';
 import { unregisterFcmTokenFromBackend } from '@/lib/push-notifications';
 import { isApprovedSeller, isAdminUser } from '@/lib/auth-utils';
@@ -46,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/login', body);
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+        connectSocket();
         get().applyPostLoginMode();
       },
 
@@ -53,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User; isDemo?: boolean }>('/auth/demo-login', {});
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+        connectSocket();
         await get().fetchProfile();
         get().applyPostLoginMode();
         return { isDemo: data.isDemo };
@@ -62,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/firebase', { idToken, firstName, lastName });
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+        connectSocket();
         get().applyPostLoginMode();
       },
 
@@ -77,6 +80,7 @@ export const useAuthStore = create<AuthState>()(
         if (result.accessToken && result.refreshToken && result.user) {
           setTokens(result.accessToken, result.refreshToken);
           set({ user: result.user, isAuthenticated: true });
+          connectSocket();
           get().applyPostLoginMode();
         }
         return result;
@@ -97,6 +101,7 @@ export const useAuthStore = create<AuthState>()(
         const result = await apiClient.post<{ accessToken?: string; refreshToken?: string; user?: User }>('/auth/verify-otp', data);
         if (result.accessToken && result.refreshToken) {
           setTokens(result.accessToken, result.refreshToken);
+          connectSocket();
           await get().fetchProfile();
           get().applyPostLoginMode();
         }
@@ -147,6 +152,7 @@ export const useAuthStore = create<AuthState>()(
           try {
             const data = await apiClient.post<{ accessToken: string; refreshToken: string }>('/auth/refresh', { refreshToken: token });
             setTokens(data.accessToken, data.refreshToken);
+            connectSocket();
             await get().fetchProfile();
           } catch {
             clearTokens();

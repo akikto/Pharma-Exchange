@@ -23,6 +23,7 @@ export default defineConfig({
     { name: 'seller', testMatch: /(seller|orders)\/.*\.spec\.ts/ },
     { name: 'admin', testMatch: /admin\/.*\.spec\.ts/ },
     { name: 'auth', testMatch: /auth\/.*\.spec\.ts/ },
+    { name: 'chat', testMatch: /chat\/.*\.spec\.ts/ },
   ],
   webServer: skipWebServer
     ? undefined

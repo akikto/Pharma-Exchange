@@ -51,13 +51,15 @@ export function initializeSocket(httpServer: HttpServer): Server {
 
     socket.join(`user:${user.userId}`);
 
-    socket.on('join:conversation', async (conversationId: string) => {
+    socket.on('join:conversation', async (conversationId: string, callback?: (response: { ok: boolean }) => void) => {
       const isMember = await verifyConversationMember(user.userId, conversationId);
       if (!isMember) {
+        callback?.({ ok: false });
         socket.emit('error', { message: 'Not a member of this conversation' });
         return;
       }
-      socket.join(`conversation:${conversationId}`);
+      await socket.join(`conversation:${conversationId}`);
+      callback?.({ ok: true });
     });
 
     socket.on('leave:conversation', (conversationId: string) => {

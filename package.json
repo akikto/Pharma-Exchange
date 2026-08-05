@@ -25,9 +25,11 @@
     "lint": "npm run lint --workspaces --if-present",
     "audit:ci": "npm audit --audit-level=critical --omit=dev",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "lighthouse:ci": "lhci autorun"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1"
   },
   "overrides": {

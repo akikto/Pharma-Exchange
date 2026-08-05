@@ -61,9 +61,10 @@
 | Explicit `CORS_ORIGIN` comma-list support | ✅ |
 | PharmEx Vercel origin allowlist | ✅ |
 | Preview deployment regex | ✅ |
-| Warning when `CORS_ORIGIN=*` in production | ✅ |
+| Warning when `CORS_ORIGIN=*` in production | ✅ (startup fails) |
+| Block wildcard `CORS_ORIGIN` in production | ✅ |
 
-**Finding SEC-02:** Production must set `CORS_ORIGIN=https://<your-frontend-domain>` — wildcard is warned but not blocked.
+**Finding SEC-02:** Production must set `CORS_ORIGIN=https://<your-frontend-domain>` — wildcard `*` causes startup failure.
 
 ---
 

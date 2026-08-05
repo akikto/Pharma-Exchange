@@ -24,7 +24,12 @@
     "reports": "Reports",
     "reportsSub": "রিপোর্ট",
     "payments": "Payments",
-    "paymentsSub": "পেমেন্ট"
+    "paymentsSub": "পেমেন্ট",
+    "desktopNavigation": "Desktop navigation",
+    "mobileNavigation": "Mobile navigation"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content"
   },
   "common": {
     "appName": "Pharma Exchange",
@@ -102,6 +107,8 @@
     "newPharmacy": "New pharmacy?",
     "createAccount": "Create account",
     "createAccountSub": "অ্যাকাউন্ট তৈরি করুন",
+    "tabsLabel": "Authentication mode",
+    "signInMethodLabel": "Sign in method",
     "register": "Register",
     "registerSub": "নিবন্ধন",
     "firstName": "First name",
@@ -377,6 +384,7 @@
   "hub": {
     "title": "Cart & Orders",
     "titleSub": "কার্ট ও অর্ডার",
+    "tabsLabel": "Cart hub sections",
     "tabs": {
       "cart": "Cart",
       "orders": "Orders",

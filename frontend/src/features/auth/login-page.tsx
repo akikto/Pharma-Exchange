@@ -15,9 +15,11 @@ import { ApiError } from '@/lib/api';
 import { getPostLoginRoute } from '@/lib/auth-utils';
 import { Logo } from '@/components/brand/logo';
 import { useToast } from '@/hooks/use-toast';
+import { useTabListKeyboard } from '@/hooks/use-tab-list';
 import type { User } from '@/types';
 
 type AuthTab = 'signIn' | 'register';
+const AUTH_TABS: AuthTab[] = ['signIn', 'register'];
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -28,6 +30,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [welcomeUser, setWelcomeUser] = useState<User | null>(null);
   const [isDemoSession, setIsDemoSession] = useState(false);
+  const onAuthTabKeyDown = useTabListKeyboard(AUTH_TABS, tab, setTab);
   const [registerStep, setRegisterStep] = useState<'form' | 'otp'>('form');
   const [contact, setContact] = useState<{ email?: string; phone?: string }>({});
   const navigate = useNavigate();
@@ -188,16 +191,32 @@ export function LoginPage() {
           <p className="text-text-secondary">{tab === 'signIn' ? t('auth.signInDesc') : t('auth.createAccountDesc')}</p>
         </div>
 
-        <div className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]" data-testid="auth-tabs">
+        <div
+          className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]"
+          data-testid="auth-tabs"
+          role="tablist"
+          aria-label={t('auth.tabsLabel')}
+          onKeyDown={onAuthTabKeyDown}
+        >
           <button
+            id="auth-tab-signin"
             type="button"
+            role="tab"
+            aria-selected={tab === 'signIn'}
+            aria-controls="auth-panel-signin"
+            tabIndex={tab === 'signIn' ? 0 : -1}
             className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'signIn' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
             onClick={() => { setTab('signIn'); setError(''); setRegisterStep('form'); }}
           >
             {t('auth.signIn')}
           </button>
           <button
+            id="auth-tab-register"
             type="button"
+            role="tab"
+            aria-selected={tab === 'register'}
+            aria-controls="auth-panel-register"
+            tabIndex={tab === 'register' ? 0 : -1}
             className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'register' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
             onClick={() => { setTab('register'); setError(''); }}
           >
@@ -206,10 +225,39 @@ export function LoginPage() {
         </div>
 
         {tab === 'signIn' ? (
-          <form onSubmit={loginForm.handleSubmit(onLogin)} className="w-full min-w-0 space-y-4" data-testid="login-form">
-            <div className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]">
-              <button type="button" className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(true)}>{t('auth.email')}</button>
-              <button type="button" className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${!isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(false)}>{t('auth.phone')}</button>
+          <form
+            id="auth-panel-signin"
+            role="tabpanel"
+            aria-labelledby="auth-tab-signin"
+            onSubmit={loginForm.handleSubmit(onLogin)}
+            className="w-full min-w-0 space-y-4"
+            data-testid="login-form"
+          >
+            <div
+              className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]"
+              role="tablist"
+              aria-label={t('auth.signInMethodLabel')}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isEmail}
+                tabIndex={isEmail ? 0 : -1}
+                className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`}
+                onClick={() => setIsEmail(true)}
+              >
+                {t('auth.email')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!isEmail}
+                tabIndex={!isEmail ? 0 : -1}
+                className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${!isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`}
+                onClick={() => setIsEmail(false)}
+              >
+                {t('auth.phone')}
+              </button>
             </div>
 
             <div className="space-y-2">
@@ -245,7 +293,9 @@ export function LoginPage() {
 
             <Button type="submit" className="w-full max-w-full" size="lg" loading={loading}>{t('auth.signIn')}</Button>
           </form>
-        ) : registerStep === 'otp' ? (
+        ) : (
+          <div id="auth-panel-register" role="tabpanel" aria-labelledby="auth-tab-register">
+            {registerStep === 'otp' ? (
           <form onSubmit={otpForm.handleSubmit(onVerifyOtp)} className="space-y-4" data-testid="register-otp-form">
             <p className="text-sm text-text-secondary text-center">
               {t('auth.verifyOtpDesc', { contact: contact.email || contact.phone })}
@@ -315,6 +365,8 @@ export function LoginPage() {
             {error && <p className="text-sm text-danger">{error}</p>}
             <Button type="submit" className="w-full" size="lg" loading={loading}>{t('auth.register')}</Button>
           </form>
+            )}
+          </div>
         )}
 
         <div className="relative">

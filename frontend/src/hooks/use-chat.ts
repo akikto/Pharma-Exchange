@@ -1,6 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { connectSocket, getSocket } from '@/lib/socket';
 import type { Message } from '@/types';
+
+function appendUniqueMessage(prev: Message[], msg: Message): Message[] {
+  return prev.some((m) => m.id === msg.id) ? prev : [...prev, msg];
+}
 
 export function useChatSocket(conversationId: string | undefined, onMessage: (msg: Message) => void) {
   const onMessageRef = useRef(onMessage);
@@ -9,17 +14,45 @@ export function useChatSocket(conversationId: string | undefined, onMessage: (ms
   useEffect(() => {
     if (!conversationId) return;
     const socket = connectSocket();
-    socket.emit('join:conversation', conversationId);
+    let active = true;
+
+    const joinConversation = () => {
+      socket.emit('join:conversation', conversationId, (ack?: { ok?: boolean }) => {
+        if (!active || ack?.ok === false) return;
+      });
+    };
+
+    if (socket.connected) joinConversation();
+    else socket.once('connect', joinConversation);
 
     const handler = (msg: Message) => onMessageRef.current(msg);
     socket.on('message:new', handler);
 
     return () => {
+      active = false;
+      socket.off('connect', joinConversation);
       socket.emit('leave:conversation', conversationId);
       socket.off('message:new', handler);
     };
   }, [conversationId]);
 }
+
+export function useChatListSocket() {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const socket = connectSocket();
+    const handler = () => {
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+    };
+    socket.on('message:new', handler);
+    return () => {
+      socket.off('message:new', handler);
+    };
+  }, [qc]);
+}
+
+export { appendUniqueMessage };
 
 export function useTypingIndicator(conversationId: string | undefined) {
   const socket = getSocket();
