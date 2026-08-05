@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
+import { collectCartIssues, validateCartQuantity } from './cart.validation';
 
 export class CartService {
   async getCart(userId: string) {
@@ -24,20 +25,31 @@ export class CartService {
     }, {});
 
     const validItems = items.filter((item) => item.listing?.id && item.listing?.pharmacy?.id);
+    const validationIssues = collectCartIssues(validItems);
 
-    return { items: validItems, groupedBySeller };
+    return { items: validItems, groupedBySeller, validationIssues };
   }
 
   async addItem(userId: string, listingId: string, quantity: number) {
-    const listing = await prisma.listing.findUnique({ where: { id: listingId } });
-    if (!listing || listing.status !== 'ACTIVE') throw AppError.notFound('Listing not available');
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+      include: { medicine: { select: { name: true } } },
+    });
+    if (!listing) throw AppError.notFound('Listing not available');
 
     const buyerPharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
     if (buyerPharmacy && listing.pharmacyId === buyerPharmacy.id) {
-      throw AppError.badRequest('Cannot add your own listings to cart');
+      throw AppError.badRequest('Cannot add your own listings to cart', { code: 'SELF_PURCHASE' });
     }
-    if (quantity < listing.moq) throw AppError.badRequest(`Minimum order quantity is ${listing.moq}`);
-    if (quantity > listing.availableQty) throw AppError.badRequest('Insufficient stock');
+
+    const issue = validateCartQuantity(listing, quantity);
+    if (issue) {
+      throw AppError.badRequest(issue.message, {
+        code: issue.code,
+        moq: issue.moq,
+        availableQty: issue.availableQty,
+      });
+    }
 
     return prisma.cartItem.upsert({
       where: { userId_listingId: { userId, listingId } },
@@ -50,12 +62,18 @@ export class CartService {
   async updateQuantity(userId: string, cartItemId: string, quantity: number) {
     const existing = await prisma.cartItem.findFirst({
       where: { id: cartItemId, userId },
-      include: { listing: true },
+      include: { listing: { include: { medicine: { select: { name: true } } } } },
     });
     if (!existing) throw AppError.notFound('Cart item not found');
-    if (quantity < existing.listing.moq) throw AppError.badRequest(`Minimum order quantity is ${existing.listing.moq}`);
-    if (existing.listing.status !== 'ACTIVE') throw AppError.badRequest('Listing is no longer available');
-    if (quantity > existing.listing.availableQty) throw AppError.badRequest('Insufficient stock');
+
+    const issue = validateCartQuantity(existing.listing, quantity);
+    if (issue) {
+      throw AppError.badRequest(issue.message, {
+        code: issue.code,
+        moq: issue.moq,
+        availableQty: issue.availableQty,
+      });
+    }
 
     return prisma.cartItem.update({
       where: { id: cartItemId },

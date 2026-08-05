@@ -366,7 +366,9 @@
     "sellerGroups_other": "{{count}} sellers",
     "quantityUpdated": "Quantity updated",
     "quantityFor": "Quantity for {{name}}",
-    "chatUnavailable": "Seller contact is not available"
+    "chatUnavailable": "Seller contact is not available",
+    "validationError": "Fix cart issues before checkout",
+    "moqHint": "MOQ {{count}}"
   },
   "hub": {
     "title": "Cart & Orders",
