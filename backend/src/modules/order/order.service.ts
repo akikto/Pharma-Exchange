@@ -1,9 +1,11 @@
-import { NotificationType, OrderStatus } from '@prisma/client';
+import { NotificationType, OrderStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { notificationService } from '../notification';
 import { chatSystemService } from '../chat/chatSystem.service';
+import { paymentsService } from '../payments/payments.service';
+import { logger } from '../../shared/utils/logger';
 
 const SELLER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.CONFIRMED]: [OrderStatus.PACKED, OrderStatus.CANCELLED],
@@ -73,6 +75,10 @@ export class OrderService {
       throw AppError.badRequest(`Cannot transition from ${order.status} to ${status}`);
     }
 
+    if (status === OrderStatus.CANCELLED) {
+      await this.coordinatePaymentOnCancel(order, sellerUserId, 'USER', note);
+    }
+
     return prisma.$transaction(async (tx) => {
       const updated = await tx.order.update({
         where: { id: orderId },
@@ -114,6 +120,8 @@ export class OrderService {
     });
     if (!order) throw AppError.badRequest('Order cannot be cancelled');
 
+    await this.coordinatePaymentOnCancel(order, buyerId, 'USER', reason);
+
     const updated = await prisma.$transaction(async (tx) => {
       const result = await tx.order.update({
         where: { id: orderId },
@@ -143,6 +151,32 @@ export class OrderService {
     }
 
     return updated;
+  }
+
+  private async coordinatePaymentOnCancel(
+    order: { id: string; buyerId: string; paymentStatus: PaymentStatus },
+    actorUserId: string,
+    actorRole: string,
+    reason?: string,
+  ) {
+    if (order.paymentStatus === PaymentStatus.PENDING) {
+      try {
+        await paymentsService.cancelOutstandingForOrder(order.id);
+      } catch (err) {
+        logger.warn(`Failed to cancel outstanding payment for order ${order.id}: ${(err as Error).message}`);
+      }
+      return;
+    }
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      try {
+        await paymentsService.refund(actorUserId, actorRole, order.id, {
+          reason: reason ?? 'order_cancelled',
+        });
+      } catch (err) {
+        logger.warn(`Failed to refund paid order ${order.id} on cancel: ${(err as Error).message}`);
+        throw err;
+      }
+    }
   }
 
   private async restoreInventory(

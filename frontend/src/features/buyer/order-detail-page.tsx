@@ -9,7 +9,14 @@ import { StatusStepper } from '@/components/orders/status-stepper';
 import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
 import { TrackingDialog } from '@/components/orders/tracking-dialog';
 import { PayWithRazorpayButton } from '@/components/payments/pay-with-razorpay-button';
-import { useOrder, useAddToCart, useStartConversation } from '@/hooks/use-api';
+import { PaymentUnavailableNotice } from '@/components/payments/payment-unavailable-notice';
+import { PaymentStatusChip } from '@/components/payments/payment-status-chip';
+import { PaymentHistoryPanel } from '@/components/payments/payment-history-panel';
+import { CancelPaymentButton } from '@/components/payments/cancel-payment-button';
+import { RefundPaymentButton } from '@/components/payments/refund-payment-button';
+import { useOrder, useAddToCart, useStartConversation, useOrderPayments } from '@/hooks/use-api';
+import { usePaymentConfig } from '@/hooks/use-payment-config';
+import { canCancelPaymentAttempt, canRequestRefund } from '@/lib/payment-utils';
 import { usePageRole } from '@/hooks/use-page-role';
 import { apiClient } from '@/lib/api';
 import { ORDER_FLOW_STEPS, canTrackOrder } from '@/lib/order-utils';
@@ -29,6 +36,9 @@ export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const role = usePageRole();
   const { data: order, isLoading, isError } = useOrder(id);
+  const { data: paymentConfig } = usePaymentConfig();
+  const { data: orderPayments, isLoading: paymentsLoading } = useOrderPayments(id);
+  const paymentsEnabled = paymentConfig?.enabled ?? false;
   const addToCart = useAddToCart();
   const startChat = useStartConversation();
   const qc = useQueryClient();
@@ -37,6 +47,11 @@ export function OrderDetailPage() {
   const [loading, setLoading] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [trackOpen, setTrackOpen] = useState(false);
+
+  const refreshOrder = () => {
+    qc.invalidateQueries({ queryKey: ['order', id] });
+    qc.invalidateQueries({ queryKey: ['order-payments', id] });
+  };
 
   const stepLabels = {
     CREATED: t('orders.steps.created'),
@@ -64,7 +79,7 @@ export function OrderDetailPage() {
     setLoading(true);
     try {
       await apiClient.post(`/orders/${id}/cancel`, { reason: t('orders.cancelledByBuyer') });
-      qc.invalidateQueries({ queryKey: ['order', id] });
+      refreshOrder();
       toast({ description: t('orders.cancelled') });
     } catch (e) {
       toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });
@@ -121,11 +136,14 @@ export function OrderDetailPage() {
     <div className="pb-8">
       <TopBar title={order.orderNumber} showBack />
       <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <StatusChip
-            label={order.status}
-            variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}
-          />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusChip
+              label={order.status}
+              variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}
+            />
+            <PaymentStatusChip status={order.paymentStatus} />
+          </div>
           <span className="font-bold tabular-nums">{formatPrice(order.totalAmount)}</span>
         </div>
 
@@ -169,14 +187,32 @@ export function OrderDetailPage() {
           </Button>
         </div>
 
+        <PaymentHistoryPanel payments={orderPayments ?? []} loading={paymentsLoading} />
+
         {role === 'buyer' && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && (
-          <PayWithRazorpayButton
+          paymentsEnabled ? (
+            <PayWithRazorpayButton
+              orderId={order.id}
+              orderNumber={order.orderNumber}
+              buyer={order.buyer as { firstName?: string; lastName?: string; email?: string; phone?: string } | undefined}
+              className="w-full"
+              onSuccess={refreshOrder}
+            />
+          ) : (
+            <PaymentUnavailableNotice />
+          )
+        )}
+
+        {role === 'buyer' && canCancelPaymentAttempt(order.paymentStatus, order.status) && paymentsEnabled && (
+          <CancelPaymentButton orderId={order.id} className="w-full" onSuccess={refreshOrder} />
+        )}
+
+        {canRequestRefund(order.paymentStatus, order.status, role) && paymentsEnabled && (
+          <RefundPaymentButton
             orderId={order.id}
-            orderNumber={order.orderNumber}
-            buyer={order.buyer as { firstName?: string; lastName?: string; email?: string; phone?: string } | undefined}
+            orderTotal={Number(order.totalAmount)}
             className="w-full"
-            label={t('orders.payNow', { defaultValue: 'Pay now' })}
-            onSuccess={() => qc.invalidateQueries({ queryKey: ['order', id] })}
+            onSuccess={refreshOrder}
           />
         )}
 
@@ -203,6 +239,7 @@ export function OrderDetailPage() {
       <OrderReceiptDialog
         order={order}
         counterpartyLabel={counterparty}
+        payments={orderPayments}
         open={receiptOpen}
         onClose={() => setReceiptOpen(false)}
       />

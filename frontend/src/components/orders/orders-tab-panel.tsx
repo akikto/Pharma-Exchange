@@ -5,6 +5,7 @@ import { Search, MapPin, Receipt, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
+import { PaymentStatusChip } from '@/components/payments/payment-status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
@@ -112,12 +113,15 @@ export function OrdersTabPanel() {
           {filtered.map((order) => (
             <div key={order.id} className="rounded-[var(--radius-md)] border border-border-subtle p-3 space-y-2">
               <Link to={`${orderBasePath}/${order.id}`} className="block">
-                <div className="flex justify-between items-start gap-2">
+                <div className="flex justify-between items-start gap-2 flex-wrap">
                   <span className="font-medium text-sm">{order.orderNumber}</span>
-                  <StatusChip
-                    label={order.status}
-                    variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}
-                  />
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <StatusChip
+                      label={order.status}
+                      variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}
+                    />
+                    <PaymentStatusChip status={order.paymentStatus} />
+                  </div>
                 </div>
                 <p className="text-sm text-text-secondary mt-1">
                   {counterparty(order)} · {formatPrice(order.totalAmount)}

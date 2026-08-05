@@ -75,4 +75,12 @@ describe('order-utils', () => {
     expect(text).toContain('ORD-001');
     expect(text).toContain('Napa');
   });
+
+  it('includes payment provider ids in receipt when provided', () => {
+    const text = buildOrderReceiptText(baseOrder({}), 'City Pharmacy', [
+      { status: 'CAPTURED', providerOrderId: 'order_abc', providerPaymentId: 'pay_xyz' },
+    ]);
+    expect(text).toContain('order_abc');
+    expect(text).toContain('pay_xyz');
+  });
 });

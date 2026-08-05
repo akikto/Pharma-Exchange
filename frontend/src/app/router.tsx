@@ -38,6 +38,7 @@ const loadAdmin = () => import('@/features/admin/admin-dashboard-page');
 const AdminDashboardPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminDashboardPage })));
 const AdminVerificationsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminVerificationsPage })));
 const AdminReportsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminReportsPage })));
+const AdminPaymentsPage = lazy(() => import('@/features/admin/admin-payments-page').then(m => ({ default: m.AdminPaymentsPage })));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/privacy-policy-page').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsAndConditionsPage = lazy(() => import('@/features/legal/terms-and-conditions-page').then(m => ({ default: m.TermsAndConditionsPage })));
 
@@ -120,6 +121,7 @@ export function AppRouter() {
             <Route index element={<AdminDashboardPage />} />
             <Route path="verifications" element={<AdminVerificationsPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
+            <Route path="payments" element={<AdminPaymentsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/splash" replace />} />
         </Routes>

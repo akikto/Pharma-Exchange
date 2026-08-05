@@ -34,6 +34,24 @@ export interface RefundResult {
   status: 'PENDING' | 'PROCESSED' | 'FAILED';
 }
 
+export interface OrderPaymentRecord {
+  id: string;
+  status: string;
+  amount: number | string;
+  currency: string;
+  providerOrderId: string;
+  providerPaymentId?: string | null;
+  method?: string | null;
+  capturedAt?: string | null;
+  createdAt: string;
+  refunds?: Array<{
+    id: string;
+    status: string;
+    amount: number | string;
+    providerRefundId: string;
+  }>;
+}
+
 export const paymentsApi = {
   createOrder: (orderId: string) =>
     apiClient.post<CreatePaymentOrderResult>('/payments/create-order', { orderId }),
@@ -46,4 +64,7 @@ export const paymentsApi = {
 
   refund: (orderId: string, body: { amount?: number; reason?: string }) =>
     apiClient.post<RefundResult>(`/payments/${orderId}/refund`, body),
+
+  listForOrder: (orderId: string) =>
+    apiClient.get<{ data: OrderPaymentRecord[] }>(`/payments/order/${orderId}`),
 };

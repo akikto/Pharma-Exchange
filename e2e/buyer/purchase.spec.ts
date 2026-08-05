@@ -15,7 +15,9 @@ test.describe('Buyer purchase flow', () => {
     await expect(page).toHaveURL(/\/medicine\//, { timeout: 15_000 });
 
     // Seed listings use MOQ 10; detail page defaults quantity to 1.
-    await page.locator('.fixed.bottom-16 .border button').nth(1).click({ clickCount: 9 });
+    // Minus clamps quantity up to MOQ when below it.
+    await page.locator('.fixed.bottom-16 .border button').first().click();
+    await expect(page.locator('.fixed.bottom-16 .border span').first()).toHaveText('10');
 
     await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).first().click();
     await page.getByTestId('nav-bottom-cart').click();
