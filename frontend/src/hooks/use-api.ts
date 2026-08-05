@@ -2,12 +2,17 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
+import type { CartItemIssue } from '@/lib/cart-validation';
 import type { CartItem, PaginatedResponse, Order, BuyRequest, Notification, SellerAnalytics, Listing, Medicine } from '@/types';
 
 export function useCart() {
   return useQuery({
     queryKey: ['cart'],
-    queryFn: () => apiClient.get<{ items: CartItem[]; groupedBySeller: Record<string, CartItem[]> }>('/cart'),
+    queryFn: () => apiClient.get<{
+      items: CartItem[];
+      groupedBySeller: Record<string, CartItem[]>;
+      validationIssues?: CartItemIssue[];
+    }>('/cart'),
   });
 }
 

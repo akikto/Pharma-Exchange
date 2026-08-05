@@ -12,6 +12,7 @@ import type { CartItem } from '@/types';
 interface SellerCartGroupProps {
   sellerId: string;
   items: CartItem[];
+  itemIssues?: Record<string, string>;
   note: string;
   onNoteChange: (note: string) => void;
   onQuantityChange: (cartItemId: string, quantity: number) => void;
@@ -24,6 +25,7 @@ interface SellerCartGroupProps {
 
 export function SellerCartGroup({
   items,
+  itemIssues = {},
   note,
   onNoteChange,
   onQuantityChange,
@@ -82,6 +84,9 @@ export function SellerCartGroup({
                 <p className="text-xs text-text-secondary tabular-nums">
                   {formatPrice(Number(item.listing.finalPrice))} × {item.quantity} = {formatPrice(Number(item.listing.finalPrice) * item.quantity)}
                 </p>
+                {itemIssues[item.id] && (
+                  <p className="text-xs text-danger mt-0.5">{itemIssues[item.id]}</p>
+                )}
               </div>
               <QuantityStepper
                 value={item.quantity}
@@ -115,7 +120,12 @@ export function SellerCartGroup({
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium tabular-nums text-sm">{t('cart.subtotal', { amount: formatPrice(subtotal) })}</span>
-              <Button size="sm" loading={sending} onClick={onSendBuyRequest}>
+              <Button
+                size="sm"
+                loading={sending}
+                disabled={items.some((item) => Boolean(itemIssues[item.id]))}
+                onClick={onSendBuyRequest}
+              >
                 {t('cart.sendBuyRequest')} →
               </Button>
             </div>

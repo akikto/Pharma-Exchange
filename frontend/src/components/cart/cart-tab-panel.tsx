@@ -6,6 +6,12 @@ import { SellerCartGroup } from '@/components/cart/seller-cart-group';
 import { useCart, useRemoveFromCart, useStartConversation, useUpdateCartItem } from '@/hooks/use-api';
 import { apiClient } from '@/lib/api';
 import { cartGrandTotal } from '@/lib/cart-utils';
+import {
+  formatCartIssueMessage,
+  findCartItemIssue,
+  validateSellerCartGroup,
+  type CartItemIssue,
+} from '@/lib/cart-validation';
 import { formatPrice } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -26,9 +32,18 @@ export function CartTabPanel() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const grouped = data?.groupedBySeller ?? {};
+  const serverIssues: CartItemIssue[] = data?.validationIssues ?? [];
 
   const sendBuyRequest = async (sellerId: string, items: CartItem[]) => {
     setError('');
+    const clientIssues = validateSellerCartGroup(items);
+    if (clientIssues.length > 0) {
+      const message = formatCartIssueMessage(clientIssues[0]);
+      setError(message);
+      toast({ title: t('toast.error'), description: message, variant: 'destructive' });
+      return;
+    }
+
     setSending(sellerId);
     try {
       const result = await apiClient.post<{ id: string }>('/buy-requests', {
@@ -43,7 +58,9 @@ export function CartTabPanel() {
       toast({ description: t('toast.buyRequestSent') });
       navigate(`/buy-requests/${result.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      const message = (e as Error).message;
+      setError(message);
+      toast({ title: t('toast.error'), description: message, variant: 'destructive' });
     } finally {
       setSending(null);
     }
@@ -89,6 +106,15 @@ export function CartTabPanel() {
           key={sellerId}
           sellerId={sellerId}
           items={grouped[sellerId]}
+          itemIssues={Object.fromEntries(
+            grouped[sellerId]
+              .map((item) => {
+                const issue = findCartItemIssue(serverIssues, item.id)
+                  ?? validateSellerCartGroup([item])[0];
+                return issue ? [item.id, formatCartIssueMessage(issue)] as const : null;
+              })
+              .filter((entry): entry is [string, string] => entry !== null),
+          )}
           note={notes[sellerId] ?? ''}
           onNoteChange={(note) => setNotes((prev) => ({ ...prev, [sellerId]: note }))}
           onQuantityChange={(cartItemId, quantity) => {

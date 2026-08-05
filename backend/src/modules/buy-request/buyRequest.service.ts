@@ -5,6 +5,7 @@ import { generateOrderNumber, generateRequestNumber, parsePagination } from '../
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { notificationService } from '../notification';
 import { chatSystemService } from '../chat/chatSystem.service';
+import { validateCartQuantity } from '../cart/cart.validation';
 
 export class BuyRequestService {
   async list(userId: string, role: string, status?: BuyRequestStatus, page = 1, limit = 20) {
@@ -70,8 +71,16 @@ export class BuyRequestService {
     let totalAmount = 0;
     const lineItems = items.map((item) => {
       const listing = listings.find((l) => l.id === item.listingId)!;
-      if (item.quantity < listing.moq) throw AppError.badRequest(`MOQ for listing is ${listing.moq}`);
-      if (item.quantity > listing.availableQty) throw AppError.badRequest('Insufficient stock');
+      const issue = validateCartQuantity(listing, item.quantity);
+      if (issue) {
+        const label = listing.medicine?.name ? `${listing.medicine.name}: ` : '';
+        throw AppError.badRequest(`${label}${issue.message}`, {
+          code: issue.code,
+          listingId: listing.id,
+          moq: issue.moq,
+          availableQty: issue.availableQty,
+        });
+      }
       const subtotal = Number(listing.finalPrice) * item.quantity;
       totalAmount += subtotal;
       return { listingId: item.listingId, quantity: item.quantity, unitPrice: listing.finalPrice, subtotal, listing };
