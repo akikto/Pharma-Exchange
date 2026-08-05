@@ -10,8 +10,9 @@ test.describe('Seller order lifecycle', () => {
 
   test('seller can view orders list', async ({ page }) => {
     await page.goto('/seller/orders');
-    await expect(page).toHaveURL('/seller/orders');
-    await expect(page.getByRole('button', { name: /সব|all/i }).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page).toHaveURL('/seller/orders', { timeout: 15_000 });
+    await expect(page.getByPlaceholder(/search orders|অর্ডার খুঁজ/i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('button', { name: /সব|all/i }).first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('seller analytics links to seller order routes', async ({ page }) => {

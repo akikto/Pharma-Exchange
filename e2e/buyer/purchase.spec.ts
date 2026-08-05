@@ -12,8 +12,9 @@ test.describe('Buyer purchase flow', () => {
     const listing = page.locator('[data-testid^="listing-card-"]').first();
     await expect(listing).toBeVisible({ timeout: 20_000 });
     await listing.locator('a').first().click();
+    await expect(page).toHaveURL(/\/medicine\//, { timeout: 15_000 });
 
-    await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).click();
+    await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).first().click();
     await expect(page.getByText(/কার্টে যোগ হয়েছে|added to cart/i)).toBeVisible({ timeout: 10_000 });
 
     await page.goto('/cart');

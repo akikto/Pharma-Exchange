@@ -33,7 +33,7 @@ export async function login(page: Page, email: string, password: string) {
   await page.getByTestId('login-form').locator('button[type="submit"]').click();
   await page.getByTestId('auth-welcome-card').waitFor({ timeout: 20_000 });
   await page.getByTestId('auth-welcome-card').getByRole('button').click();
-  await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
+  await waitForAuthenticatedApp(page);
 }
 
 export async function loginBuyer(page: Page) {
