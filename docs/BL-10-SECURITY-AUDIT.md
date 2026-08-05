@@ -1,7 +1,7 @@
 # BL-10 · Dependency Security Audit
 
 **Sprint:** 8  
-**Branch:** `feature/bl-10-security-audit-51d7`
+**Branch:** `cursor/bl-10-security-audit-51d7`
 
 ---
 
