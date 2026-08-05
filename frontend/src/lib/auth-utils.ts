@@ -14,8 +14,3 @@ export function getPostLoginRoute(user: User | null | undefined, mode: AppMode):
   if (mode === 'seller' && isApprovedSeller(user)) return '/seller';
   return '/';
 }
-
-/** @deprecated Use getPostLoginRoute with user context */
-export function getAppHomeRoute(mode: AppMode): string {
-  return mode === 'seller' ? '/seller' : '/';
-}
