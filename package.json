@@ -23,11 +23,24 @@
     "test:frontend": "npm run test --workspace=frontend",
     "smoke": "bash scripts/smoke-test.sh",
     "lint": "npm run lint --workspaces --if-present",
+    "audit:ci": "npm audit --audit-level=critical --omit=dev",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
-    "@playwright/test": "^1.51.0"
+    "@playwright/test": "^1.62.1"
+  },
+  "overrides": {
+    "uuid": "^11.1.1",
+    "gaxios": {
+      "uuid": "^11.1.1"
+    },
+    "teeny-request": {
+      "uuid": "^11.1.1"
+    },
+    "smol-toml": "^1.6.1",
+    "js-yaml": "^4.2.1",
+    "minimatch": "^10.2.3"
   },
   "engines": {
     "node": ">=20"

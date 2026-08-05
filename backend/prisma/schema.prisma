@@ -170,7 +170,6 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   pharmacy          Pharmacy?
-  otpTokens         OtpToken[]
   refreshTokens     RefreshToken[]
   fcmTokens         FcmToken[]
   cartItems         CartItem[]
@@ -204,23 +203,6 @@ model FcmToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-}
-
-model OtpToken {
-  id        String   @id @default(uuid())
-  userId    String?
-  phone     String?
-  email     String?
-  code      String
-  purpose   String   // "registration", "login", "password_reset"
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([phone, code])
-  @@index([email, code])
 }
 
 model RefreshToken {
