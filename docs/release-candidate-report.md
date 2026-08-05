@@ -181,8 +181,8 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/pharma_exchange?schem
 | Field | Value |
 |-------|-------|
 | Branch | `feature/release-candidate-v1.0.1-rc1` |
-| Commit SHA | `73f7bfd` (HEAD) |
-| PR URL | *(see PR after push)* |
+| Commit SHA | `195b443` |
+| PR URL | https://github.com/akikto/Pharma-Exchange/pull/72 |
 
 ---
 
