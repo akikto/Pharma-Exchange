@@ -1,19 +1,40 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TopBar } from '@/components/layout/top-bar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export function AdminDashboardPage() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastBody, setBroadcastBody] = useState('');
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'dashboard'],
     queryFn: () => apiClient.get<{
       gmv: number; activePharmacies: number; pendingVerifications: number;
       openReports: number; totalOrders: number; activeListings: number;
     }>('/admin/dashboard'),
+  });
+
+  const broadcast = useMutation({
+    mutationFn: () => apiClient.post<{ sent: number; total: number }>('/admin/notifications/broadcast', {
+      title: broadcastTitle.trim(),
+      body: broadcastBody.trim(),
+    }),
+    onSuccess: (result) => {
+      toast({ title: t('admin.broadcastSent'), description: t('admin.broadcastSentDesc', { count: result.sent }) });
+      setBroadcastTitle('');
+      setBroadcastBody('');
+    },
+    onError: () => toast({ title: t('admin.broadcastFailed'), variant: 'destructive' }),
   });
 
   if (isLoading) return <div className="p-4"><ListSkeleton count={4} /></div>;
@@ -37,6 +58,33 @@ export function AdminDashboardPage() {
           <Link to="/admin/verifications"><Button>Verification Queue</Button></Link>
           <Link to="/admin/reports"><Button variant="secondary">Reports</Button></Link>
         </div>
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div>
+              <p className="font-medium text-sm">{t('admin.broadcastTitle')}</p>
+              <p className="text-xs text-text-secondary">{t('admin.broadcastDesc')}</p>
+            </div>
+            <Input
+              placeholder={t('admin.broadcastTitlePlaceholder')}
+              value={broadcastTitle}
+              onChange={(e) => setBroadcastTitle(e.target.value)}
+              maxLength={200}
+            />
+            <textarea
+              className="w-full min-h-[80px] rounded-[var(--radius-md)] border border-border-subtle px-3 py-2 text-sm bg-surface-base"
+              placeholder={t('admin.broadcastBodyPlaceholder')}
+              value={broadcastBody}
+              onChange={(e) => setBroadcastBody(e.target.value)}
+              maxLength={1000}
+            />
+            <Button
+              disabled={!broadcastTitle.trim() || !broadcastBody.trim() || broadcast.isPending}
+              onClick={() => broadcast.mutate()}
+            >
+              {t('admin.broadcastSend')}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

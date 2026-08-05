@@ -416,7 +416,10 @@ export class PaymentsService {
   }
 
   private async markFailedByProvider(providerOrderId: string, entity: Record<string, unknown>) {
-    const payment = await prisma.payment.findUnique({ where: { providerOrderId } });
+    const payment = await prisma.payment.findUnique({
+      where: { providerOrderId },
+      include: { order: { select: { orderNumber: true, buyerId: true } } },
+    });
     if (!payment) return;
     if (payment.status === PaymentAttemptStatus.CAPTURED) return;
     await prisma.payment.update({
@@ -428,6 +431,14 @@ export class PaymentsService {
         errorCode: entity.error_code ? String(entity.error_code) : undefined,
         errorDescription: entity.error_description ? String(entity.error_description) : undefined,
       },
+    });
+
+    await notificationService.create({
+      userId: payment.order.buyerId,
+      type: NotificationType.ORDER_UPDATE,
+      title: 'Payment failed',
+      body: `Payment for order ${payment.order.orderNumber} could not be completed.`,
+      data: { orderId: payment.orderId, paymentId: payment.id, paymentStatus: 'FAILED' },
     });
   }
 
@@ -473,7 +484,10 @@ export class PaymentsService {
     }
 
     if (refund.status === RefundStatus.PROCESSED) {
-      const payment = await prisma.payment.findUnique({ where: { id: refund.paymentId } });
+      const payment = await prisma.payment.findUnique({
+        where: { id: refund.paymentId },
+        include: { order: { select: { orderNumber: true, buyerId: true } } },
+      });
       if (!payment) return;
       const totalRefunded = await prisma.refund.aggregate({
         where: { paymentId: payment.id, status: RefundStatus.PROCESSED },
@@ -493,6 +507,14 @@ export class PaymentsService {
           }),
         ]);
       }
+
+      await notificationService.create({
+        userId: payment.order.buyerId,
+        type: NotificationType.ORDER_UPDATE,
+        title: 'Refund processed',
+        body: `A refund for order ${payment.order.orderNumber} has been processed.`,
+        data: { orderId: payment.orderId, paymentId: payment.id, refundId: refund.id },
+      });
     }
   }
 

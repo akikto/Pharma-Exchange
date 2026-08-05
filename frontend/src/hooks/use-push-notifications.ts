@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { isPushConfigured } from '@/lib/firebase';
@@ -8,6 +9,7 @@ import {
   requestNotificationPermission,
   subscribeToForegroundPush,
 } from '@/lib/push-notifications';
+import { getNotificationRoute } from '@/lib/notification-routes';
 import { dismissPushPrompt, isPushPromptDismissed } from '@/lib/push-device';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,6 +17,7 @@ export function usePushNotifications() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoading = useAuthStore((s) => s.isLoading);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [permission, setPermission] = useState(getNotificationPermission());
   const [showPrompt, setShowPrompt] = useState(false);
@@ -31,8 +34,13 @@ export function usePushNotifications() {
     void subscribeToForegroundPush((payload) => {
       const title = payload.notification?.title ?? payload.data?.title;
       const body = payload.notification?.body ?? payload.data?.body;
+      const route = getNotificationRoute(payload.data);
       if (title || body) {
-        toast({ title, description: body });
+        toast({
+          title,
+          description: body,
+          onClick: route ? () => navigate(route) : undefined,
+        });
       }
       void qc.invalidateQueries({ queryKey: ['notifications'] });
     }).then((unsub) => {
@@ -40,7 +48,7 @@ export function usePushNotifications() {
     });
 
     return () => unsubscribe?.();
-  }, [isAuthenticated, isLoading, qc, toast]);
+  }, [isAuthenticated, isLoading, navigate, qc, toast]);
 
   useEffect(() => {
     if (!isAuthenticated || !isPushConfigured() || isPushPromptDismissed()) {

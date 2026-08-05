@@ -683,7 +683,15 @@
     "approve": "Approve",
     "reject": "Reject",
     "noPending": "No pending verifications",
-    "noReports": "No open reports"
+    "noReports": "No open reports",
+    "broadcastTitle": "Broadcast notification",
+    "broadcastDesc": "Send a push notification to all users who opted in to promotions.",
+    "broadcastTitlePlaceholder": "Notification title",
+    "broadcastBodyPlaceholder": "Notification message",
+    "broadcastSend": "Send broadcast",
+    "broadcastSent": "Broadcast sent",
+    "broadcastSentDesc": "Delivered to {{count}} users",
+    "broadcastFailed": "Broadcast failed"
   },
   "modal": {
     "watchlistTitle": "Watchlist",

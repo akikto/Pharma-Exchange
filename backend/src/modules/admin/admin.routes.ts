@@ -10,6 +10,8 @@ import { pharmacyService } from '../pharmacy/pharmacy.service';
 import { reportService } from '../report/report.service';
 import { paginationMeta } from '../../shared/utils/helpers';
 import prisma from '../../config/database';
+import { notificationService } from '../notification';
+import { broadcastSchema } from '../notification/notification.validation';
 
 const verifySchema = z.object({
   action: z.enum(['approve', 'reject']),
@@ -67,6 +69,14 @@ class AdminController {
     } catch (err) { next(err); }
   }
 
+  async broadcastNotification(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { title, body, userIds, data } = req.body;
+      const result = await notificationService.broadcast({ title, body, userIds, data });
+      res.json({ message: 'Broadcast sent', ...result });
+    } catch (err) { next(err); }
+  }
+
   async users(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { page = '1', limit = '20', q } = req.query;
@@ -109,5 +119,6 @@ adminRouter.post('/verifications/:id', validate(verifySchema), adminCtrl.verifyP
 adminRouter.get('/reports', adminCtrl.reports.bind(adminCtrl));
 adminRouter.post('/reports/:id/resolve', validate(resolveSchema), adminCtrl.resolveReport.bind(adminCtrl));
 adminRouter.get('/users', adminCtrl.users.bind(adminCtrl));
+adminRouter.post('/notifications/broadcast', validate(broadcastSchema), adminCtrl.broadcastNotification.bind(adminCtrl));
 
 export { analyticsRouter, adminRouter };
