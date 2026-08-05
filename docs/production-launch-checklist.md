@@ -111,12 +111,12 @@ API_BASE=https://<backend-host> npm run smoke
 | Helmet security headers | ✅ | `backend/src/app.ts` |
 | Firebase optional / validated | ✅ | `isFirebaseConfigured()` |
 | No committed secrets (`.env` gitignored) | ✅ | `.gitignore` |
-| `npm audit` (22 vulns: 11 high, 11 moderate) | ⚠️ | [security-audit.md](./security-audit.md) |
+| `npm audit` production (`--omit=dev`) | ⚠️ Accepted risks | [BL-10-SECURITY-AUDIT.md](./BL-10-SECURITY-AUDIT.md) — 10 findings (8 moderate, 2 high FP); `npm run audit:ci` gates new highs |
 
 **Pre-launch actions:**
 - [ ] Set strong production `JWT_SECRET` (not dev default)
 - [ ] Set explicit `CORS_ORIGIN` (not `*`)
-- [ ] Run `npm audit fix` where safe; upgrade `@vercel/node`, `react-router`, `playwright`
+- [ ] Compare `npm audit --omit=dev` output to [BL-10 accepted-risk table](./BL-10-SECURITY-AUDIT.md)
 - [ ] Remove demo accounts / rotate seed passwords on production DB
 
 ---
@@ -187,8 +187,8 @@ See [performance-audit.md](./performance-audit.md) for bundle sizes, Lighthouse 
 | BL-04 | Privacy Policy URL missing | Publish legal pages; link in app + Play Console |
 | BL-05 | Terms & Conditions URL missing | Publish and link |
 | BL-06 | Firebase prod config not validated | Set all `VITE_FIREBASE_*` + backend service account |
-| BL-07 | `npm audit` high vulnerabilities | Dependency upgrades (see security audit) |
-| BL-08 | E2E suite must pass in CI | Add Playwright to GitHub Actions with rate-limit env |
+| BL-07 | `npm audit` production highs | ✅ **Mitigated** — BL-10 upgrades + `audit:ci` gate; residual highs documented (react-router FP). See [BL-10-SECURITY-AUDIT.md](./BL-10-SECURITY-AUDIT.md) |
+| BL-08 | E2E suite must pass in CI | ✅ **Resolved** — BL-09 Playwright in GitHub Actions |
 
 ---
 

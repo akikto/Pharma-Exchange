@@ -23,7 +23,7 @@
     "test:frontend": "npm run test --workspace=frontend",
     "smoke": "bash scripts/smoke-test.sh",
     "lint": "npm run lint --workspaces --if-present",
-    "audit:ci": "npm audit --audit-level=critical --omit=dev",
+    "audit:ci": "node scripts/audit-ci.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
@@ -38,9 +38,21 @@
     "teeny-request": {
       "uuid": "^11.1.1"
     },
-    "smol-toml": "^1.6.1",
+    "smol-toml": "1.6.1",
     "js-yaml": "^4.2.1",
-    "minimatch": "^10.2.3"
+    "minimatch": "^10.2.3",
+    "@vercel/node": {
+      "@vercel/python-analysis": {
+        "smol-toml": "1.6.1",
+        "js-yaml": "^4.2.1",
+        "minimatch": "^10.2.3"
+      }
+    },
+    "@vercel/python-analysis": {
+      "smol-toml": "1.6.1",
+      "js-yaml": "^4.2.1",
+      "minimatch": "^10.2.3"
+    }
   },
   "engines": {
     "node": ">=20"

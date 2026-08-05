@@ -137,10 +137,11 @@ npx vitest run --pool=forks --poolOptions.forks.singleFork
 
 ## Migration notes
 
-- The `OtpToken` model in `prisma/schema.prisma` is retained for legacy rows
-  but is no longer written to. It can be dropped in a future migration.
-- The `generateOtp()` helper in `shared/utils/helpers.ts` is retained (no
-  runtime callers) and is safe to remove during a general cleanup sprint.
+- The legacy `OtpToken` Prisma model and database table were **removed in BL-10**
+  (migration `20260805140000_drop_otp_token`). OTP delivery is handled entirely
+  by MSG91; no local OTP rows are stored.
+- The `generateOtp()` helper in `shared/utils/helpers.ts` is retained as a
+  generic utility (unit-tested); it is not tied to database OTP storage.
 - Any client still POSTing `email` to `/auth/send-otp` now gets a
   `VALIDATION_ERROR`. Password reset via email uses `/auth/reset-password`
   and does not require an OTP in the current implementation.
