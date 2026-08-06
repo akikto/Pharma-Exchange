@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { assertProductionCorsConfig } from './cors';
+import { assertProductionPasswordResetConfig } from './password-reset-url';
 
 const booleanFromEnv = z.preprocess((value) => {
   if (typeof value === 'boolean') return value;
@@ -54,6 +55,7 @@ function loadEnv(): Env {
       throw new Error('JWT_SECRET must be at least 32 characters in production');
     }
     assertProductionCorsConfig(env.NODE_ENV, env.CORS_ORIGIN);
+    assertProductionPasswordResetConfig(env.NODE_ENV, env.PASSWORD_RESET_URL_BASE, env.CORS_ORIGIN);
     if (!/^postgres(?:ql)?:\/\//.test(env.DATABASE_URL)) {
       throw new Error('DATABASE_URL must use the postgresql:// scheme');
     }
