@@ -41,6 +41,24 @@ router.post('/firebase', authRateLimiter, validate(firebaseAuthSchema), authCont
 
 router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
 router.post('/resend-otp', otpRateLimiter, validate(resendOtpSchema), authController.resendOtp.bind(authController));
+/**
+ * @openapi
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Reset password with verified MSG91 OTP (no JWT issued)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phone, code, newPassword]
+ *             properties:
+ *               phone: { type: string }
+ *               code: { type: string }
+ *               newPassword: { type: string, minLength: 8 }
+ */
 router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authController.verifyOtp.bind(authController));
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));

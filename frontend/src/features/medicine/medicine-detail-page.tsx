@@ -24,6 +24,7 @@ import { useToggleWatchlist, useIsWatched } from '@/hooks/use-watchlist';
 import { useToast } from '@/hooks/use-toast';
 import { isRenderableListing } from '@/lib/catalog-groups';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
+import { getListingPharmacyId } from '@/lib/listing-utils';
 
 import type { Listing } from '@/types';
 
@@ -73,7 +74,7 @@ export function MedicineDetailPage() {
         finalPrice: Number(listing.finalPrice),
         moq: listing.moq,
         availableQty: listing.availableQty,
-        sellerId: listing.pharmacy.userId ?? listing.pharmacy.id,
+        sellerId: getListingPharmacyId(listing),
       },
     });
   };

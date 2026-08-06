@@ -9,6 +9,12 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-surface-raised flex edge-to-edge">
+      <a
+        href="#admin-main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[var(--radius-md)] focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
+      >
+        {t('a11y.skipToContent')}
+      </a>
       <aside className="hidden md:flex md:flex-col md:w-56 lg:w-60 shrink-0 border-r border-border-subtle bg-surface-base sticky top-0 h-screen py-6 px-4">
         <Link to="/admin" className="px-3 mb-6">
           <Logo size="sm" />
@@ -24,12 +30,14 @@ export function AdminLayout() {
         </Link>
       </aside>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col">
         <header className="md:hidden sticky top-0 z-40 border-b border-border-subtle bg-surface-base px-4 h-14 flex items-center gap-3">
           <Logo size="sm" />
           <span className="font-semibold text-sm">{t('admin.dashboard')}</span>
         </header>
-        <Outlet />
+        <main id="admin-main-content" className="flex-1" tabIndex={-1}>
+          <Outlet />
+        </main>
       </div>
     </div>
   );

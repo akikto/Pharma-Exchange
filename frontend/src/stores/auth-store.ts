@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, AppMode } from '@/types';
-import { disconnectSocket } from '@/lib/socket';
+import { disconnectSocket, connectSocket } from '@/lib/socket';
 import { apiClient, setTokens, clearTokens, loadRefreshToken } from '@/lib/api';
 import { unregisterFcmTokenFromBackend } from '@/lib/push-notifications';
 import { isApprovedSeller, isAdminUser } from '@/lib/auth-utils';
@@ -17,10 +17,10 @@ interface AuthState {
   demoLogin: () => Promise<{ isDemo?: boolean }>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
   register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ requiresOtpVerification?: boolean; otpRequestId?: string; message?: string; accessToken?: string; refreshToken?: string; user?: User }>;
-  sendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
+  sendOtp: (data: { phone: string; purpose?: 'login' | 'password_reset' }) => Promise<{ requestId?: string; message?: string }>;
   resendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
   verifyOtp: (data: { phone: string; code: string; purpose: string }) => Promise<void>;
-  resetPassword: (email: string, newPassword: string) => Promise<void>;
+  resetPassword: (phone: string, code: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setMode: (mode: AppMode, options?: { userSet?: boolean }) => void;
@@ -46,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/login', body);
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+        connectSocket();
         get().applyPostLoginMode();
       },
 
@@ -53,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User; isDemo?: boolean }>('/auth/demo-login', {});
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+        connectSocket();
         await get().fetchProfile();
         get().applyPostLoginMode();
         return { isDemo: data.isDemo };
@@ -62,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/firebase', { idToken, firstName, lastName });
         setTokens(data.accessToken, data.refreshToken);
         set({ user: data.user, isAuthenticated: true });
+        connectSocket();
         get().applyPostLoginMode();
       },
 
@@ -77,13 +80,17 @@ export const useAuthStore = create<AuthState>()(
         if (result.accessToken && result.refreshToken && result.user) {
           setTokens(result.accessToken, result.refreshToken);
           set({ user: result.user, isAuthenticated: true });
+          connectSocket();
           get().applyPostLoginMode();
         }
         return result;
       },
 
       sendOtp: async (data) => {
-        return apiClient.post<{ requestId?: string; message?: string }>('/auth/send-otp', { ...data, purpose: 'login' });
+        return apiClient.post<{ requestId?: string; message?: string }>('/auth/send-otp', {
+          phone: data.phone,
+          purpose: data.purpose ?? 'login',
+        });
       },
 
       resendOtp: async (data) => {
@@ -94,16 +101,14 @@ export const useAuthStore = create<AuthState>()(
         const result = await apiClient.post<{ accessToken?: string; refreshToken?: string; user?: User }>('/auth/verify-otp', data);
         if (result.accessToken && result.refreshToken) {
           setTokens(result.accessToken, result.refreshToken);
+          connectSocket();
           await get().fetchProfile();
           get().applyPostLoginMode();
         }
       },
 
-      resetPassword: async (email, newPassword) => {
-        const data = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/reset-password', { email, newPassword });
-        setTokens(data.accessToken, data.refreshToken);
-        set({ user: data.user, isAuthenticated: true });
-        get().applyPostLoginMode();
+      resetPassword: async (phone, code, newPassword) => {
+        await apiClient.post<{ message: string }>('/auth/reset-password', { phone, code, newPassword });
       },
 
       logout: async () => {
@@ -147,6 +152,7 @@ export const useAuthStore = create<AuthState>()(
           try {
             const data = await apiClient.post<{ accessToken: string; refreshToken: string }>('/auth/refresh', { refreshToken: token });
             setTokens(data.accessToken, data.refreshToken);
+            connectSocket();
             await get().fetchProfile();
           } catch {
             clearTokens();

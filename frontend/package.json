@@ -10,6 +10,7 @@
     "fcm-sw": "node scripts/generate-fcm-sw.mjs",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:a11y": "vitest run tests/a11y.test.tsx",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"
   },
@@ -45,18 +46,21 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@tailwindcss/vite": "^4.0.14",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "axe-core": "^4.13.0",
     "jsdom": "^26.0.0",
     "sharp": "^0.35.3",
     "tailwindcss": "^4.0.14",
     "typescript": "^5.8.2",
     "vite": "^6.2.3",
     "vite-plugin-pwa": "^0.21.1",
-    "vitest": "^3.0.9"
+    "vitest": "^3.0.9",
+    "vitest-axe": "^0.1.0"
   }
 }

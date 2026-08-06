@@ -24,7 +24,12 @@
     "reports": "রিপোর্ট",
     "reportsSub": "Reports",
     "payments": "পেমেন্ট",
-    "paymentsSub": "Payments"
+    "paymentsSub": "Payments",
+    "desktopNavigation": "ডেস্কটপ নেভিগেশন",
+    "mobileNavigation": "মোবাইল নেভিগেশন"
+  },
+  "a11y": {
+    "skipToContent": "মূল বিষয়বস্তুতে যান"
   },
   "common": {
     "appName": "Pharma Exchange",
@@ -102,6 +107,8 @@
     "newPharmacy": "নতুন ফার্মেসি?",
     "createAccount": "অ্যাকাউন্ট তৈরি করুন",
     "createAccountSub": "Create account",
+    "tabsLabel": "প্রমাণীকরণ মোড",
+    "signInMethodLabel": "লগইন পদ্ধতি",
     "register": "নিবন্ধন",
     "registerSub": "Register",
     "firstName": "নামের প্রথম অংশ",
@@ -146,7 +153,9 @@
     "otpFailed": "OTP যাচাই ব্যর্থ",
     "otpLength": "৬ অঙ্কের কোড দিন",
     "resetPasswordTitle": "পাসওয়ার্ড রিসেট",
-    "resetPasswordDesc": "ইমেইল দিন এবং নতুন পাসওয়ার্ড সেট করুন",
+    "resetPasswordDesc": "ফোনে OTP যাচাই করে নতুন পাসওয়ার্ড সেট করুন",
+    "sendResetOtp": "রিসেট কোড পাঠান",
+    "phoneNotFound": "এই নম্বরে কোনো অ্যাকাউন্ট পাওয়া যায়নি।",
     "newPassword": "নতুন পাসওয়ার্ড",
     "updatePassword": "পাসওয়ার্ড আপডেট করুন",
     "backToLogin": "লগইনে ফিরে যান",
@@ -373,6 +382,7 @@
   "hub": {
     "title": "কার্ট ও অর্ডার",
     "titleSub": "Cart & Orders",
+    "tabsLabel": "কার্ট হাব বিভাগ",
     "tabs": {
       "cart": "কার্ট",
       "orders": "অর্ডার",
@@ -743,6 +753,8 @@
     "required": "এই ক্ষেত্রটি আবশ্যক",
     "passwordMin": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে",
     "email": "সঠিক ইমেইল দিন",
+    "phone": "সঠিক ফোন নম্বর দিন",
+    "otp": "সঠিক OTP কোড দিন",
     "emailOrPhone": "ইমেইল বা ফোন আবশ্যক",
     "quantityMin": "পরিমাণ কমপক্ষে {{min}} হতে হবে",
     "quantityMax": "পরিমাণ সর্বোচ্চ {{max}}"

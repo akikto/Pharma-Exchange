@@ -170,6 +170,11 @@ describe('Chat API', () => {
     expect(accept.status).toBe(200);
     orderId = accept.body.order.id;
 
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: 'PAID' },
+    });
+
     const convList = await request(app)
       .get(`/api/v1/chat/conversations?orderId=${orderId}`)
       .set('Authorization', `Bearer ${buyerToken}`);

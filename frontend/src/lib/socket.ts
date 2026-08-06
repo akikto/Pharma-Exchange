@@ -17,8 +17,11 @@ export function getSocket(): Socket {
 }
 
 export function connectSocket() {
+  const token = getAccessToken();
   const s = getSocket();
-  if (!s.connected) s.connect();
+  if (!token) return s;
+  if (s.connected) return s;
+  s.connect();
   return s;
 }
 

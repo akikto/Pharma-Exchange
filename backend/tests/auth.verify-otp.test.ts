@@ -74,4 +74,14 @@ describe('POST /api/v1/auth/verify-otp', () => {
     expect(res.status).toBe(400);
     expect(res.body.code).toBe('VALIDATION_ERROR');
   });
+
+  it('rejects password_reset purpose on verify-otp endpoint', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/verify-otp')
+      .send({ phone: '+8801712345678', code: '123456', purpose: 'password_reset' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('USE_RESET_PASSWORD_ENDPOINT');
+    expect(res.body.accessToken).toBeUndefined();
+  });
 });

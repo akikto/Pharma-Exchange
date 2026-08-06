@@ -40,7 +40,8 @@ export const refreshTokenSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  email: z.string().email(),
+  phone: z.string().min(8, 'Phone is required').max(20),
+  code: z.string().regex(/^\d{4,9}$/, 'OTP must be numeric'),
   newPassword: z.string().min(8),
 });
 
