@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import prisma from '../../config/database';
@@ -6,28 +7,26 @@ import { verifyFirebaseToken } from '../../config/firebase';
 import { AppError } from '../../shared/errors/AppError';
 import { signAccessToken, signRefreshToken } from '../../shared/middleware/auth.middleware';
 import {
-  Msg91ConfigError,
-  Msg91Error,
-  msg91,
-  normalizeBangladeshPhone,
-} from '../../shared/services/msg91.service';
+  EmailConfigError,
+  EmailDeliveryError,
+  isEmailConfigured,
+  sendPasswordResetEmail,
+} from '../../shared/services/email.service';
 
-function mapMsg91Error(err: unknown): AppError {
-  if (err instanceof Msg91ConfigError) {
-    return AppError.badRequest('SMS OTP provider is not configured');
-  }
-  if (err instanceof Msg91Error) {
-    if (err.code === 'OTP_PROVIDER_RATE_LIMIT') {
-      return new AppError(429, 'Too many OTP requests. Please try again later.', 'RATE_LIMIT_EXCEEDED');
-    }
-    if (err.code === 'OTP_PROVIDER_UNAVAILABLE') {
-      return new AppError(503, 'OTP provider unavailable. Please try again shortly.', 'OTP_PROVIDER_UNAVAILABLE');
-    }
-    return new AppError(502, 'OTP provider request failed', 'OTP_PROVIDER_ERROR');
-  }
-  const code = (err as { code?: string })?.code;
-  if (code === 'INVALID_PHONE') return AppError.badRequest('Invalid Bangladesh mobile number');
-  return AppError.internal('Unexpected OTP error');
+const PASSWORD_RESET_TTL_MS = 15 * 60 * 1000;
+const GENERIC_RESET_MESSAGE =
+  'If an account exists with this email, a password reset link has been sent.';
+
+function hashResetToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function getPasswordResetBaseUrl(): string {
+  const configured = env.PASSWORD_RESET_URL_BASE?.trim();
+  if (configured) return configured.replace(/\/$/, '');
+  const corsOrigin = env.CORS_ORIGIN.split(',')[0]?.trim();
+  if (corsOrigin && corsOrigin !== '*') return corsOrigin.replace(/\/$/, '');
+  return 'http://localhost:5173';
 }
 
 export class AuthService {
@@ -50,7 +49,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, 12);
     const user = await prisma.user.create({
       data: {
-        email: data.email,
+        email: data.email?.trim().toLowerCase(),
         phone: data.phone,
         passwordHash,
         firstName: data.firstName,
@@ -59,76 +58,74 @@ export class AuthService {
       },
     });
 
-    // Phone-based registration must verify OTP before tokens are issued.
-    if (data.phone) {
-      try {
-        const { requestId } = await msg91.sendOtp(data.phone);
-        return {
-          user: {
-            id: user.id,
-            email: user.email,
-            phone: user.phone,
-            firstName: user.firstName,
-            lastName: user.lastName,
-          },
-          requiresOtpVerification: true,
-          otpRequestId: requestId,
-          message: 'Registration successful. Please verify the OTP sent to your phone.',
-        };
-      } catch (err) {
-        throw mapMsg91Error(err);
-      }
-    }
-
-    // Email-only registration: issue tokens immediately (email verification is
-    // a separate flow, out of scope for BL-01).
     return this.issueTokens(user);
   }
 
-  async sendOtp(data: { phone: string; purpose: 'login' | 'password_reset' }) {
-    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
-    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
-      ?? await prisma.user.findUnique({ where: { phone: data.phone } });
-    if (!user) throw AppError.notFound('No account found with this phone number');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+  async forgotPassword(data: { email: string }) {
+    const email = data.email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email } });
 
-    try {
-      const { requestId } = await msg91.sendOtp(data.phone);
-      return { message: 'OTP sent', requestId };
-    } catch (err) {
-      throw mapMsg91Error(err);
+    if (user?.isActive && user.email) {
+      if (!isEmailConfigured()) {
+        throw new AppError(503, 'Email service is not configured', 'EMAIL_NOT_CONFIGURED');
+      }
+
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = hashResetToken(rawToken);
+      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+
+      await prisma.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } });
+      await prisma.passwordResetToken.create({
+        data: { userId: user.id, tokenHash, expiresAt },
+      });
+
+      const resetUrl = `${getPasswordResetBaseUrl()}/reset-password?token=${rawToken}`;
+      try {
+        await sendPasswordResetEmail(user.email, resetUrl);
+      } catch (err) {
+        await prisma.passwordResetToken.deleteMany({ where: { userId: user.id, tokenHash } });
+        if (err instanceof EmailConfigError) {
+          throw new AppError(503, 'Email service is not configured', 'EMAIL_NOT_CONFIGURED');
+        }
+        if (err instanceof EmailDeliveryError) {
+          throw new AppError(502, 'Failed to send password reset email', 'EMAIL_DELIVERY_FAILED');
+        }
+        throw err;
+      }
     }
+
+    return { message: GENERIC_RESET_MESSAGE };
   }
 
-  async resendOtp(data: { phone: string }) {
-    try {
-      const { requestId } = await msg91.resendOtp(data.phone);
-      return { message: 'OTP resent', requestId };
-    } catch (err) {
-      throw mapMsg91Error(err);
-    }
-  }
+  async resetPassword(data: { token: string; newPassword: string }) {
+    const tokenHash = hashResetToken(data.token.trim());
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      include: { user: true },
+    });
 
-  async resetPassword(data: { phone: string; code: string; newPassword: string }) {
-    let verified: boolean;
-    try {
-      verified = await msg91.verifyOtp(data.phone, data.code);
-    } catch (err) {
-      throw mapMsg91Error(err);
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      throw AppError.badRequest('Invalid or expired reset token');
     }
-    if (!verified) throw AppError.badRequest('Invalid or expired OTP');
-
-    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
-    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
-      ?? await prisma.user.findFirst({ where: { phone: data.phone } });
-    if (!user) throw AppError.notFound('No account found for this phone');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+    if (!record.user.isActive) throw AppError.forbidden('Account is deactivated');
+    if (!record.user.passwordHash && !record.user.email) {
+      throw AppError.badRequest('Password reset is not available for this account');
+    }
 
     const passwordHash = await bcrypt.hash(data.newPassword, 12);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash },
-    });
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { passwordHash },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: record.id },
+        data: { usedAt: new Date() },
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: { userId: record.userId, id: { not: record.id }, usedAt: null },
+      }),
+    ]);
 
     return { message: 'Password updated successfully. Please sign in with your new password.' };
   }
@@ -199,36 +196,6 @@ export class AuthService {
     }
 
     if (!user.isActive) throw AppError.forbidden('Account is deactivated');
-    return this.issueTokens(user);
-  }
-
-  async verifyOtp(data: { phone: string; code: string; purpose: 'registration' | 'login' | 'password_reset' }) {
-    if (data.purpose === 'password_reset') {
-      throw new AppError(
-        400,
-        'Use POST /auth/reset-password with your OTP and new password',
-        'USE_RESET_PASSWORD_ENDPOINT',
-      );
-    }
-
-    let verified: boolean;
-    try {
-      verified = await msg91.verifyOtp(data.phone, data.code);
-    } catch (err) {
-      throw mapMsg91Error(err);
-    }
-    if (!verified) throw AppError.badRequest('Invalid or expired OTP');
-
-    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
-    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
-      ?? await prisma.user.findFirst({ where: { phone: data.phone } });
-    if (!user) throw AppError.notFound('No account found for this phone');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
-
-    if (data.purpose === 'registration' && user.authProvider !== 'phone') {
-      throw AppError.badRequest('OTP registration verification is only for phone sign-ups');
-    }
-
     return this.issueTokens(user);
   }
 
@@ -344,14 +311,6 @@ export class AuthService {
         role: user.role,
       },
     };
-  }
-}
-
-function normalizeBangladeshPhoneSafe(phone: string): string {
-  try {
-    return normalizeBangladeshPhone(phone);
-  } catch {
-    return phone;
   }
 }
 

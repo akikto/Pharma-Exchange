@@ -50,7 +50,7 @@ Base URL: `/api/v1`
 
 | Module | Endpoints |
 |--------|-----------|
-| **Auth** | `POST /auth/register`, `/login`, `/firebase`, `/verify-otp`, `/refresh`, `/logout`, `GET /me`, `POST /fcm-token` |
+| **Auth** | `POST /auth/register`, `/login`, `/firebase`, `/forgot-password`, `/reset-password`, `/refresh`, `/logout`, `GET /me`, `POST /fcm-token` |
 | **Pharmacies** | `POST /pharmacies/register`, `/documents`, `GET /me`, `/:id` |
 | **Medicines** | `GET /medicines`, `POST /`, `PATCH /:id` |
 | **Listings** | `GET /listings/search`, `/inventory`, `POST /`, `PATCH /:id`, `/price`, `/quantity`, `/pause`, `/activate` |

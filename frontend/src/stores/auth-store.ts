@@ -16,11 +16,9 @@ interface AuthState {
   login: (emailOrPhone: string, password: string, isEmail: boolean) => Promise<void>;
   demoLogin: () => Promise<{ isDemo?: boolean }>;
   loginWithFirebase: (idToken: string, firstName?: string, lastName?: string) => Promise<void>;
-  register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<{ requiresOtpVerification?: boolean; otpRequestId?: string; message?: string; accessToken?: string; refreshToken?: string; user?: User }>;
-  sendOtp: (data: { phone: string; purpose?: 'login' | 'password_reset' }) => Promise<{ requestId?: string; message?: string }>;
-  resendOtp: (data: { phone: string }) => Promise<{ requestId?: string; message?: string }>;
-  verifyOtp: (data: { phone: string; code: string; purpose: string }) => Promise<void>;
-  resetPassword: (phone: string, code: string, newPassword: string) => Promise<void>;
+  register: (data: { email?: string; phone?: string; password: string; firstName: string; lastName: string }) => Promise<void>;
+  forgotPassword: (email: string) => Promise<{ message: string }>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setMode: (mode: AppMode, options?: { userSet?: boolean }) => void;
@@ -69,46 +67,19 @@ export const useAuthStore = create<AuthState>()(
       },
 
       register: async (data) => {
-        const result = await apiClient.post<{
-          requiresOtpVerification?: boolean;
-          otpRequestId?: string;
-          message?: string;
-          accessToken?: string;
-          refreshToken?: string;
-          user?: User;
-        }>('/auth/register', data);
-        if (result.accessToken && result.refreshToken && result.user) {
-          setTokens(result.accessToken, result.refreshToken);
-          set({ user: result.user, isAuthenticated: true });
-          connectSocket();
-          get().applyPostLoginMode();
-        }
-        return result;
+        const result = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/register', data);
+        setTokens(result.accessToken, result.refreshToken);
+        set({ user: result.user, isAuthenticated: true });
+        connectSocket();
+        get().applyPostLoginMode();
       },
 
-      sendOtp: async (data) => {
-        return apiClient.post<{ requestId?: string; message?: string }>('/auth/send-otp', {
-          phone: data.phone,
-          purpose: data.purpose ?? 'login',
-        });
+      forgotPassword: async (email) => {
+        return apiClient.post<{ message: string }>('/auth/forgot-password', { email });
       },
 
-      resendOtp: async (data) => {
-        return apiClient.post<{ requestId?: string; message?: string }>('/auth/resend-otp', data);
-      },
-
-      verifyOtp: async (data) => {
-        const result = await apiClient.post<{ accessToken?: string; refreshToken?: string; user?: User }>('/auth/verify-otp', data);
-        if (result.accessToken && result.refreshToken) {
-          setTokens(result.accessToken, result.refreshToken);
-          connectSocket();
-          await get().fetchProfile();
-          get().applyPostLoginMode();
-        }
-      },
-
-      resetPassword: async (phone, code, newPassword) => {
-        await apiClient.post<{ message: string }>('/auth/reset-password', { phone, code, newPassword });
+      resetPassword: async (token, newPassword) => {
+        await apiClient.post<{ message: string }>('/auth/reset-password', { token, newPassword });
       },
 
       logout: async () => {

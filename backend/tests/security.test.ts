@@ -6,11 +6,6 @@ describe('helpers', () => {
   it('formatPrice via computeFinalPrice', () => {
     expect(computeFinalPrice(150, 20)).toBe(120);
   });
-
-  it('generateOtp returns 6 digits', async () => {
-    const { generateOtp } = await import('../src/shared/utils/helpers');
-    expect(generateOtp()).toMatch(/^\d{6}$/);
-  });
 });
 
 describe('AppError', () => {

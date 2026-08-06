@@ -41,14 +41,3 @@ export const authRateLimiter = rateLimit({
     'Too many auth attempts',
   ),
 });
-
-export const otpRateLimiter = rateLimit({
-  ...baseOptions,
-  windowMs: 60 * 1000,
-  max: 5,
-  skip: () => isTestEnv,
-  message: rateLimitMessage(
-    'অনেকবার OTP চেয়েছেন। ১ মিনিট পর আবার চেষ্টা করুন।',
-    'Too many OTP requests',
-  ),
-});

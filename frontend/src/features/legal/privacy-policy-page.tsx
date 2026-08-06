@@ -73,12 +73,12 @@ export function PrivacyPolicyPage() {
             not receive your Google password.
           </p>
         </SubSection>
-        <SubSection title="2.6 SMS OTP">
+        <SubSection title="2.6 Password reset email">
           <p>
-            One-time codes are sent by <strong>MSG91</strong> to the phone
-            number you provide. MSG91 handles OTP generation, delivery, and
-            verification. We store only that a request was made, not the OTP
-            code itself.
+            When you request a password reset, we send a one-time link to your
+            email address using our SMTP mail provider (e.g. Gmail). We store
+            only a hashed token and expiry time — not the link itself or your
+            email password.
           </p>
         </SubSection>
         <SubSection title="2.7 Device and technical data">
@@ -142,8 +142,8 @@ export function PrivacyPolicyPage() {
             infrastructure.
           </li>
           <li>
-            <strong>MSG91</strong> stores OTP delivery logs for the retention
-            period required by TRAI / regional telecom regulations.
+            <strong>Email (SMTP)</strong> delivers password-reset messages;
+            message metadata is retained per your mail provider's policy.
           </li>
         </ul>
       </Section>

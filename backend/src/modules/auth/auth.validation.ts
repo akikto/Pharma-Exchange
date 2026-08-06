@@ -20,29 +20,17 @@ export const firebaseAuthSchema = z.object({
   lastName: z.string().optional(),
 });
 
-export const otpVerifySchema = z.object({
-  phone: z.string().min(8, 'Phone is required').max(20),
-  code: z.string().regex(/^\d{4,9}$/, 'OTP must be numeric'),
-  purpose: z.enum(['registration', 'login', 'password_reset']).default('login'),
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
 });
 
-export const sendOtpSchema = z.object({
-  phone: z.string().min(8, 'Phone is required').max(20),
-  purpose: z.enum(['login', 'password_reset']).default('login'),
-});
-
-export const resendOtpSchema = z.object({
-  phone: z.string().min(8, 'Phone is required').max(20),
+export const resetPasswordSchema = z.object({
+  token: z.string().min(32),
+  newPassword: z.string().min(8),
 });
 
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1),
-});
-
-export const resetPasswordSchema = z.object({
-  phone: z.string().min(8, 'Phone is required').max(20),
-  code: z.string().regex(/^\d{4,9}$/, 'OTP must be numeric'),
-  newPassword: z.string().min(8),
 });
 
 export const fcmTokenSchema = z.object({

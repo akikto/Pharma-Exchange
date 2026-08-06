@@ -6,10 +6,7 @@ export class AuthController {
   async register(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.register(req.body);
-      const message = 'accessToken' in result
-        ? 'Registration successful'
-        : 'Registration successful. Please verify OTP.';
-      res.status(201).json({ message, ...result });
+      res.status(201).json({ message: 'Registration successful', ...result });
     } catch (err) { next(err); }
   }
 
@@ -35,23 +32,9 @@ export class AuthController {
     } catch (err) { next(err); }
   }
 
-  async verifyOtp(req: AuthRequest, res: Response, next: NextFunction) {
+  async forgotPassword(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const result = await authService.verifyOtp(req.body);
-      res.json(result);
-    } catch (err) { next(err); }
-  }
-
-  async sendOtp(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const result = await authService.sendOtp(req.body);
-      res.json(result);
-    } catch (err) { next(err); }
-  }
-
-  async resendOtp(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const result = await authService.resendOtp(req.body);
+      const result = await authService.forgotPassword(req.body);
       res.json(result);
     } catch (err) { next(err); }
   }

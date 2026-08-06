@@ -8,8 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const SplashPage = lazy(() => import('@/features/auth/splash-page').then(m => ({ default: m.SplashPage })));
 const OnboardingPage = lazy(() => import('@/features/auth/onboarding-page').then(m => ({ default: m.OnboardingPage })));
 const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ default: m.LoginPage })));
-const OtpLoginPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.OtpLoginPage })));
 const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('@/features/auth/reset-password-page').then(m => ({ default: m.ResetPasswordPage })));
 const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
 const SearchPage = lazy(() => import('@/features/home/search-page').then(m => ({ default: m.SearchPage })));
 const loadMedicineDetail = () => import('@/features/medicine/medicine-detail-page');
@@ -82,7 +82,8 @@ export function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/otp" element={<OtpLoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/otp" element={<Navigate to="/login" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
