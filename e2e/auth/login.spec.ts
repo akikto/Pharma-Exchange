@@ -25,10 +25,4 @@ test.describe('Authentication', () => {
     await page.getByTestId('login-form').locator('button[type="submit"]').click();
     await expect(page.getByTestId('login-form').locator('.text-danger')).toBeVisible({ timeout: 10_000 });
   });
-
-  test('OTP login page loads', async ({ page }) => {
-    await page.goto('/otp');
-    await expect(page.getByText('OTP Login')).toBeVisible();
-    await expect(page.getByPlaceholder('+8801XXXXXXXXX')).toBeVisible();
-  });
 });

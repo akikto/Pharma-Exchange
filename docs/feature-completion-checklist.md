@@ -4,7 +4,7 @@
 
 | # | Module | Status | Key Endpoints |
 |---|--------|--------|---------------|
-| 1 | Authentication | ✅ | register, login, firebase, send-otp, verify-otp, refresh, me, fcm-token |
+| 1 | Authentication | ✅ | register, login, firebase, forgot-password, reset-password, refresh, me, fcm-token |
 | 2 | Pharmacy Verification | ✅ | register, documents, me, admin verify |
 | 3 | Medicine Master | ✅ | search, get, create (admin), update (admin) |
 | 4 | Medicine Listings | ✅ | search, inventory, CRUD, price/qty/pause/activate |

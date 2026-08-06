@@ -185,6 +185,7 @@ model User {
   reportsSubmitted  Report[]           @relation("ReportsSubmitted")
   reportsReviewed   Report[]           @relation("ReportsReviewed")
   payments          Payment[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([email])
   @@index([phone])
@@ -215,6 +216,20 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // ─── Pharmacy ────────────────────────────────────────────────────────────────

@@ -29,7 +29,7 @@ describe('PrivacyPolicyPage', () => {
       /Data we collect/i,
       /Payment data/i,       // Razorpay
       /Authentication data/i, // Firebase
-      /SMS OTP/i,             // MSG91
+      /Password reset email/i,
       /Cookies and local storage/i,
       /Device permissions/i,
       /Your rights/i,

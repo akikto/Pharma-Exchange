@@ -252,13 +252,13 @@ npm run build
 | `JWT_REFRESH_EXPIRES_IN` | — | Refresh token expiry (default: `30d`) |
 | `PORT` | — | HTTP server port (default: `3000`) |
 | `NODE_ENV` | — | `development`, `production`, or `test` |
-| `OTP_EXPIRY_MINUTES` | — | OTP validity in minutes (default: `10`, passed to MSG91) |
-| `MSG91_ENABLED` | ✅* | Must be `true` in production to accept phone auth |
-| `MSG91_AUTH_KEY` | ✅* | MSG91 API auth key (see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md)) |
-| `MSG91_SENDER_ID` | ✅* | Approved Bangladesh sender ID |
-| `MSG91_TEMPLATE_ID` | ✅* | Approved OTP template ID (must contain `##OTP##`) |
-| `MSG91_OTP_LENGTH` | — | OTP length, 4–9 (default: `6`) |
-| `MSG91_BASE_URL` | — | Override for staging (default: MSG91 production URL) |
+| `SMTP_HOST` | ✅* | SMTP server hostname (e.g. `smtp.gmail.com`) |
+| `SMTP_PORT` | — | SMTP port (default: `587`) |
+| `SMTP_SECURE` | — | Use TLS (`true` for port 465, default: `false`) |
+| `SMTP_USER` | ✅* | SMTP username / Gmail address |
+| `SMTP_PASS` | ✅* | SMTP password or Gmail app password |
+| `MAIL_FROM` | ✅* | From address for outbound mail |
+| `PASSWORD_RESET_URL_BASE` | — | Frontend base URL for reset links (defaults to first `CORS_ORIGIN`) |
 | `RAZORPAY_ENABLED` | ✅* | Must be `true` in production to accept payments |
 | `RAZORPAY_KEY_ID` | ✅* | Razorpay API key ID (see [docs/BL-02-RAZORPAY.md](docs/BL-02-RAZORPAY.md)) |
 | `RAZORPAY_KEY_SECRET` | ✅* | Razorpay API key secret |
@@ -273,7 +273,7 @@ npm run build
 | `RATE_LIMIT_MAX` | — | Max requests per window (default: `100`) |
 | `LOG_LEVEL` | — | Log level: `error`, `warn`, `info`, `debug` |
 
-*\* Required in production for Firebase Auth, Storage, and FCM.*
+*\* Required in production for password-reset email delivery.*
 
 ## Frontend (`frontend/.env`)
 
@@ -343,7 +343,7 @@ Clean modular architecture: **Routes → Controller → Service → Prisma**
 
 | Module | Path | Key Endpoints |
 |--------|------|---------------|
-| Auth | `/auth` | `POST /register`, `/login`, `/send-otp`, `/verify-otp`, `/firebase`, `/refresh` |
+| Auth | `/auth` | `POST /register`, `/login`, `/forgot-password`, `/reset-password`, `/firebase`, `/refresh` |
 | Pharmacies | `/pharmacies` | `POST /register`, `/documents`, `GET /me`, `GET /:id` |
 | Medicines | `/medicines` | `GET /` (search), `POST /` (admin), `PATCH /:id` |
 | Listings | `/listings` | `GET /search`, `GET /inventory`, `POST /`, `PATCH /:id` |
@@ -377,8 +377,8 @@ Clean modular architecture: **Routes → Controller → Service → Prisma**
 |--------|------|-------------|
 | **Email + Password** | `POST /auth/login` | Standard credential login |
 | **Phone + Password** | `POST /auth/login` | Login with phone number |
-| **Registration + OTP** | `register` → `verify-otp` | Sign up with email/phone verification |
-| **OTP Login** | `send-otp` → `verify-otp` | Passwordless login |
+| **Registration** | `POST /auth/register` | Sign up with email or phone (immediate sign-in) |
+| **Password reset** | `POST /auth/forgot-password` → email link → `POST /auth/reset-password` | Email-based password recovery |
 | **Firebase Auth** | `POST /auth/firebase` | Google, phone, or email via Firebase ID token |
 | **Token Refresh** | `POST /auth/refresh` | Rotate expired access tokens |
 
@@ -431,7 +431,7 @@ cd backend && npx prisma migrate deploy
 
 - [ ] HTTPS on frontend and API
 - [ ] `CORS_ORIGIN` set to production domain
-- [ ] `MSG91_ENABLED=true` with all MSG91 secrets set (see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md))
+- [ ] `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, and `MAIL_FROM` configured for password reset
 - [ ] `RAZORPAY_ENABLED=true` with all Razorpay secrets + webhook configured (see [docs/BL-02-RAZORPAY.md](docs/BL-02-RAZORPAY.md))
 - [ ] Firebase credentials configured
 - [ ] Database migrations applied
@@ -456,7 +456,7 @@ See [`docs/deployment-guide.md`](docs/deployment-guide.md) for the full guide.
 | **CORS** | Configurable allowed origins |
 | **Secure Uploads** | Private Firebase Storage with signed URLs |
 | **Socket Security** | JWT auth + conversation membership checks |
-| **OTP Security** | Delegated to MSG91 (production carrier); no local generation or dev-mode fallback — see [docs/BL-01-MSG91.md](docs/BL-01-MSG91.md) |
+| **Password reset** | Hashed tokens (15 min expiry), generic forgot-password response |
 
 See [`docs/security-report.md`](docs/security-report.md).
 
@@ -569,7 +569,7 @@ MIT License — Copyright (c) 2026 MedLink B2B Contributors
 | Priority | Feature |
 |----------|---------|
 | 🔴 High | E2E tests with Playwright |
-| ✅ Done | SMS OTP delivery via MSG91 ([BL-01](docs/BL-01-MSG91.md)) |
+| ✅ Done | Email password reset via SMTP (Nodemailer) |
 | ✅ Done | Payment gateway (Razorpay) ([BL-02](docs/BL-02-RAZORPAY.md)) |
 | 🟡 Medium | Geo/radius search for nearby pharmacies |
 | 🟡 Medium | Firebase Google login UI |

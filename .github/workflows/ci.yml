@@ -44,13 +44,12 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pharma_exchange?schema=public
       JWT_SECRET: ci-jwt-secret-min-32-characters-long
       RATE_LIMIT_MAX: "10000"
-      # MSG91 is mocked at the fetch layer in tests (see tests/setup.ts) — no real credentials needed.
-      MSG91_ENABLED: "true"
-      MSG91_AUTH_KEY: ci-msg91-auth-key
-      MSG91_SENDER_ID: MEDLNK
-      MSG91_TEMPLATE_ID: ci-msg91-template
-      MSG91_OTP_LENGTH: "6"
-      MSG91_BASE_URL: https://control.msg91.com/api/v5/otp
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: "587"
+      SMTP_SECURE: "false"
+      SMTP_USER: ci-test@gmail.com
+      SMTP_PASS: ci-test-app-password
+      MAIL_FROM: "Pharma Exchange <ci-test@gmail.com>"
       # Razorpay is mocked at the SDK layer in tests — no real creds needed.
       RAZORPAY_ENABLED: "true"
       RAZORPAY_KEY_ID: rzp_test_ci_key
@@ -131,7 +130,12 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pharma_exchange?schema=public
       JWT_SECRET: ci-jwt-secret-min-32-characters-long
       RATE_LIMIT_MAX: "10000"
-      MSG91_ENABLED: "false"
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: "587"
+      SMTP_SECURE: "false"
+      SMTP_USER: ci-test@gmail.com
+      SMTP_PASS: ci-test-app-password
+      MAIL_FROM: "Pharma Exchange <ci-test@gmail.com>"
       RAZORPAY_ENABLED: "false"
       CI: "true"
     steps:
@@ -170,7 +174,12 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pharma_exchange?schema=public
       JWT_SECRET: ci-jwt-secret-min-32-characters-long
       RATE_LIMIT_MAX: "10000"
-      MSG91_ENABLED: "false"
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: "587"
+      SMTP_SECURE: "false"
+      SMTP_USER: ci-test@gmail.com
+      SMTP_PASS: ci-test-app-password
+      MAIL_FROM: "Pharma Exchange <ci-test@gmail.com>"
       RAZORPAY_ENABLED: "false"
       CORS_ORIGIN: http://localhost:5173
     steps:

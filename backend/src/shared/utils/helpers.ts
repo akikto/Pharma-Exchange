@@ -13,12 +13,6 @@ export function paginationMeta(page: number, limit: number, total: number) {
   return { page, limit, total, totalPages: Math.ceil(total / limit) };
 }
 
-import { randomInt } from 'crypto';
-
-export function generateOtp(): string {
-  return randomInt(100000, 999999).toString();
-}
-
 export function generateRequestNumber(): string {
   const year = new Date().getFullYear();
   const seq = Math.floor(Math.random() * 999999).toString().padStart(6, '0');

@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n';
 import { ForgotPasswordPage } from '@/features/auth/forgot-password-page';
 
+const forgotPassword = vi.fn().mockResolvedValue({ message: 'ok' });
+
 vi.mock('@/stores/auth-store', () => ({
   useAuthStore: (selector: (s: Record<string, unknown>) => unknown) => selector({
-    sendOtp: vi.fn(),
-    resendOtp: vi.fn(),
-    resetPassword: vi.fn(),
+    forgotPassword,
   }),
 }));
 
@@ -24,9 +24,21 @@ function renderPage() {
 }
 
 describe('ForgotPasswordPage', () => {
-  it('renders phone-based reset flow', () => {
+  it('renders email-based reset flow', () => {
     renderPage();
-    expect(screen.getByLabelText(/phone|ফোন/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /send reset code|রিসেট কোড/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/email|ইমেইল/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send reset email|রিসেট ইমেইল/i })).toBeInTheDocument();
+  });
+
+  it('submits email and shows success message', async () => {
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText(/email|ইমেইল/i), { target: { value: 'buyer@pharmex.bd' } });
+    fireEvent.click(screen.getByRole('button', { name: /send reset email|রিসেট ইমেইল/i }));
+
+    await waitFor(() => {
+      expect(forgotPassword).toHaveBeenCalledWith('buyer@pharmex.bd');
+    });
+    expect(await screen.findByTestId('forgot-password-sent')).toBeInTheDocument();
   });
 });
