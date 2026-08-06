@@ -258,7 +258,7 @@ npm run build
 | `SMTP_USER` | ✅* | SMTP username / Gmail address |
 | `SMTP_PASS` | ✅* | SMTP password or Gmail app password |
 | `MAIL_FROM` | ✅* | From address for outbound mail |
-| `PASSWORD_RESET_URL_BASE` | — | Frontend base URL for reset links (defaults to first `CORS_ORIGIN`) |
+| `PASSWORD_RESET_URL_BASE` | ✅ | Frontend app URL for reset links (e.g. `https://pharma-exchange-frontend.vercel.app`). Required in production; must not be the backend API URL. |
 | `RAZORPAY_ENABLED` | ✅* | Must be `true` in production to accept payments |
 | `RAZORPAY_KEY_ID` | ✅* | Razorpay API key ID (see [docs/BL-02-RAZORPAY.md](docs/BL-02-RAZORPAY.md)) |
 | `RAZORPAY_KEY_SECRET` | ✅* | Razorpay API key secret |

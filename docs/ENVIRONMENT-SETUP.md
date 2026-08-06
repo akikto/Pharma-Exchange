@@ -35,7 +35,7 @@ missing or malformed. Enforcement lives in `backend/src/config/env.ts`.
 | `FIREBASE_STORAGE_BUCKET` | ✅* | Required for uploads. |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | ✅ | Required in production for password-reset email. |
 | `SMTP_USER` / `SMTP_PASS` / `MAIL_FROM` | ✅ | Gmail SMTP credentials (use an app password). |
-| `PASSWORD_RESET_URL_BASE` | — | Optional frontend base URL for reset links. |
+| `PASSWORD_RESET_URL_BASE` | ✅ | Frontend app URL for reset links (e.g. `https://pharma-exchange-frontend.vercel.app`). Must **not** be the backend API URL. |
 | `RAZORPAY_ENABLED` | ✅ | `true` in prod. |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | ✅ | Boot fails fast if any is missing when `RAZORPAY_ENABLED=true`. |
 | `RAZORPAY_CURRENCY` | — | Default `INR`. Use `USD` for Razorpay International. |

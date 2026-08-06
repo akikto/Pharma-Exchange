@@ -6,6 +6,7 @@ import { env } from '../../config/env';
 import { verifyFirebaseToken } from '../../config/firebase';
 import { AppError } from '../../shared/errors/AppError';
 import { signAccessToken, signRefreshToken } from '../../shared/middleware/auth.middleware';
+import { resolvePasswordResetBaseUrl } from '../../config/password-reset-url';
 import {
   EmailConfigError,
   EmailDeliveryError,
@@ -19,14 +20,6 @@ const GENERIC_RESET_MESSAGE =
 
 function hashResetToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
-}
-
-function getPasswordResetBaseUrl(): string {
-  const configured = env.PASSWORD_RESET_URL_BASE?.trim();
-  if (configured) return configured.replace(/\/$/, '');
-  const corsOrigin = env.CORS_ORIGIN.split(',')[0]?.trim();
-  if (corsOrigin && corsOrigin !== '*') return corsOrigin.replace(/\/$/, '');
-  return 'http://localhost:5173';
 }
 
 export class AuthService {
@@ -79,7 +72,11 @@ export class AuthService {
         data: { userId: user.id, tokenHash, expiresAt },
       });
 
-      const resetUrl = `${getPasswordResetBaseUrl()}/reset-password?token=${rawToken}`;
+      const resetUrl = `${resolvePasswordResetBaseUrl({
+        passwordResetUrlBase: env.PASSWORD_RESET_URL_BASE,
+        corsOrigin: env.CORS_ORIGIN,
+        nodeEnv: env.NODE_ENV,
+      })}/reset-password?token=${rawToken}`;
       try {
         await sendPasswordResetEmail(user.email, resetUrl);
       } catch (err) {
