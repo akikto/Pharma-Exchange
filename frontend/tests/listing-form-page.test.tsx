@@ -65,7 +65,7 @@ function fillRequiredFields() {
   const numberInputs = document.querySelectorAll('input[type="number"]');
   const textInputs = screen.getAllByRole('textbox');
 
-  fireEvent.change(screen.getByPlaceholderText('Type medicine name...'), { target: { value: 'Ace' } });
+  fireEvent.change(screen.getByTestId('medicine-search-input'), { target: { value: 'Ace' } });
   fireEvent.change(textInputs[1], { target: { value: 'Fr12' } });
   fireEvent.change(dateInputs[0], { target: { value: '2025-01-01' } });
   fireEvent.change(dateInputs[1], { target: { value: '2027-12-31' } });
@@ -89,23 +89,38 @@ describe('ListingFormPage', () => {
     });
   });
 
-  it('disables Create Listing when no medicine is selected', () => {
+  it('keeps Create Listing enabled when no medicine is selected', () => {
     renderPage();
-    expect(screen.getByRole('button', { name: /create listing/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /create listing/i })).toBeEnabled();
   });
 
   it('blocks submit when search text is entered without selecting a result', async () => {
+    get.mockImplementation((path: string) => {
+      if (typeof path === 'string' && path.startsWith('/medicines')) {
+        return Promise.resolve({
+          data: [{
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'Ace Plus',
+            company: 'Square',
+          }],
+        });
+      }
+      return Promise.resolve([]);
+    });
+
     renderPage();
     fillRequiredFields();
 
     const submit = screen.getByRole('button', { name: /create listing/i });
-    expect(submit).toBeDisabled();
-
-    fireEvent.submit(submit.closest('form')!);
+    expect(submit).toBeEnabled();
+    fireEvent.click(submit);
 
     await waitFor(() => {
       expect(post).not.toHaveBeenCalled();
       expect(screen.getByTestId('listing-form-error')).toHaveTextContent(MEDICINE_SELECTION_MESSAGE);
+      expect(screen.getByTestId('medicine-search-input')).toHaveFocus();
+      expect(screen.getByTestId('medicine-search-results')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /ace plus/i })).toBeInTheDocument();
     });
   });
 
@@ -132,10 +147,7 @@ describe('ListingFormPage', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /ace plus/i }));
-
-    const submit = screen.getByRole('button', { name: /create listing/i });
-    expect(submit).not.toBeDisabled();
-    fireEvent.click(submit);
+    fireEvent.click(screen.getByRole('button', { name: /create listing/i }));
 
     await waitFor(() => {
       expect(post).toHaveBeenCalledTimes(1);

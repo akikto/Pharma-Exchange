@@ -40,7 +40,9 @@ export function ListingFormPage() {
   const [medicineQuery, setMedicineQuery] = useState('');
   const [error, setError] = useState('');
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [showMedicineResults, setShowMedicineResults] = useState(false);
   const saveDraftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const medicineSearchRef = useRef<HTMLInputElement>(null);
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -116,10 +118,6 @@ export function ListingFormPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!isEdit && !form.medicineId) {
-        throw new Error(t('listing.medicineRequired'));
-      }
-
       const body = {
         medicineId: form.medicineId,
         batchNumber: form.batchNumber,
@@ -143,22 +141,30 @@ export function ListingFormPage() {
     onError: (e) => setError(getErrorMessage(e)),
   });
 
+  const promptMedicineSelection = () => {
+    setError(t('listing.medicineRequired'));
+    setShowMedicineResults(true);
+    medicineSearchRef.current?.focus();
+  };
+
   const handleMedicineQueryChange = (value: string) => {
     setMedicineQuery(value);
     setForm((f) => ({ ...f, medicineId: '', medicineQuery: value }));
     setError('');
+    setShowMedicineResults(value.length >= 2);
   };
 
   const handleMedicineSelect = (medicine: Medicine) => {
     setForm((f) => ({ ...f, medicineId: medicine.id, medicineQuery: medicine.name }));
     setMedicineQuery(medicine.name);
     setError('');
+    setShowMedicineResults(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isEdit && !form.medicineId) {
-      setError(t('listing.medicineRequired'));
+      promptMedicineSelection();
       return;
     }
     setError('');
@@ -169,12 +175,13 @@ export function ListingFormPage() {
     await clearListingDraft();
     setForm(EMPTY_FORM);
     setMedicineQuery('');
+    setShowMedicineResults(false);
   };
 
   if (isEdit && isLoading) return <div className="p-4"><ListSkeleton /></div>;
 
   const hasDraft = !isEdit && draftLoaded && !isListingDraftEmpty({ ...form, medicineQuery, updatedAt: '' });
-  const createDisabled = !isEdit && !form.medicineId;
+  const canShowMedicineResults = !isEdit && medicineQuery.length >= 2 && (showMedicineResults || Boolean(medicines?.data));
 
   return (
     <div>
@@ -193,22 +200,31 @@ export function ListingFormPage() {
           <div>
             <Label>Search Medicine</Label>
             <Input
+              ref={medicineSearchRef}
               value={medicineQuery}
               onChange={(e) => handleMedicineQueryChange(e.target.value)}
               placeholder="Type medicine name..."
+              data-testid="medicine-search-input"
             />
-            {medicines?.data && (
-              <div className="mt-2 border border-border-subtle rounded-[var(--radius-md)] max-h-40 overflow-y-auto">
-                {medicines.data.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    className="w-full text-left p-2 text-sm hover:bg-surface-raised"
-                    onClick={() => handleMedicineSelect(m)}
-                  >
-                    {m.name} — {m.company}
-                  </button>
-                ))}
+            {canShowMedicineResults && (
+              <div
+                className="mt-2 border border-border-subtle rounded-[var(--radius-md)] max-h-40 overflow-y-auto"
+                data-testid="medicine-search-results"
+              >
+                {medicines?.data?.length ? (
+                  medicines.data.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className="w-full text-left p-2 text-sm hover:bg-surface-raised"
+                      onClick={() => handleMedicineSelect(m)}
+                    >
+                      {m.name} — {m.company}
+                    </button>
+                  ))
+                ) : (
+                  <p className="p-2 text-sm text-text-secondary">No medicines found. Try another search.</p>
+                )}
               </div>
             )}
           </div>
@@ -231,12 +247,7 @@ export function ListingFormPage() {
         <div><Label>Low Stock Threshold (optional)</Label><Input type="number" value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })} placeholder="Default: max(MOQ×2, 20)" /></div>
 
         {error && <p className="text-sm text-danger" data-testid="listing-form-error">{error}</p>}
-        <Button
-          type="submit"
-          className="w-full"
-          loading={save.isPending}
-          disabled={createDisabled}
-        >
+        <Button type="submit" className="w-full" loading={save.isPending}>
           {isEdit ? 'Update Listing' : 'Create Listing'}
         </Button>
       </form>
