@@ -51,6 +51,8 @@ export interface Medicine {
   category: string;
   composition?: string;
   imageUrl?: string;
+  isActive?: boolean;
+  scheduleClass?: string | null;
 }
 
 export interface Pharmacy {

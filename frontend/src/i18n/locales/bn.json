@@ -25,6 +25,8 @@
     "reportsSub": "Reports",
     "payments": "পেমেন্ট",
     "paymentsSub": "Payments",
+    "medicines": "মেডিসিন",
+    "medicinesSub": "Medicines",
     "desktopNavigation": "ডেস্কটপ নেভিগেশন",
     "mobileNavigation": "মোবাইল নেভিগেশন"
   },
@@ -737,7 +739,48 @@
     "noReports": "কোনো খোলা রিপোর্ট নেই",
     "payments": "পেমেন্ট",
     "paymentsDesc": "অর্ডার জুড়ে Razorpay পেমেন্ট ও রিফান্ড মিলিয়ে দেখুন।",
-    "paymentsEmpty": "এখনো কোনো পেমেন্ট রেকর্ড নেই"
+    "paymentsEmpty": "এখনো কোনো পেমেন্ট রেকর্ড নেই",
+    "medicines": {
+      "nav": "মেডিসিন",
+      "title": "মেডিসিন ম্যানেজমেন্ট",
+      "description": "তালিকা ও মার্কেটপ্লেস সার্চে ব্যবহৃত মাস্টার ক্যাটালগে ওষুধ খুঁজুন, যোগ করুন এবং আপডেট করুন।",
+      "addButton": "ওষুধ যোগ করুন",
+      "addTitle": "ওষুধ যোগ করুন",
+      "addDesc": "ক্যাটালগে নতুন ওষুধ রেকর্ড তৈরি করুন।",
+      "editTitle": "ওষুধ সম্পাদনা",
+      "editDesc": "বিদ্যমান ওষুধ রেকর্ড আপডেট করুন।",
+      "createAction": "ওষুধ তৈরি করুন",
+      "saveAction": "পরিবর্তন সংরক্ষণ",
+      "editAction": "সম্পাদনা",
+      "actions": "অ্যাকশন",
+      "searchPlaceholder": "নাম, জেনেরিক বা ব্র্যান্ড দিয়ে ওষুধ খুঁজুন...",
+      "empty": "কোনো ওষুধ পাওয়া যায়নি।",
+      "loadError": "ওষুধ লোড করা যায়নি।",
+      "createSuccess": "ওষুধ সফলভাবে তৈরি হয়েছে।",
+      "updateSuccess": "ওষুধ সফলভাবে আপডেট হয়েছে।",
+      "selectDosageForm": "ডোজ ফর্ম নির্বাচন করুন",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "fields": {
+        "name": "নাম",
+        "company": "কোম্পানি",
+        "dosageForm": "ডোজ ফর্ম",
+        "packSize": "প্যাক সাইজ",
+        "category": "ক্যাটাগরি",
+        "genericName": "জেনেরিক নাম",
+        "brandName": "ব্র্যান্ড নাম",
+        "strength": "শক্তি",
+        "scheduleClass": "শিডিউল ক্লাস",
+        "composition": "গঠন",
+        "imageUrl": "ইমেজ URL",
+        "status": "স্ট্যাটাস"
+      },
+      "validation": {
+        "required": "এই ঘরটি আবশ্যক।",
+        "dosageForm": "একটি বৈধ ডোজ ফর্ম নির্বাচন করুন।",
+        "imageUrl": "একটি বৈধ ইমেজ URL দিন।"
+      }
+    }
   },
   "modal": {
     "watchlistTitle": "ওয়াচলিস্ট",
