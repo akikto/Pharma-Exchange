@@ -26,6 +26,7 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
   const pharmacy = useAuthStore((s) => s.user?.pharmacy);
   const updateOrder = useUpdateOrderStatus();
   const respondRequest = useRespondBuyRequest();
+  const pendingAction = respondRequest.isPending ? respondRequest.variables?.action ?? null : null;
 
   const counterparty = conversation.counterparty;
   const name = counterparty ? `${counterparty.firstName} ${counterparty.lastName}`.trim() : t('chat.title');
@@ -58,7 +59,7 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
   };
 
   const handleRequestAction = async (action: 'accept' | 'reject') => {
-    if (!conversation.buyRequest) return;
+    if (!conversation.buyRequest || respondRequest.isPending) return;
     try {
       await respondRequest.mutateAsync({ id: conversation.buyRequest.id, action });
       toast({ description: t('chat.requestUpdated') });
@@ -106,8 +107,10 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
               key={action.key}
               size="sm"
               variant={action.action === 'reject' ? 'secondary' : 'primary'}
-              onClick={() => handleRequestAction(action.action!)}
-              loading={respondRequest.isPending}
+              onClick={() => void handleRequestAction(action.action!)}
+              loading={pendingAction === action.action}
+              disabled={respondRequest.isPending}
+              data-testid={`chat-buy-request-${action.action}-button`}
             >
               {t(action.labelKey)}
             </Button>
