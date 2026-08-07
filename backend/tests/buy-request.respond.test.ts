@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import request from 'supertest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createApp } from '../src/app';
 import prisma from '../src/config/database';
 import { notificationService } from '../src/modules/notification';
+import { chatSystemService } from '../src/modules/chat/chatSystem.service';
 
 async function isDatabaseAvailable() {
   try {
@@ -110,4 +113,47 @@ describe('Buy request respond API', () => {
     expect(elapsedMs).toBeGreaterThan(5000);
     expect(elapsedMs).toBeLessThan(15000);
   }, 20000);
+
+  it('accept succeeds when chat side effects fail after order is created (regression)', async ({ skip }) => {
+    if (!dbAvailable) skip();
+
+    const createBr = await request(app)
+      .post('/api/v1/buy-requests')
+      .set('Authorization', `Bearer ${buyerToken}`)
+      .send({
+        sellerId: pharmacyId,
+        listingIds: [{ listingId, quantity: requestQty }],
+      });
+    expect(createBr.status).toBe(201);
+
+    const chatSpy = vi.spyOn(chatSystemService, 'ensureOrderConversation')
+      .mockRejectedValue(new Error('chat unavailable'));
+
+    const accept = await request(app)
+      .post(`/api/v1/buy-requests/${createBr.body.id}/respond`)
+      .set('Authorization', `Bearer ${sellerToken}`)
+      .send({ action: 'accept' });
+
+    chatSpy.mockRestore();
+
+    expect(accept.status).toBe(200);
+    expect(accept.body.order?.id).toBeTruthy();
+    expect(accept.body.buyRequest?.status).toBe('ACCEPTED');
+
+    const persisted = await prisma.buyRequest.findUnique({
+      where: { id: createBr.body.id },
+      include: { order: true },
+    });
+    expect(persisted?.status).toBe('ACCEPTED');
+    expect(persisted?.order?.id).toBe(accept.body.order.id);
+  });
+
+  it('keeps order.create outside the stock reservation transaction (regression)', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/modules/buy-request/buyRequest.service.ts'),
+      'utf8',
+    );
+    expect(source).not.toMatch(/tx\.order\.create/);
+    expect(source).toMatch(/await prisma\.order\.create\(/);
+  });
 });
