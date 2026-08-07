@@ -7,10 +7,9 @@ import { StatusChip } from '@/components/ui/status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { StatusStepper } from '@/components/orders/status-stepper';
 import { useBuyRequest, useStartConversation } from '@/hooks/use-api';
+import { useRespondBuyRequest } from '@/hooks/use-chat-api';
 import { usePageRole } from '@/hooks/use-page-role';
-import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
-import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,11 +21,12 @@ export function BuyRequestDetailPage() {
   const role = usePageRole();
   const { data: request, isLoading, isError } = useBuyRequest(id);
   const startChat = useStartConversation();
-  const qc = useQueryClient();
+  const respondRequest = useRespondBuyRequest();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const pendingAction = respondRequest.isPending ? respondRequest.variables?.action ?? null : null;
 
   const stepLabels = {
     PENDING: t('buyRequest.steps.pending'),
@@ -36,20 +36,18 @@ export function BuyRequestDetailPage() {
   };
 
   const respond = async (action: 'accept' | 'reject') => {
-    setLoading(true);
+    if (!id || respondRequest.isPending) return;
     setError('');
     try {
-      const result = await apiClient.post<{ order?: { id: string } }>(`/buy-requests/${id}/respond`, { action });
-      qc.invalidateQueries({ queryKey: ['buy-request', id] });
+      const result = await respondRequest.mutateAsync({ id, action });
       toast({ description: action === 'accept' ? t('buyRequest.accepted') : t('buyRequest.rejected') });
-      if (result.order?.id) {
-        const orderPath = role === 'seller' ? `/seller/orders/${result.order.id}` : `/orders/${result.order.id}`;
+      const order = (result as { order?: { id: string } }).order;
+      if (order?.id) {
+        const orderPath = role === 'seller' ? `/seller/orders/${order.id}` : `/orders/${order.id}`;
         navigate(orderPath);
       }
     } catch (e) {
       setError((e as Error).message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -130,10 +128,21 @@ export function BuyRequestDetailPage() {
 
         {role === 'seller' && request.status === 'PENDING' && (
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="destructive" loading={loading} onClick={() => respond('reject')}>
+            <Button
+              variant="destructive"
+              loading={pendingAction === 'reject'}
+              disabled={respondRequest.isPending}
+              data-testid="buy-request-reject-button"
+              onClick={() => void respond('reject')}
+            >
               {t('buyRequest.reject')}
             </Button>
-            <Button loading={loading} onClick={() => respond('accept')}>
+            <Button
+              loading={pendingAction === 'accept'}
+              disabled={respondRequest.isPending}
+              data-testid="buy-request-accept-button"
+              onClick={() => void respond('accept')}
+            >
               {t('buyRequest.accept')}
             </Button>
           </div>

@@ -71,10 +71,11 @@ export function useRespondBuyRequest() {
   return useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'accept' | 'reject' }) =>
       apiClient.post(`/buy-requests/${id}/respond`, { action }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['conversation'] });
       qc.invalidateQueries({ queryKey: ['messages'] });
       qc.invalidateQueries({ queryKey: ['buy-requests'] });
+      qc.invalidateQueries({ queryKey: ['buy-request', variables.id] });
     },
   });
 }
