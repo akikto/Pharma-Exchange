@@ -56,6 +56,7 @@ export function AdminDashboardPage() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <Link to="/admin/verifications"><Button>Verification Queue</Button></Link>
+          <Link to="/admin/medicines"><Button variant="secondary">{t('admin.medicines.nav')}</Button></Link>
           <Link to="/admin/reports"><Button variant="secondary">Reports</Button></Link>
           <Link to="/admin/payments"><Button variant="secondary">{t('admin.payments')}</Button></Link>
         </div>
