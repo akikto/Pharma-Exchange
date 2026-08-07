@@ -86,8 +86,8 @@ export class BuyRequestService {
       return { listingId: item.listingId, quantity: item.quantity, unitPrice: listing.finalPrice, subtotal, listing };
     });
 
-    return prisma.$transaction(async (tx) => {
-      const request = await tx.buyRequest.create({
+    const request = await prisma.$transaction(async (tx) => {
+      const created = await tx.buyRequest.create({
         data: {
           requestNumber: generateRequestNumber(),
           buyerId, sellerId, totalAmount, note,
@@ -101,19 +101,21 @@ export class BuyRequestService {
         where: { userId: buyerId, listingId: { in: items.map((i) => i.listingId) } },
       });
 
-      const seller = await tx.pharmacy.findUnique({ where: { id: sellerId } });
-      if (seller) {
-        await notificationService.create({
-          userId: seller.userId,
-          type: NotificationType.BUY_REQUEST,
-          title: 'New Buy Request',
-          body: `New buy request ${request.requestNumber}`,
-          data: { buyRequestId: request.id, role: 'seller' },
-        });
-      }
-
-      return request;
+      return created;
     });
+
+    const seller = await prisma.pharmacy.findUnique({ where: { id: sellerId } });
+    if (seller) {
+      await notificationService.create({
+        userId: seller.userId,
+        type: NotificationType.BUY_REQUEST,
+        title: 'New Buy Request',
+        body: `New buy request ${request.requestNumber}`,
+        data: { buyRequestId: request.id, role: 'seller' },
+      });
+    }
+
+    return request;
   }
 
   async respond(sellerUserId: string, requestId: string, action: 'accept' | 'reject', sellerNote?: string) {
@@ -147,8 +149,8 @@ export class BuyRequestService {
       }
     }
 
-    return prisma.$transaction(async (tx) => {
-      const request = await tx.buyRequest.update({
+    const { buyRequest: request, order } = await prisma.$transaction(async (tx) => {
+      const updatedRequest = await tx.buyRequest.update({
         where: { id: requestId },
         data: { status: BuyRequestStatus.ACCEPTED, sellerNote, respondedAt: new Date() },
       });
@@ -163,7 +165,7 @@ export class BuyRequestService {
         }
       }
 
-      const order = await tx.order.create({
+      const createdOrder = await tx.order.create({
         data: {
           orderNumber: generateOrderNumber(),
           buyRequestId: requestId,
@@ -186,20 +188,22 @@ export class BuyRequestService {
         include: { items: true },
       });
 
-      await notificationService.create({
-        userId: buyRequest.buyerId,
-        type: NotificationType.ORDER_UPDATE,
-        title: 'Buy Request Accepted',
-        body: `Order ${order.orderNumber} created`,
-        data: { orderId: order.id, buyRequestId: requestId },
-      });
-
-      await chatSystemService.ensureOrderConversation(order.id, buyRequest.buyerId, sellerUserId);
-      await chatSystemService.postBuyRequestStatusMessage(requestId, sellerUserId, 'ACCEPTED', buyRequest.requestNumber);
-      await chatSystemService.postOrderStatusMessage(order.id, sellerUserId, OrderStatus.CONFIRMED, order.orderNumber);
-
-      return { buyRequest: request, order };
+      return { buyRequest: updatedRequest, order: createdOrder };
     });
+
+    await notificationService.create({
+      userId: buyRequest.buyerId,
+      type: NotificationType.ORDER_UPDATE,
+      title: 'Buy Request Accepted',
+      body: `Order ${order.orderNumber} created`,
+      data: { orderId: order.id, buyRequestId: requestId },
+    });
+
+    await chatSystemService.ensureOrderConversation(order.id, buyRequest.buyerId, sellerUserId);
+    await chatSystemService.postBuyRequestStatusMessage(requestId, sellerUserId, 'ACCEPTED', buyRequest.requestNumber);
+    await chatSystemService.postOrderStatusMessage(order.id, sellerUserId, OrderStatus.CONFIRMED, order.orderNumber);
+
+    return { buyRequest: request, order };
   }
 }
 
