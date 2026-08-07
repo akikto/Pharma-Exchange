@@ -305,7 +305,8 @@
     "listings": "Listings",
     "noListings": "No active listings",
     "draftRestored": "Draft restored — continue where you left off",
-    "clearDraft": "Clear draft"
+    "clearDraft": "Clear draft",
+    "medicineRequired": "Please select a medicine from the search results."
   },
   "offer": {
     "lowStock": "Low stock",

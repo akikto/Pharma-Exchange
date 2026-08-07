@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api-errors';
 import {
   clearListingDraft,
   isListingDraftEmpty,
@@ -115,6 +116,10 @@ export function ListingFormPage() {
 
   const save = useMutation({
     mutationFn: async () => {
+      if (!isEdit && !form.medicineId) {
+        throw new Error(t('listing.medicineRequired'));
+      }
+
       const body = {
         medicineId: form.medicineId,
         batchNumber: form.batchNumber,
@@ -135,8 +140,30 @@ export function ListingFormPage() {
       if (!isEdit) await clearListingDraft();
       navigate('/seller/inventory');
     },
-    onError: (e) => setError((e as Error).message),
+    onError: (e) => setError(getErrorMessage(e)),
   });
+
+  const handleMedicineQueryChange = (value: string) => {
+    setMedicineQuery(value);
+    setForm((f) => ({ ...f, medicineId: '', medicineQuery: value }));
+    setError('');
+  };
+
+  const handleMedicineSelect = (medicine: Medicine) => {
+    setForm((f) => ({ ...f, medicineId: medicine.id, medicineQuery: medicine.name }));
+    setMedicineQuery(medicine.name);
+    setError('');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isEdit && !form.medicineId) {
+      setError(t('listing.medicineRequired'));
+      return;
+    }
+    setError('');
+    save.mutate();
+  };
 
   const clearDraft = async () => {
     await clearListingDraft();
@@ -147,11 +174,12 @@ export function ListingFormPage() {
   if (isEdit && isLoading) return <div className="p-4"><ListSkeleton /></div>;
 
   const hasDraft = !isEdit && draftLoaded && !isListingDraftEmpty({ ...form, medicineQuery, updatedAt: '' });
+  const createDisabled = !isEdit && !form.medicineId;
 
   return (
     <div>
       <TopBar title={isEdit ? 'Edit Listing' : 'Add Listing'} showBack />
-      <form className="p-4 space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <form className="p-4 space-y-4" onSubmit={handleSubmit}>
         {!isEdit && hasDraft && (
           <div className="rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle/30 p-3 flex items-center justify-between gap-3">
             <p className="text-sm">{t('listing.draftRestored')}</p>
@@ -164,7 +192,11 @@ export function ListingFormPage() {
         {!isEdit && (
           <div>
             <Label>Search Medicine</Label>
-            <Input value={medicineQuery} onChange={(e) => setMedicineQuery(e.target.value)} placeholder="Type medicine name..." />
+            <Input
+              value={medicineQuery}
+              onChange={(e) => handleMedicineQueryChange(e.target.value)}
+              placeholder="Type medicine name..."
+            />
             {medicines?.data && (
               <div className="mt-2 border border-border-subtle rounded-[var(--radius-md)] max-h-40 overflow-y-auto">
                 {medicines.data.map((m) => (
@@ -172,10 +204,7 @@ export function ListingFormPage() {
                     key={m.id}
                     type="button"
                     className="w-full text-left p-2 text-sm hover:bg-surface-raised"
-                    onClick={() => {
-                      setForm((f) => ({ ...f, medicineId: m.id }));
-                      setMedicineQuery(m.name);
-                    }}
+                    onClick={() => handleMedicineSelect(m)}
                   >
                     {m.name} — {m.company}
                   </button>
@@ -201,8 +230,13 @@ export function ListingFormPage() {
         <div><Label>MOQ</Label><Input type="number" value={form.moq} onChange={(e) => setForm({ ...form, moq: e.target.value })} required /></div>
         <div><Label>Low Stock Threshold (optional)</Label><Input type="number" value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })} placeholder="Default: max(MOQ×2, 20)" /></div>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
-        <Button type="submit" className="w-full" loading={save.isPending}>
+        {error && <p className="text-sm text-danger" data-testid="listing-form-error">{error}</p>}
+        <Button
+          type="submit"
+          className="w-full"
+          loading={save.isPending}
+          disabled={createDisabled}
+        >
           {isEdit ? 'Update Listing' : 'Create Listing'}
         </Button>
       </form>
