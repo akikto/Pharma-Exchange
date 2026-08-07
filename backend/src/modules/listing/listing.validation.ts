@@ -9,7 +9,10 @@ const booleanQuery = z.preprocess((value) => {
 }, z.boolean().optional());
 
 export const createListingSchema = z.object({
-  medicineId: z.string().uuid(),
+  medicineId: z
+    .string()
+    .min(1, 'Medicine selection is required.')
+    .uuid({ message: 'Medicine selection is required.' }),
   batchNumber: z.string().min(1),
   mfgDate: z.string().datetime(),
   expiryDate: z.string().datetime(),
