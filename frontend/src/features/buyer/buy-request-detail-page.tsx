@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MessageCircle } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
@@ -123,6 +123,14 @@ export function BuyRequestDetailPage() {
           <MessageCircle className="h-4 w-4 mr-1" />
           {t('orders.chatCounterparty')}
         </Button>
+
+        {request.status === 'ACCEPTED' && request.order?.id && (
+          <Button className="w-full" asChild data-testid="buy-request-view-order">
+            <Link to={role === 'seller' ? `/seller/orders/${request.order.id}` : `/orders/${request.order.id}`}>
+              {t('orders.viewOrder')}
+            </Link>
+          </Button>
+        )}
 
         {error && <p className="text-sm text-danger">{error}</p>}
 

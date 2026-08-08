@@ -116,6 +116,7 @@ export interface BuyRequest {
   items: { id: string; quantity: number; unitPrice: string; subtotal: string; listing: Listing }[];
   buyer?: { id: string; firstName: string; lastName: string };
   seller?: Pharmacy;
+  order?: { id: string; orderNumber: string; status: string };
 }
 
 export interface Order {

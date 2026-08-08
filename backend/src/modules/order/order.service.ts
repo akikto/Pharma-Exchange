@@ -49,16 +49,18 @@ export class OrderService {
   }
 
   async getById(id: string, userId: string) {
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        items: { include: { listing: { include: { medicine: true } } } },
-        seller: { select: { id: true, name: true, city: true, userId: true } },
-        buyer: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
-        statusHistory: { orderBy: { createdAt: 'asc' } },
-        review: true,
-      },
-    });
+    const include = {
+      items: { include: { listing: { include: { medicine: true } } } },
+      seller: { select: { id: true, name: true, city: true, userId: true } },
+      buyer: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+      statusHistory: { orderBy: { createdAt: 'asc' } },
+      review: true,
+    } as const;
+
+    let order = await prisma.order.findUnique({ where: { id }, include });
+    if (!order) {
+      order = await prisma.order.findUnique({ where: { orderNumber: id }, include });
+    }
     if (!order) throw AppError.notFound('Order not found');
 
     const pharmacy = await prisma.pharmacy.findUnique({ where: { userId } });

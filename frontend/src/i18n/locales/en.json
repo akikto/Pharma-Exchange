@@ -436,6 +436,7 @@
     "markAs": "Mark as {{status}}",
     "cancelOrder": "Cancel Order",
     "notFound": "Order not found",
+    "viewOrder": "View order",
     "back": "Back",
     "noOrders": "No orders yet",
     "loadError": "Failed to load orders",

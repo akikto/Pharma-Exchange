@@ -85,8 +85,8 @@ describe('OrderDetailPage payment fulfillment UX', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     get.mockImplementation(async (url: string) => {
-      if (url === `/orders/${orderId}`) return sampleOrder;
-      if (url === `/payments/order/${orderId}`) return { data: [] };
+      if (url === `/orders/${orderId}` || url === '/orders/ORD-2026-000001') return sampleOrder;
+      if (url === `/payments/order/${orderId}` || url === '/payments/order/ORD-2026-000001') return { data: [] };
       if (url === '/health') return { payments: { provider: 'RAZORPAY', enabled: true, currency: 'INR' } };
       throw new Error(`Unexpected GET ${url}`);
     });
@@ -112,5 +112,15 @@ describe('OrderDetailPage payment fulfillment UX', () => {
 
     expect(await screen.findByTestId('pay-with-razorpay-button')).toBeInTheDocument();
     expect(screen.getByText('Complete payment to allow the seller to pack and ship this order.')).toBeInTheDocument();
+  });
+
+  it('loads buyer order when URL uses orderNumber', async () => {
+    const { usePageRole } = await import('@/hooks/use-page-role');
+    vi.mocked(usePageRole).mockReturnValue('buyer');
+
+    renderOrderDetailPage('/orders/ORD-2026-000001');
+
+    expect(await screen.findByTestId('pay-with-razorpay-button')).toBeInTheDocument();
+    expect(get).toHaveBeenCalledWith('/orders/ORD-2026-000001');
   });
 });
