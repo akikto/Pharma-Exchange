@@ -12,6 +12,7 @@ import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
 import { TrackingDialog } from '@/components/orders/tracking-dialog';
 import { useOrders, useAddToCart } from '@/hooks/use-api';
 import { usePaymentConfig } from '@/hooks/use-payment-config';
+import { showRazorpayPayButton } from '@/lib/payment-utils';
 import { useHubRole } from '@/hooks/use-hub-role';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -134,9 +135,12 @@ export function OrdersTabPanel() {
               </Link>
               <div className="flex flex-wrap gap-2">
                 {role === 'buyer'
-                  && paymentsEnabled
-                  && order.paymentStatus === 'PENDING'
-                  && order.status !== 'CANCELLED' && (
+                  && showRazorpayPayButton(
+                    paymentsEnabled,
+                    order.paymentMethod,
+                    order.paymentStatus,
+                    order.status,
+                  ) && (
                   <PayWithRazorpayButton
                     orderId={order.id}
                     orderNumber={order.orderNumber}

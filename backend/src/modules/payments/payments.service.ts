@@ -1,4 +1,4 @@
-import { Prisma, PaymentAttemptStatus, PaymentStatus, RefundStatus, OrderStatus, NotificationType } from '@prisma/client';
+import { Prisma, PaymentAttemptStatus, PaymentStatus, RefundStatus, OrderStatus, OrderPaymentMethod, NotificationType } from '@prisma/client';
 import prisma from '../../config/database';
 import { env } from '../../config/env';
 import { AppError } from '../../shared/errors/AppError';
@@ -70,11 +70,14 @@ export class PaymentsService {
       where: { id: orderId },
       select: {
         id: true, orderNumber: true, buyerId: true, totalAmount: true,
-        status: true, paymentStatus: true,
+        status: true, paymentStatus: true, paymentMethod: true,
       },
     });
     if (!order) throw AppError.notFound('Order not found');
     if (order.buyerId !== userId) throw AppError.forbidden('Only the buyer can pay for this order');
+    if (order.paymentMethod === OrderPaymentMethod.COD) {
+      throw AppError.badRequest('This order uses cash on delivery');
+    }
     if (order.paymentStatus === PaymentStatus.PAID) throw AppError.badRequest('Order is already paid');
     if (order.paymentStatus === PaymentStatus.REFUNDED) throw AppError.badRequest('Order has already been refunded');
     if (order.status === OrderStatus.CANCELLED) throw AppError.badRequest('Order is cancelled');
@@ -87,6 +90,13 @@ export class PaymentsService {
     });
     if (existing) {
       return this.buildCheckoutOptions(existing);
+    }
+
+    if (!order.paymentMethod) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentMethod: OrderPaymentMethod.RAZORPAY },
+      });
     }
 
     const receipt = shortReceipt(order.orderNumber);

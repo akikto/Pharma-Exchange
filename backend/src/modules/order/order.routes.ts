@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { Router } from 'express';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, OrderPaymentMethod } from '@prisma/client';
 import { AuthRequest } from '../../shared/middleware/auth.middleware';
 import { authenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
@@ -10,6 +10,7 @@ import { paginationMeta } from '../../shared/utils/helpers';
 
 const statusSchema = z.object({ status: z.nativeEnum(OrderStatus), note: z.string().optional() });
 const cancelSchema = z.object({ reason: z.string().optional() });
+const paymentMethodSchema = z.object({ method: z.nativeEnum(OrderPaymentMethod) });
 
 class OrderController {
   async list(req: AuthRequest, res: Response, next: NextFunction) {
@@ -36,6 +37,13 @@ class OrderController {
       res.json(await orderService.cancel(req.user!.userId, req.params.id as string, req.body.reason));
     } catch (err) { next(err); }
   }
+
+  async setPaymentMethod(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { method } = req.body;
+      res.json(await orderService.setPaymentMethod(req.user!.userId, req.params.id as string, method));
+    } catch (err) { next(err); }
+  }
 }
 
 const ctrl = new OrderController();
@@ -44,6 +52,7 @@ const router = Router();
 router.get('/', authenticate, ctrl.list.bind(ctrl));
 router.get('/:id', authenticate, ctrl.getById.bind(ctrl));
 router.patch('/:id/status', authenticate, validate(statusSchema), ctrl.updateStatus.bind(ctrl));
+router.patch('/:id/payment-method', authenticate, validate(paymentMethodSchema), ctrl.setPaymentMethod.bind(ctrl));
 router.post('/:id/cancel', authenticate, validate(cancelSchema), ctrl.cancel.bind(ctrl));
 
 export default router;

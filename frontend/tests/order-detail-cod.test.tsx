@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
@@ -7,17 +7,18 @@ import i18n from '@/i18n';
 import { OrderDetailPage } from '@/features/buyer/order-detail-page';
 
 const get = vi.fn();
+const patch = vi.fn();
 
 vi.mock('@/components/layout/top-bar', () => ({
   TopBar: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 
 vi.mock('@/hooks/use-page-role', () => ({
-  usePageRole: vi.fn(() => 'seller'),
+  usePageRole: () => 'buyer',
 }));
 
 vi.mock('@/hooks/use-payment-config', () => ({
-  usePaymentConfig: () => ({ data: { provider: 'RAZORPAY', enabled: true, currency: 'INR' } }),
+  usePaymentConfig: () => ({ data: { provider: 'RAZORPAY', enabled: false } }),
 }));
 
 vi.mock('@/components/payments/pay-with-razorpay-button', () => ({
@@ -30,8 +31,8 @@ vi.mock('@/lib/api', async (importOriginal) => {
     ...actual,
     apiClient: {
       get: (...args: unknown[]) => get(...args),
+      patch: (...args: unknown[]) => patch(...args),
       post: vi.fn(),
-      patch: vi.fn(),
       delete: vi.fn(),
       getText: vi.fn(),
       upload: vi.fn(),
@@ -45,12 +46,12 @@ vi.mock('@/hooks/use-toast', () => ({
 
 const orderId = '550e8400-e29b-41d4-a716-446655440001';
 
-const sampleOrder = {
+const pendingOrder = {
   id: orderId,
   orderNumber: 'ORD-2026-000001',
   status: 'CONFIRMED',
   paymentStatus: 'PENDING',
-  paymentMethod: 'RAZORPAY',
+  paymentMethod: null,
   totalAmount: '1280',
   createdAt: '2026-08-07T00:00:00.000Z',
   buyer: { id: 'buyer-1', firstName: 'Rahim', lastName: 'Hossain', email: 'buyer@pharmex.bd' },
@@ -65,15 +66,19 @@ const sampleOrder = {
   }],
 };
 
-function renderOrderDetailPage(path = `/seller/orders/${orderId}`) {
+function renderOrderDetailPage(order = pendingOrder) {
   void i18n.changeLanguage('en');
+  get.mockImplementation(async (url: string) => {
+    if (url === `/orders/${orderId}`) return order;
+    if (url === `/payments/order/${orderId}`) return { data: [] };
+    throw new Error(`Unexpected GET ${url}`);
+  });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={[path]}>
+        <MemoryRouter initialEntries={[`/orders/${orderId}`]}>
           <Routes>
-            <Route path="/seller/orders/:id" element={<OrderDetailPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
           </Routes>
         </MemoryRouter>
@@ -82,46 +87,37 @@ function renderOrderDetailPage(path = `/seller/orders/${orderId}`) {
   );
 }
 
-describe('OrderDetailPage payment fulfillment UX', () => {
+describe('OrderDetailPage COD', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    get.mockImplementation(async (url: string) => {
-      if (url === `/orders/${orderId}` || url === '/orders/ORD-2026-000001') return sampleOrder;
-      if (url === `/payments/order/${orderId}` || url === '/payments/order/ORD-2026-000001') return { data: [] };
-      if (url === '/health') return { payments: { provider: 'RAZORPAY', enabled: true, currency: 'INR' } };
-      throw new Error(`Unexpected GET ${url}`);
-    });
+    patch.mockResolvedValue({ ...pendingOrder, paymentMethod: 'COD' });
   });
 
-  it('disables seller fulfillment when payment is still pending', async () => {
-    const { usePageRole } = await import('@/hooks/use-page-role');
-    vi.mocked(usePageRole).mockReturnValue('seller');
-
+  it('shows COD selector when Razorpay is disabled and hides Pay Now', async () => {
     renderOrderDetailPage();
 
-    const button = await screen.findByTestId('seller-fulfillment-button');
-    expect(button).toBeDisabled();
-    expect(screen.getByTestId('seller-awaiting-payment-notice')).toBeInTheDocument();
-    expect(screen.getByText('No payment attempts yet')).toBeInTheDocument();
+    expect(await screen.findByTestId('payment-method-selector')).toBeInTheDocument();
+    expect(screen.getByTestId('payment-method-cod')).toBeInTheDocument();
+    expect(screen.queryByTestId('payment-method-razorpay')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('pay-with-razorpay-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('payment-unavailable-notice')).not.toBeInTheDocument();
   });
 
-  it('shows pay button for buyer on unpaid confirmed orders', async () => {
-    const { usePageRole } = await import('@/hooks/use-page-role');
-    vi.mocked(usePageRole).mockReturnValue('buyer');
+  it('shows COD notice and no Pay Now after COD is selected', async () => {
+    renderOrderDetailPage({ ...pendingOrder, paymentMethod: 'COD' });
 
-    renderOrderDetailPage(`/orders/${orderId}`);
-
-    expect(await screen.findByTestId('pay-with-razorpay-button')).toBeInTheDocument();
-    expect(screen.getByText('Complete payment to allow the seller to pack and ship this order.')).toBeInTheDocument();
+    expect(await screen.findByTestId('cod-payment-notice')).toBeInTheDocument();
+    expect(screen.queryByTestId('pay-with-razorpay-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('payment-method-selector')).not.toBeInTheDocument();
   });
 
-  it('loads buyer order when URL uses orderNumber', async () => {
-    const { usePageRole } = await import('@/hooks/use-page-role');
-    vi.mocked(usePageRole).mockReturnValue('buyer');
+  it('selects COD via payment-method API', async () => {
+    renderOrderDetailPage();
 
-    renderOrderDetailPage('/orders/ORD-2026-000001');
+    fireEvent.click(await screen.findByTestId('payment-method-cod'));
 
-    expect(await screen.findByTestId('pay-with-razorpay-button')).toBeInTheDocument();
-    expect(get).toHaveBeenCalledWith('/orders/ORD-2026-000001');
+    await waitFor(() => {
+      expect(patch).toHaveBeenCalledWith(`/orders/${orderId}/payment-method`, { method: 'COD' });
+    });
   });
 });

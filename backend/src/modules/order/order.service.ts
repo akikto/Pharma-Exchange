@@ -1,4 +1,4 @@
-import { NotificationType, OrderStatus, PaymentStatus } from '@prisma/client';
+import { NotificationType, OrderPaymentMethod, OrderStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { isRazorpayConfigured } from '../../config/env';
 import { AppError } from '../../shared/errors/AppError';
@@ -7,6 +7,7 @@ import { notificationService } from '../notification';
 import { chatSystemService } from '../chat/chatSystem.service';
 import { paymentsService } from '../payments/payments.service';
 import { logger } from '../../shared/utils/logger';
+import { orderRequiresOnlinePaymentBeforeFulfillment } from './order.payment-method';
 
 const SELLER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.CONFIRMED]: [OrderStatus.PACKED, OrderStatus.CANCELLED],
@@ -85,9 +86,8 @@ export class OrderService {
     }
 
     if (
-      isRazorpayConfigured()
-      && FULFILLMENT_STATUSES.includes(status)
-      && order.paymentStatus !== PaymentStatus.PAID
+      FULFILLMENT_STATUSES.includes(status)
+      && orderRequiresOnlinePaymentBeforeFulfillment(order)
     ) {
       throw new AppError(400, 'Payment must be completed before order fulfillment', 'PAYMENT_REQUIRED');
     }
@@ -101,7 +101,12 @@ export class OrderService {
         where: { id: orderId },
         data: {
           status,
-          ...(status === OrderStatus.DELIVERED && { deliveredAt: new Date() }),
+          ...(status === OrderStatus.DELIVERED && {
+            deliveredAt: new Date(),
+            ...(order.paymentMethod === OrderPaymentMethod.COD && order.paymentStatus === PaymentStatus.PENDING
+              ? { paymentStatus: PaymentStatus.PAID }
+              : {}),
+          }),
           ...(status === OrderStatus.CANCELLED && { cancelledAt: new Date(), cancelReason: note }),
         },
       });
@@ -170,13 +175,39 @@ export class OrderService {
     return updated;
   }
 
+  async setPaymentMethod(buyerId: string, orderId: string, method: OrderPaymentMethod) {
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, buyerId },
+    });
+    if (!order) throw AppError.notFound('Order not found');
+    if (order.paymentStatus === PaymentStatus.PAID) throw AppError.badRequest('Order is already paid');
+    if (order.paymentStatus === PaymentStatus.REFUNDED) throw AppError.badRequest('Order has been refunded');
+    if (order.status === OrderStatus.CANCELLED) throw AppError.badRequest('Order is cancelled');
+    if (method === OrderPaymentMethod.RAZORPAY && !isRazorpayConfigured()) {
+      throw AppError.badRequest('Online payment is not available');
+    }
+    if (method === OrderPaymentMethod.COD && order.paymentMethod === OrderPaymentMethod.RAZORPAY) {
+      try {
+        await paymentsService.cancelOutstandingForOrder(orderId);
+      } catch (err) {
+        logger.warn(`Failed to cancel outstanding payment when switching to COD for order ${orderId}: ${(err as Error).message}`);
+      }
+    }
+
+    return prisma.order.update({
+      where: { id: orderId },
+      data: { paymentMethod: method },
+    });
+  }
+
   private async coordinatePaymentOnCancel(
-    order: { id: string; buyerId: string; paymentStatus: PaymentStatus },
+    order: { id: string; buyerId: string; paymentStatus: PaymentStatus; paymentMethod?: OrderPaymentMethod | null },
     actorUserId: string,
     actorRole: string,
     reason?: string,
   ) {
     if (order.paymentStatus === PaymentStatus.PENDING) {
+      if (order.paymentMethod === OrderPaymentMethod.COD) return;
       try {
         await paymentsService.cancelOutstandingForOrder(order.id);
       } catch (err) {

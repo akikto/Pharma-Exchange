@@ -124,6 +124,7 @@ export interface Order {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentMethod?: 'COD' | 'RAZORPAY' | null;
   totalAmount: string | number;
   createdAt: string;
   items: { id: string; listingId?: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
