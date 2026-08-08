@@ -26,10 +26,13 @@ describe('offer-utils', () => {
     expect(trend[trend.length - 1]!.price).toBe(100);
   });
 
-  it('formats phone and WhatsApp links', () => {
-    expect(formatPhoneHref('+8801700000001')).toBe('tel:+8801700000001');
+  it('formats phone and WhatsApp links for India', () => {
+    expect(formatPhoneHref('9153014194')).toBe('tel:+919153014194');
+    expect(formatPhoneHref('09153014194')).toBe('tel:+919153014194');
     expect(formatPhoneHref('+919153014194')).toBe('tel:+919153014194');
-    expect(formatWhatsAppHref('01700000001', 'Hello')).toContain('wa.me');
+    expect(formatPhoneHref('919153014194')).toBe('tel:+919153014194');
+    expect(formatPhoneHref('+8801700000001')).toBe('tel:+8801700000001');
+    expect(formatWhatsAppHref('9153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
     expect(formatWhatsAppHref('+919153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
   });
 
