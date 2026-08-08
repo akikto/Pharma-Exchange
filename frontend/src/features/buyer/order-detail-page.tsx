@@ -16,7 +16,7 @@ import { CancelPaymentButton } from '@/components/payments/cancel-payment-button
 import { RefundPaymentButton } from '@/components/payments/refund-payment-button';
 import { useOrder, useAddToCart, useStartConversation, useOrderPayments } from '@/hooks/use-api';
 import { usePaymentConfig } from '@/hooks/use-payment-config';
-import { canCancelPaymentAttempt, canRequestRefund } from '@/lib/payment-utils';
+import { canCancelPaymentAttempt, canRequestRefund, fulfillmentRequiresPayment } from '@/lib/payment-utils';
 import { usePageRole } from '@/hooks/use-page-role';
 import { apiClient } from '@/lib/api';
 import { ORDER_FLOW_STEPS, canTrackOrder } from '@/lib/order-utils';
@@ -127,6 +127,9 @@ export function OrderDetailPage() {
   if (isError || !order) return <div className="p-4 text-center text-danger">{t('orders.notFound')}</div>;
 
   const nextStatus = NEXT_STATUS[order.status];
+  const paymentBlocked = nextStatus
+    ? fulfillmentRequiresPayment(paymentsEnabled, order.paymentStatus, nextStatus)
+    : false;
   const counterparty =
     role === 'seller'
       ? `${order.buyer?.firstName ?? ''} ${order.buyer?.lastName ?? ''}`.trim()
@@ -189,6 +192,18 @@ export function OrderDetailPage() {
 
         <PaymentHistoryPanel payments={orderPayments ?? []} loading={paymentsLoading} />
 
+        {role === 'buyer' && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && paymentsEnabled && (
+          <p className="text-sm text-text-secondary rounded-[var(--radius-md)] border border-warning/30 bg-warning/5 p-3">
+            {t('payments.pendingBuyerNotice')}
+          </p>
+        )}
+
+        {role === 'seller' && paymentBlocked && (
+          <p className="text-sm text-text-secondary rounded-[var(--radius-md)] border border-warning/30 bg-warning/5 p-3" data-testid="seller-awaiting-payment-notice">
+            {paymentsEnabled ? t('payments.awaitingBuyerPayment') : t('payments.unavailableBody')}
+          </p>
+        )}
+
         {role === 'buyer' && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && (
           paymentsEnabled ? (
             <PayWithRazorpayButton
@@ -217,7 +232,13 @@ export function OrderDetailPage() {
         )}
 
         {role === 'seller' && nextStatus && (
-          <Button className="w-full" loading={loading} onClick={() => updateStatus(nextStatus)}>
+          <Button
+            className="w-full"
+            loading={loading}
+            disabled={paymentBlocked}
+            onClick={() => updateStatus(nextStatus)}
+            data-testid="seller-fulfillment-button"
+          >
             {t('orders.markAs', { status: stepLabels[nextStatus as keyof typeof stepLabels] ?? nextStatus })}
           </Button>
         )}

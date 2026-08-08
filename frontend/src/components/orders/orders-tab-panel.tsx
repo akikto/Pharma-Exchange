@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
 import { TrackingDialog } from '@/components/orders/tracking-dialog';
 import { useOrders, useAddToCart } from '@/hooks/use-api';
+import { usePaymentConfig } from '@/hooks/use-payment-config';
 import { useHubRole } from '@/hooks/use-hub-role';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -21,6 +22,7 @@ import {
 } from '@/lib/order-utils';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
+import { PayWithRazorpayButton } from '@/components/payments/pay-with-razorpay-button';
 
 const ORDER_FILTERS: OrderFilter[] = ['ALL', 'ACTIVE', 'DELIVERED', 'CANCELLED'];
 
@@ -28,6 +30,8 @@ export function OrdersTabPanel() {
   const { t } = useTranslation();
   const role = useHubRole();
   const { data, isLoading, isError } = useOrders(role);
+  const { data: paymentConfig } = usePaymentConfig();
+  const paymentsEnabled = paymentConfig?.enabled ?? false;
   const addToCart = useAddToCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -129,6 +133,17 @@ export function OrdersTabPanel() {
                 <p className="text-xs text-text-disabled">{new Date(order.createdAt).toLocaleDateString()}</p>
               </Link>
               <div className="flex flex-wrap gap-2">
+                {role === 'buyer'
+                  && paymentsEnabled
+                  && order.paymentStatus === 'PENDING'
+                  && order.status !== 'CANCELLED' && (
+                  <PayWithRazorpayButton
+                    orderId={order.id}
+                    orderNumber={order.orderNumber}
+                    label={t('payments.payNow')}
+                    className="shrink-0"
+                  />
+                )}
                 {role === 'buyer' && order.status === 'DELIVERED' && (
                   <Button size="sm" variant="secondary" loading={reorderingId === order.id} onClick={() => handleReorder(order)}>
                     <RotateCcw className="h-3 w-3 mr-1" />

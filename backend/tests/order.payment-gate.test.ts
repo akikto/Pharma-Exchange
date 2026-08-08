@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import prisma from '../src/config/database';
+import * as envModule from '../src/config/env';
 
 async function isDatabaseAvailable() {
   try {
@@ -80,12 +81,37 @@ describe('Order payment gate', () => {
     expect(res.body.code).toBe('PAYMENT_REQUIRED');
   });
 
+  it('allows seller fulfillment without payment when Razorpay is not configured', async ({ skip }) => {
+    if (!dbAvailable || !orderId) skip();
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: 'PENDING', status: 'CONFIRMED' },
+    });
+
+    const configuredSpy = vi.spyOn(envModule, 'isRazorpayConfigured').mockReturnValue(false);
+
+    const res = await request(app)
+      .patch(`/api/v1/orders/${orderId}/status`)
+      .set('Authorization', `Bearer ${sellerToken}`)
+      .send({ status: 'PACKED' });
+
+    configuredSpy.mockRestore();
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('PACKED');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('allows seller fulfillment after payment is PAID', async ({ skip }) => {
     if (!dbAvailable || !orderId) skip();
 
     await prisma.order.update({
       where: { id: orderId },
-      data: { paymentStatus: 'PAID' },
+      data: { paymentStatus: 'PAID', status: 'CONFIRMED' },
     });
 
     const res = await request(app)
