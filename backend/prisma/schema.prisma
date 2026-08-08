@@ -78,6 +78,11 @@ enum PaymentProvider {
   RAZORPAY
 }
 
+enum OrderPaymentMethod {
+  COD
+  RAZORPAY
+}
+
 enum PaymentAttemptStatus {
   CREATED
   AUTHORIZED
@@ -453,6 +458,7 @@ model Order {
   sellerId      String
   status        OrderStatus   @default(CREATED)
   paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod OrderPaymentMethod?
   totalAmount   Decimal       @db.Decimal(12, 2)
   shippingAddress String?
   notes         String?

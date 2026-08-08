@@ -131,6 +131,18 @@ export function useOrderPayments(orderId?: string) {
   });
 }
 
+export function useSetOrderPaymentMethod() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, method }: { orderId: string; method: 'COD' | 'RAZORPAY' }) =>
+      apiClient.patch<Order>(`/orders/${orderId}/payment-method`, { method }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['order', variables.orderId] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}
+
 export function useBuyRequests(role: 'buyer' | 'seller' = 'buyer', options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['buy-requests', role],

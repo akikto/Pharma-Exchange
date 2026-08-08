@@ -5,6 +5,7 @@ import {
   fulfillmentRequiresPayment,
   paymentAttemptChipVariant,
   paymentStatusChipVariant,
+  showRazorpayPayButton,
 } from '@/lib/payment-utils';
 
 describe('payment-utils', () => {
@@ -20,8 +21,9 @@ describe('payment-utils', () => {
     expect(paymentAttemptChipVariant('CREATED')).toBe('warning');
   });
 
-  it('allows cancel only for pending non-cancelled orders', () => {
+  it('allows cancel only for pending non-cancelled online orders', () => {
     expect(canCancelPaymentAttempt('PENDING', 'CONFIRMED')).toBe(true);
+    expect(canCancelPaymentAttempt('PENDING', 'CONFIRMED', 'COD')).toBe(false);
     expect(canCancelPaymentAttempt('PAID', 'CONFIRMED')).toBe(false);
     expect(canCancelPaymentAttempt('PENDING', 'CANCELLED')).toBe(false);
   });
@@ -34,10 +36,18 @@ describe('payment-utils', () => {
     expect(canRequestRefund('PAID', 'CANCELLED', 'buyer')).toBe(false);
   });
 
-  it('requires payment before fulfillment only when Razorpay is enabled', () => {
+  it('requires payment before fulfillment only when Razorpay is enabled and not COD', () => {
     expect(fulfillmentRequiresPayment(true, 'PENDING', 'PACKED')).toBe(true);
     expect(fulfillmentRequiresPayment(true, 'PAID', 'PACKED')).toBe(false);
     expect(fulfillmentRequiresPayment(false, 'PENDING', 'PACKED')).toBe(false);
     expect(fulfillmentRequiresPayment(true, 'PENDING', 'CANCELLED')).toBe(false);
+    expect(fulfillmentRequiresPayment(true, 'PENDING', 'PACKED', 'COD')).toBe(false);
+  });
+
+  it('shows Razorpay pay button only for online payment method', () => {
+    expect(showRazorpayPayButton(true, 'RAZORPAY', 'PENDING', 'CONFIRMED')).toBe(true);
+    expect(showRazorpayPayButton(true, 'COD', 'PENDING', 'CONFIRMED')).toBe(false);
+    expect(showRazorpayPayButton(false, 'RAZORPAY', 'PENDING', 'CONFIRMED')).toBe(false);
+    expect(showRazorpayPayButton(true, null, 'PENDING', 'CONFIRMED')).toBe(false);
   });
 });

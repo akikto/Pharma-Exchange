@@ -9,14 +9,15 @@ import { StatusStepper } from '@/components/orders/status-stepper';
 import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
 import { TrackingDialog } from '@/components/orders/tracking-dialog';
 import { PayWithRazorpayButton } from '@/components/payments/pay-with-razorpay-button';
-import { PaymentUnavailableNotice } from '@/components/payments/payment-unavailable-notice';
+import { PaymentMethodSelector } from '@/components/payments/payment-method-selector';
+import { CodPaymentNotice } from '@/components/payments/cod-payment-notice';
 import { PaymentStatusChip } from '@/components/payments/payment-status-chip';
 import { PaymentHistoryPanel } from '@/components/payments/payment-history-panel';
 import { CancelPaymentButton } from '@/components/payments/cancel-payment-button';
 import { RefundPaymentButton } from '@/components/payments/refund-payment-button';
-import { useOrder, useAddToCart, useStartConversation, useOrderPayments } from '@/hooks/use-api';
+import { useOrder, useAddToCart, useStartConversation, useOrderPayments, useSetOrderPaymentMethod } from '@/hooks/use-api';
 import { usePaymentConfig } from '@/hooks/use-payment-config';
-import { canCancelPaymentAttempt, canRequestRefund, fulfillmentRequiresPayment } from '@/lib/payment-utils';
+import { canCancelPaymentAttempt, canRequestRefund, canSelectPaymentMethod, fulfillmentRequiresPayment, isCodOrder, showRazorpayPayButton } from '@/lib/payment-utils';
 import { usePageRole } from '@/hooks/use-page-role';
 import { apiClient } from '@/lib/api';
 import { ORDER_FLOW_STEPS, canTrackOrder } from '@/lib/order-utils';
@@ -38,6 +39,7 @@ export function OrderDetailPage() {
   const { data: order, isLoading, isError } = useOrder(id);
   const { data: paymentConfig } = usePaymentConfig();
   const { data: orderPayments, isLoading: paymentsLoading } = useOrderPayments(id);
+  const setPaymentMethod = useSetOrderPaymentMethod();
   const paymentsEnabled = paymentConfig?.enabled ?? false;
   const addToCart = useAddToCart();
   const startChat = useStartConversation();
@@ -128,8 +130,30 @@ export function OrderDetailPage() {
 
   const nextStatus = NEXT_STATUS[order.status];
   const paymentBlocked = nextStatus
-    ? fulfillmentRequiresPayment(paymentsEnabled, order.paymentStatus, nextStatus)
+    ? fulfillmentRequiresPayment(paymentsEnabled, order.paymentStatus, nextStatus, order.paymentMethod)
     : false;
+  const showPaymentSelector = role === 'buyer'
+    && canSelectPaymentMethod(order.paymentStatus, order.status)
+    && !order.paymentMethod;
+  const codSelected = isCodOrder(order.paymentMethod);
+  const showPayButton = showRazorpayPayButton(
+    paymentsEnabled,
+    order.paymentMethod,
+    order.paymentStatus,
+    order.status,
+  );
+
+  const handleSelectPaymentMethod = async (method: 'COD' | 'RAZORPAY') => {
+    if (!order?.id || setPaymentMethod.isPending) return;
+    try {
+      await setPaymentMethod.mutateAsync({ orderId: order.id, method });
+      toast({
+        description: method === 'COD' ? t('payments.codTitle') : t('payments.methodOnline'),
+      });
+    } catch (e) {
+      toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });
+    }
+  };
   const counterparty =
     role === 'seller'
       ? `${order.buyer?.firstName ?? ''} ${order.buyer?.lastName ?? ''}`.trim()
@@ -153,6 +177,12 @@ export function OrderDetailPage() {
         <p className="text-sm text-text-secondary">
           {role === 'seller' ? t('buyRequest.buyer', { name: counterparty }) : t('buyRequest.seller', { name: counterparty })}
         </p>
+
+        {order.paymentMethod && (
+          <p className="text-sm text-text-secondary" data-testid="order-payment-method">
+            {t('payments.methodLabel')}: {order.paymentMethod === 'COD' ? t('payments.methodCod') : t('payments.methodOnline')}
+          </p>
+        )}
 
         <StatusStepper
           steps={ORDER_FLOW_STEPS}
@@ -192,33 +222,48 @@ export function OrderDetailPage() {
 
         <PaymentHistoryPanel payments={orderPayments ?? []} loading={paymentsLoading} />
 
-        {role === 'buyer' && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && paymentsEnabled && (
+        {role === 'buyer' && showPaymentSelector && (
+          <PaymentMethodSelector
+            value={order.paymentMethod}
+            paymentsEnabled={paymentsEnabled}
+            loading={setPaymentMethod.isPending}
+            onSelect={handleSelectPaymentMethod}
+          />
+        )}
+
+        {role === 'buyer' && codSelected && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && (
+          <CodPaymentNotice />
+        )}
+
+        {role === 'buyer' && showPayButton && (
           <p className="text-sm text-text-secondary rounded-[var(--radius-md)] border border-warning/30 bg-warning/5 p-3">
             {t('payments.pendingBuyerNotice')}
           </p>
         )}
 
-        {role === 'seller' && paymentBlocked && (
-          <p className="text-sm text-text-secondary rounded-[var(--radius-md)] border border-warning/30 bg-warning/5 p-3" data-testid="seller-awaiting-payment-notice">
-            {paymentsEnabled ? t('payments.awaitingBuyerPayment') : t('payments.unavailableBody')}
+        {role === 'seller' && codSelected && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && (
+          <p className="text-sm text-text-secondary rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken p-3" data-testid="seller-cod-notice">
+            {t('payments.codSellerNotice')}
           </p>
         )}
 
-        {role === 'buyer' && order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED' && (
-          paymentsEnabled ? (
-            <PayWithRazorpayButton
-              orderId={order.id}
-              orderNumber={order.orderNumber}
-              buyer={order.buyer as { firstName?: string; lastName?: string; email?: string; phone?: string } | undefined}
-              className="w-full"
-              onSuccess={refreshOrder}
-            />
-          ) : (
-            <PaymentUnavailableNotice />
-          )
+        {role === 'seller' && paymentBlocked && (
+          <p className="text-sm text-text-secondary rounded-[var(--radius-md)] border border-warning/30 bg-warning/5 p-3" data-testid="seller-awaiting-payment-notice">
+            {t('payments.awaitingBuyerPayment')}
+          </p>
         )}
 
-        {role === 'buyer' && canCancelPaymentAttempt(order.paymentStatus, order.status) && paymentsEnabled && (
+        {showPayButton && (
+          <PayWithRazorpayButton
+            orderId={order.id}
+            orderNumber={order.orderNumber}
+            buyer={order.buyer as { firstName?: string; lastName?: string; email?: string; phone?: string } | undefined}
+            className="w-full"
+            onSuccess={refreshOrder}
+          />
+        )}
+
+        {role === 'buyer' && canCancelPaymentAttempt(order.paymentStatus, order.status, order.paymentMethod) && paymentsEnabled && (
           <CancelPaymentButton orderId={order.id} className="w-full" onSuccess={refreshOrder} />
         )}
 

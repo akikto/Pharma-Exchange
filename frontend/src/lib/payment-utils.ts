@@ -1,16 +1,43 @@
 export type PaymentStatusValue = 'PENDING' | 'PAID' | 'REFUNDED' | string;
 
+export type OrderPaymentMethodValue = 'COD' | 'RAZORPAY' | null | undefined;
+
 const FULFILLMENT_STATUSES = new Set(['PACKED', 'SHIPPED', 'DELIVERED']);
 
-/** When Razorpay is enabled, seller fulfillment steps require a captured payment. */
+export function isCodOrder(paymentMethod: OrderPaymentMethodValue): boolean {
+  return paymentMethod === 'COD';
+}
+
+/** When Razorpay is enabled, seller fulfillment steps require a captured payment (except COD). */
 export function fulfillmentRequiresPayment(
   paymentsEnabled: boolean,
   paymentStatus: PaymentStatusValue,
   nextOrderStatus: string,
+  paymentMethod?: OrderPaymentMethodValue,
 ): boolean {
+  if (isCodOrder(paymentMethod)) return false;
   return paymentsEnabled
     && FULFILLMENT_STATUSES.has(nextOrderStatus)
     && paymentStatus !== 'PAID';
+}
+
+export function showRazorpayPayButton(
+  paymentsEnabled: boolean,
+  paymentMethod: OrderPaymentMethodValue,
+  paymentStatus: PaymentStatusValue,
+  orderStatus: string,
+): boolean {
+  return paymentsEnabled
+    && paymentMethod === 'RAZORPAY'
+    && paymentStatus === 'PENDING'
+    && orderStatus !== 'CANCELLED';
+}
+
+export function canSelectPaymentMethod(
+  paymentStatus: PaymentStatusValue,
+  orderStatus: string,
+): boolean {
+  return paymentStatus === 'PENDING' && !['CANCELLED', 'DELIVERED'].includes(orderStatus);
 }
 
 export type PaymentAttemptStatusValue =
@@ -48,7 +75,12 @@ export function paymentAttemptChipVariant(status: PaymentAttemptStatusValue): 's
   }
 }
 
-export function canCancelPaymentAttempt(paymentStatus: PaymentStatusValue, orderStatus: string): boolean {
+export function canCancelPaymentAttempt(
+  paymentStatus: PaymentStatusValue,
+  orderStatus: string,
+  paymentMethod?: OrderPaymentMethodValue,
+): boolean {
+  if (isCodOrder(paymentMethod)) return false;
   return paymentStatus === 'PENDING' && orderStatus !== 'CANCELLED';
 }
 
