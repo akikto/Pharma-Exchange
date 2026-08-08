@@ -52,9 +52,15 @@ export function generatePriceTrend(medicineId: string, currentPrice: number): Pr
 
 export function formatPhoneHref(phone?: string | null): string | null {
   if (!phone) return null;
-  const digits = phone.replace(/\D/g, '');
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/\D/g, '');
   if (!digits) return null;
-  return `tel:+${digits.startsWith('880') ? digits : `880${digits.replace(/^0/, '')}`}`;
+  if (trimmed.startsWith('+')) {
+    return `tel:+${digits}`;
+  }
+  const national = digits.replace(/^0+/, '');
+  const e164 = national.startsWith('91') && national.length > 10 ? national : `91${national}`;
+  return `tel:+${e164}`;
 }
 
 export function formatWhatsAppHref(phone?: string | null, message?: string): string | null {
