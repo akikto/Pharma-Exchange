@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginBuyer } from '../helpers/auth';
+import { openDemoPendingOrder, resetDemoPendingOrder } from '../helpers/orders';
 
 const ORDERS_TAB = /অর্ডার|orders/i;
 
@@ -44,7 +45,19 @@ test.describe('Payment checkout (mocked Razorpay)', () => {
     await loginBuyer(page);
   });
 
-  test('shows payment unavailable when provider disabled in health config', async ({ page }) => {
+  test('shows COD and online payment options when Razorpay is enabled in health config', async ({ page }) => {
+    resetDemoPendingOrder();
+    await openDemoPendingOrder(page);
+
+    await expect(page.getByTestId('payment-method-selector')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('payment-method-cod')).toBeVisible();
+    await expect(page.getByTestId('payment-method-razorpay')).toBeVisible();
+    await expect(page.getByTestId('pay-with-razorpay-button')).toHaveCount(0);
+  });
+});
+
+test.describe('Payment when Razorpay disabled', () => {
+  test.beforeEach(async ({ page }) => {
     await page.route('**/api/v1/health', async (route) => {
       await route.fulfill({
         json: {
@@ -53,9 +66,32 @@ test.describe('Payment checkout (mocked Razorpay)', () => {
         },
       });
     });
-    await page.getByTestId('nav-bottom-cart').click();
-    await page.getByRole('tab', { name: ORDERS_TAB }).click();
-    await page.getByRole('link', { name: /ORD-2026-000001/ }).click();
-    await expect(page.getByTestId('payment-unavailable-notice')).toBeVisible({ timeout: 10_000 });
+    await loginBuyer(page);
+  });
+
+  test('buyer can select COD without starting Razorpay checkout', async ({ page }) => {
+    resetDemoPendingOrder();
+
+    let createOrderPosts = 0;
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().includes('/api/v1/payments/create-order')) {
+        createOrderPosts += 1;
+      }
+    });
+
+    await openDemoPendingOrder(page);
+
+    await expect(page.getByTestId('payment-method-selector')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('payment-method-cod')).toBeVisible();
+    await expect(page.getByTestId('payment-method-razorpay')).toHaveCount(0);
+    await expect(page.getByTestId('payment-unavailable-notice')).toHaveCount(0);
+    await expect(page.getByTestId('pay-with-razorpay-button')).toHaveCount(0);
+
+    await page.getByTestId('payment-method-cod').click();
+
+    await expect(page.getByTestId('cod-payment-notice')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('payment-method-selector')).toHaveCount(0);
+    await expect(page.getByTestId('pay-with-razorpay-button')).toHaveCount(0);
+    expect(createOrderPosts).toBe(0);
   });
 });
