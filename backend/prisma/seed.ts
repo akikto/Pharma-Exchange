@@ -28,10 +28,10 @@ async function main() {
 
   const seller = await prisma.user.upsert({
     where: { email: 'seller@pharmex.bd' },
-    update: {},
+    update: { phone: '+919153014194' },
     create: {
       email: 'seller@pharmex.bd',
-      phone: '+8801700000002',
+      phone: '+919153014194',
       passwordHash,
       firstName: 'Karim',
       lastName: 'Ahmed',

@@ -52,8 +52,12 @@ export function generatePriceTrend(medicineId: string, currentPrice: number): Pr
 
 export function formatPhoneHref(phone?: string | null): string | null {
   if (!phone) return null;
-  const digits = phone.replace(/\D/g, '');
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/\D/g, '');
   if (!digits) return null;
+  if (trimmed.startsWith('+')) {
+    return `tel:+${digits}`;
+  }
   return `tel:+${digits.startsWith('880') ? digits : `880${digits.replace(/^0/, '')}`}`;
 }
 
