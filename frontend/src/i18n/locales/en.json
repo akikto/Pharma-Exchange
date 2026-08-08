@@ -482,6 +482,8 @@
   },
   "payments": {
     "payNow": "Pay now",
+    "pendingBuyerNotice": "Complete payment to allow the seller to pack and ship this order.",
+    "awaitingBuyerPayment": "Waiting for the buyer to complete online payment before you can pack this order.",
     "unavailableTitle": "Online payments unavailable",
     "unavailableBody": "Razorpay checkout is not enabled in this environment. Contact your administrator or try again later.",
     "verifySuccess": "Payment successful",

@@ -127,7 +127,7 @@ export interface Order {
   createdAt: string;
   items: { id: string; listingId?: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
   seller?: Pharmacy;
-  buyer?: { id: string; firstName: string; lastName: string };
+  buyer?: { id: string; firstName: string; lastName: string; email?: string; phone?: string };
   statusHistory?: { status: string; note?: string; createdAt: string }[];
 }
 

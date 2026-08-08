@@ -1,5 +1,18 @@
 export type PaymentStatusValue = 'PENDING' | 'PAID' | 'REFUNDED' | string;
 
+const FULFILLMENT_STATUSES = new Set(['PACKED', 'SHIPPED', 'DELIVERED']);
+
+/** When Razorpay is enabled, seller fulfillment steps require a captured payment. */
+export function fulfillmentRequiresPayment(
+  paymentsEnabled: boolean,
+  paymentStatus: PaymentStatusValue,
+  nextOrderStatus: string,
+): boolean {
+  return paymentsEnabled
+    && FULFILLMENT_STATUSES.has(nextOrderStatus)
+    && paymentStatus !== 'PAID';
+}
+
 export type PaymentAttemptStatusValue =
   | 'CREATED'
   | 'CAPTURED'

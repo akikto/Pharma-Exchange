@@ -1,5 +1,6 @@
 import { NotificationType, OrderStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../config/database';
+import { isRazorpayConfigured } from '../../config/env';
 import { AppError } from '../../shared/errors/AppError';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { notificationService } from '../notification';
@@ -53,7 +54,7 @@ export class OrderService {
       include: {
         items: { include: { listing: { include: { medicine: true } } } },
         seller: { select: { id: true, name: true, city: true, userId: true } },
-        buyer: { select: { id: true, firstName: true, lastName: true } },
+        buyer: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
         review: true,
       },
@@ -81,7 +82,11 @@ export class OrderService {
       throw AppError.badRequest(`Cannot transition from ${order.status} to ${status}`);
     }
 
-    if (FULFILLMENT_STATUSES.includes(status) && order.paymentStatus !== PaymentStatus.PAID) {
+    if (
+      isRazorpayConfigured()
+      && FULFILLMENT_STATUSES.includes(status)
+      && order.paymentStatus !== PaymentStatus.PAID
+    ) {
       throw new AppError(400, 'Payment must be completed before order fulfillment', 'PAYMENT_REQUIRED');
     }
 
