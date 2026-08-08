@@ -76,6 +76,7 @@ export function useRespondBuyRequest() {
       qc.invalidateQueries({ queryKey: ['messages'] });
       qc.invalidateQueries({ queryKey: ['buy-requests'] });
       qc.invalidateQueries({ queryKey: ['buy-request', variables.id] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 }

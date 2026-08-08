@@ -574,10 +574,16 @@ export class PaymentsService {
   }
 
   async getForOrder(userId: string, actorRole: string, orderId: string) {
-    const order = await prisma.order.findUnique({
+    let order = await prisma.order.findUnique({
       where: { id: orderId },
       include: { seller: { select: { userId: true } } },
     });
+    if (!order) {
+      order = await prisma.order.findUnique({
+        where: { orderNumber: orderId },
+        include: { seller: { select: { userId: true } } },
+      });
+    }
     if (!order) throw AppError.notFound('Order not found');
     const isBuyer = order.buyerId === userId;
     const isSeller = order.seller.userId === userId;
