@@ -25,7 +25,7 @@ describe('POST /api/v1/auth/register', () => {
   });
 
   it('phone registration issues tokens immediately', async () => {
-    const phone = `88017${String(Date.now()).slice(-8)}`;
+    const phone = `+919${String(Date.now()).slice(-9)}`;
     const res = await request(app)
       .post('/api/v1/auth/register')
       .send({

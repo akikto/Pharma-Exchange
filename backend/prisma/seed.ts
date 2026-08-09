@@ -13,12 +13,20 @@ async function main() {
 
   const passwordHash = await bcrypt.hash('password123', 12);
 
+  const demoPhones = {
+    admin: '+919110000001',
+    seller: '+919153014194',
+    buyer: '+919876543210',
+    seller2: '+919110000004',
+    seller3: '+919110000005',
+  } as const;
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@pharmex.bd' },
-    update: {},
+    update: { phone: demoPhones.admin },
     create: {
       email: 'admin@pharmex.bd',
-      phone: '+8801700000001',
+      phone: demoPhones.admin,
       passwordHash,
       firstName: 'Admin',
       lastName: 'User',
@@ -28,10 +36,10 @@ async function main() {
 
   const seller = await prisma.user.upsert({
     where: { email: 'seller@pharmex.bd' },
-    update: { phone: '+919153014194' },
+    update: { phone: demoPhones.seller },
     create: {
       email: 'seller@pharmex.bd',
-      phone: '+919153014194',
+      phone: demoPhones.seller,
       passwordHash,
       firstName: 'Karim',
       lastName: 'Ahmed',
@@ -40,10 +48,10 @@ async function main() {
 
   const buyer = await prisma.user.upsert({
     where: { email: 'buyer@pharmex.bd' },
-    update: {},
+    update: { phone: demoPhones.buyer },
     create: {
       email: 'buyer@pharmex.bd',
-      phone: '+8801700000003',
+      phone: demoPhones.buyer,
       passwordHash,
       firstName: 'Rahim',
       lastName: 'Hossain',
@@ -72,10 +80,10 @@ async function main() {
 
   const seller2 = await prisma.user.upsert({
     where: { email: 'seller2@pharmex.bd' },
-    update: {},
+    update: { phone: demoPhones.seller2 },
     create: {
       email: 'seller2@pharmex.bd',
-      phone: '+8801700000004',
+      phone: demoPhones.seller2,
       passwordHash,
       firstName: 'Fatima',
       lastName: 'Begum',
@@ -104,10 +112,10 @@ async function main() {
 
   const seller3 = await prisma.user.upsert({
     where: { email: 'seller3@pharmex.bd' },
-    update: {},
+    update: { phone: demoPhones.seller3 },
     create: {
       email: 'seller3@pharmex.bd',
-      phone: '+8801700000005',
+      phone: demoPhones.seller3,
       passwordHash,
       firstName: 'Jamal',
       lastName: 'Uddin',

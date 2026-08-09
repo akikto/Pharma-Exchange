@@ -8,7 +8,7 @@ const validForm = {
   targetPrice: '12.5',
   urgency: 'NORMAL' as const,
   deliveryAddress: '123 Pharma Street, Dhaka',
-  phone: '01700000000',
+  phone: '9876543210',
   requiresColdChain: false,
   requiresVatInvoice: true,
   requiresFactorySealed: false,

@@ -29,7 +29,7 @@ describe('Bulk Request API', () => {
         targetPrice: 12.5,
         urgency: 'HIGH',
         deliveryAddress: '123 Pharma Street, Dhaka',
-        phone: '01700000000',
+        phone: '9876543210',
         requiresColdChain: true,
         requiresVatInvoice: true,
         requiresFactorySealed: false,
@@ -62,7 +62,7 @@ describe('Bulk Request API', () => {
         quantity: 100,
         targetPrice: 10,
         deliveryAddress: 'Dhaka',
-        phone: '01700000001',
+        phone: '9876543211',
         expiryPreset: 'CUSTOM',
       });
 

@@ -27,12 +27,26 @@ describe('offer-utils', () => {
   });
 
   it('formats phone and WhatsApp links for India', () => {
+    expect(formatPhoneHref('9876543210')).toBe('tel:+919876543210');
+    expect(formatPhoneHref('09876543210')).toBe('tel:+919876543210');
+    expect(formatPhoneHref('+919876543210')).toBe('tel:+919876543210');
+    expect(formatPhoneHref('919876543210')).toBe('tel:+919876543210');
+
     expect(formatPhoneHref('9153014194')).toBe('tel:+919153014194');
     expect(formatPhoneHref('09153014194')).toBe('tel:+919153014194');
     expect(formatPhoneHref('+919153014194')).toBe('tel:+919153014194');
     expect(formatPhoneHref('919153014194')).toBe('tel:+919153014194');
+
     expect(formatPhoneHref('+8801700000001')).toBe('tel:+8801700000001');
-    expect(formatWhatsAppHref('9153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
+    expect(formatPhoneHref('+14155552671')).toBe('tel:+14155552671');
+
+    expect(formatPhoneHref(null)).toBeNull();
+    expect(formatPhoneHref(undefined)).toBeNull();
+    expect(formatPhoneHref('')).toBeNull();
+    expect(formatPhoneHref('   ')).toBeNull();
+    expect(formatPhoneHref('abc')).toBeNull();
+
+    expect(formatWhatsAppHref('9876543210', 'Hello')).toBe('https://wa.me/919876543210?text=Hello');
     expect(formatWhatsAppHref('+919153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
   });
 

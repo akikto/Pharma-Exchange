@@ -235,7 +235,7 @@ export function LoginPage() {
                 id="identifier"
                 type={isEmail ? 'email' : 'tel'}
                 autoComplete={isEmail ? 'email' : 'tel'}
-                placeholder={isEmail ? 'buyer@pharmex.bd' : '+8801XXXXXXXXX'}
+                placeholder={isEmail ? 'buyer@pharmex.bd' : '+919XXXXXXXXX'}
                 {...loginForm.register('identifier')}
               />
               {loginForm.formState.errors.identifier && (
