@@ -13,6 +13,7 @@ import {
   isEmailConfigured,
   sendPasswordResetEmail,
 } from '../../shared/services/email.service';
+import { isValidProfilePhone, normalizePhoneToE164 } from '../../shared/utils/phone';
 
 const PASSWORD_RESET_TTL_MS = 15 * 60 * 1000;
 const GENERIC_RESET_MESSAGE =
@@ -233,7 +234,15 @@ export class AuthService {
 
   async updateProfile(
     userId: string,
-    data: { language?: string; theme?: string; notificationPrefs?: Record<string, boolean> },
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      language?: string;
+      theme?: string;
+      notificationPrefs?: Record<string, boolean>;
+    },
   ) {
     const existing = await prisma.user.findUnique({
       where: { id: userId },
@@ -246,9 +255,34 @@ export class AuthService {
         ? (existing.notificationPrefs as Record<string, boolean>)
         : {};
 
+    let normalizedPhone: string | undefined;
+    if (data.phone !== undefined) {
+      if (!isValidProfilePhone(data.phone)) {
+        throw AppError.badRequest('Invalid phone number');
+      }
+      normalizedPhone = normalizePhoneToE164(data.phone)!;
+      const phoneOwner = await prisma.user.findFirst({
+        where: { phone: normalizedPhone, id: { not: userId } },
+      });
+      if (phoneOwner) throw AppError.conflict('Phone already registered');
+    }
+
+    let normalizedEmail: string | undefined;
+    if (data.email !== undefined) {
+      normalizedEmail = data.email.trim().toLowerCase();
+      const emailOwner = await prisma.user.findFirst({
+        where: { email: normalizedEmail, id: { not: userId } },
+      });
+      if (emailOwner) throw AppError.conflict('Email already registered');
+    }
+
     return prisma.user.update({
       where: { id: userId },
       data: {
+        ...(data.firstName !== undefined && { firstName: data.firstName.trim() }),
+        ...(data.lastName !== undefined && { lastName: data.lastName.trim() }),
+        ...(normalizedEmail !== undefined && { email: normalizedEmail }),
+        ...(normalizedPhone !== undefined && { phone: normalizedPhone }),
         ...(data.language !== undefined && { language: data.language }),
         ...(data.theme !== undefined && { theme: data.theme }),
         ...(data.notificationPrefs !== undefined && {

@@ -4,6 +4,7 @@ import {
   calculateSavings,
   formatSavingsPercent,
   generatePriceTrend,
+  normalizePhoneToE164,
   formatPhoneHref,
   formatWhatsAppHref,
   sortCompareListings,
@@ -27,6 +28,11 @@ describe('offer-utils', () => {
   });
 
   it('formats phone and WhatsApp links for India', () => {
+    expect(normalizePhoneToE164('9876543210')).toBe('+919876543210');
+    expect(normalizePhoneToE164('09876543210')).toBe('+919876543210');
+    expect(normalizePhoneToE164('+919876543210')).toBe('+919876543210');
+    expect(normalizePhoneToE164('919876543210')).toBe('+919876543210');
+
     expect(formatPhoneHref('9876543210')).toBe('tel:+919876543210');
     expect(formatPhoneHref('09876543210')).toBe('tel:+919876543210');
     expect(formatPhoneHref('+919876543210')).toBe('tel:+919876543210');
@@ -46,8 +52,9 @@ describe('offer-utils', () => {
     expect(formatPhoneHref('   ')).toBeNull();
     expect(formatPhoneHref('abc')).toBeNull();
 
-    expect(formatWhatsAppHref('9876543210', 'Hello')).toBe('https://wa.me/919876543210?text=Hello');
+    expect(formatWhatsAppHref('9153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
     expect(formatWhatsAppHref('+919153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
+    expect(formatWhatsAppHref('9876543210', 'Hello')).toBe('https://wa.me/919876543210?text=Hello');
   });
 
   it('sorts compare listings by price', () => {

@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { LOCALE_STORAGE_KEY } from '@/i18n';
@@ -11,6 +12,7 @@ import { useUpdateProfile } from '@/hooks/use-user-settings';
 import { useToast } from '@/hooks/use-toast';
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { normalizeNotificationPrefs } from '@/lib/notification-prefs';
+import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import type { AppLocale } from '@/i18n';
 import type { NotificationPrefs } from '@/lib/notification-prefs';
 
@@ -21,6 +23,7 @@ export function ProfilePage() {
   const updateProfile = useUpdateProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [editOpen, setEditOpen] = useState(false);
   const isVerified = user?.pharmacy?.verificationStatus === 'APPROVED';
   const hasPharmacy = Boolean(user?.pharmacy);
 
@@ -67,6 +70,15 @@ export function ProfilePage() {
         )}
 
         <div className="space-y-1">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised"
+            onClick={() => setEditOpen(true)}
+            data-testid="edit-profile-button"
+          >
+            <span>{t('profile.editTitle')}</span>
+            <ChevronRight className="h-4 w-4 text-text-secondary" />
+          </button>
           <Link to="/cart?tab=orders" className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised">
             <span>{t('profile.orderHistory')}</span><ChevronRight className="h-4 w-4 text-text-secondary" />
           </Link>
@@ -93,6 +105,7 @@ export function ProfilePage() {
           <LogOut className="h-4 w-4" /> {t('profile.logout')}
         </Button>
       </div>
+      <EditProfileDialog open={editOpen} onClose={() => setEditOpen(false)} />
     </div>
   );
 }

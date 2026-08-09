@@ -593,7 +593,12 @@
     "prefBuyRequests": "Buy requests",
     "prefOrders": "Order updates",
     "prefChat": "Chat messages",
-    "prefPromotions": "Promotions"
+    "prefPromotions": "Promotions",
+    "editTitle": "Edit Profile",
+    "editDescription": "Update your name, email, and mobile number.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "updateSuccess": "Profile updated"
   },
   "seller": {
     "title": "Seller",
