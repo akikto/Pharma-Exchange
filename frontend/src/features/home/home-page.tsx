@@ -97,8 +97,6 @@ export function HomePage() {
       <div className="pb-3 space-y-3">
         <ShopHeader />
 
-        {isAuthenticated && <AiMatchSection />}
-
         <PullToRefreshIndicator
           pullDistance={pullDistance}
           isRefreshing={isRefreshing || isFetching}
@@ -196,6 +194,8 @@ export function HomePage() {
             {t('home.catalogView')}
           </button>
         </div>
+
+        {isAuthenticated && <AiMatchSection />}
 
         {feedView === 'catalog' ? (
           <section>
