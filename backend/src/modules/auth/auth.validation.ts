@@ -47,6 +47,10 @@ export const notificationPrefsSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
+  firstName: z.string().trim().min(1).optional(),
+  lastName: z.string().trim().min(1).optional(),
+  email: z.string().trim().email().optional(),
+  phone: z.string().trim().min(10).optional(),
   language: z.enum(['en', 'bn']).optional(),
   theme: z.enum(['light', 'dark', 'system']).optional(),
   notificationPrefs: notificationPrefsSchema.optional(),

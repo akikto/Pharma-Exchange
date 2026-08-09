@@ -591,7 +591,12 @@
     "prefBuyRequests": "ক্রয় অনুরোধ",
     "prefOrders": "অর্ডার আপডেট",
     "prefChat": "চ্যাট বার্তা",
-    "prefPromotions": "প্রমোশন"
+    "prefPromotions": "প্রমোশন",
+    "editTitle": "প্রোফাইল আপডেট",
+    "editDescription": "আপনার নাম, ইমেইল এবং মোবাইল নম্বর আপডেট করুন।",
+    "firstName": "নামের প্রথম অংশ",
+    "lastName": "নামের শেষ অংশ",
+    "updateSuccess": "প্রোফাইল আপডেট হয়েছে"
   },
   "seller": {
     "title": "বিক্রেতা",
