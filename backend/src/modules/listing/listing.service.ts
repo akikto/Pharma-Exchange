@@ -135,7 +135,7 @@ export class ListingService {
       : { createdAt: sortOrder as 'asc' | 'desc' };
 
     const include = {
-      medicine: { select: { id: true, name: true, company: true, dosageForm: true, packSize: true, category: true, composition: true, genericName: true, brandName: true } },
+      medicine: { select: { id: true, name: true, company: true, dosageForm: true, packSize: true, category: true, composition: true, genericName: true, brandName: true, imageUrl: true, strength: true } },
       pharmacy: { select: { id: true, name: true, city: true, district: true, rating: true, verificationStatus: true, latitude: true, longitude: true, userId: true } },
     };
 
