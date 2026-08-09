@@ -9,7 +9,7 @@ import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock, calculateSavings, formatSavingsPercent } from '@/lib/offer-utils';
 import { isRenderableListing } from '@/lib/catalog-groups';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
-import { getListingPharmacyId } from '@/lib/listing-utils';
+import { getListingPharmacyId, getListingDistanceKm, getListingImageUrl, getListingCompositionText } from '@/lib/listing-utils';
 import { StatusChip } from '@/components/ui/status-chip';
 import { Button } from '@/components/ui/button';
 import { useAddToCart } from '@/hooks/use-api';
@@ -23,9 +23,10 @@ import type { Listing } from '@/types';
 interface OfferCardProps {
   listing: Listing;
   className?: string;
-  variant?: 'grid' | 'list';
+  variant?: 'grid' | 'list' | 'featured';
   showActions?: boolean;
   bestPrice?: number;
+  userCoords?: { latitude: number; longitude: number } | null;
 }
 
 export function OfferCard(props: OfferCardProps) {
@@ -39,6 +40,7 @@ function OfferCardContent({
   variant = 'grid',
   showActions = false,
   bestPrice,
+  userCoords,
 }: OfferCardProps & { listing: Listing }) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -46,6 +48,7 @@ function OfferCardContent({
   const toggleWatchlist = useToggleWatchlist();
   const openModal = useShellStore((s) => s.openModal);
   const [trendOpen, setTrendOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const expiryStatus = getExpiryStatus(listing.expiryDate);
   const hasDiscount = listing.discountPercent > 0;
@@ -55,6 +58,12 @@ function OfferCardContent({
   const price = Number(listing.finalPrice);
   const savings = bestPrice !== undefined ? calculateSavings(price, bestPrice) : 0;
   const savingsPct = bestPrice !== undefined ? formatSavingsPercent(price, bestPrice) : 0;
+  const imageUrl = getListingImageUrl(listing);
+  const distanceKm = variant === 'featured' ? getListingDistanceKm(listing, userCoords) : null;
+  const compositionText = variant === 'featured' ? getListingCompositionText(listing) : null;
+  const packStrength = [listing.medicine.packSize, listing.medicine.strength ?? listing.medicine.dosageForm]
+    .filter(Boolean)
+    .join(' · ');
 
   const urgencyBorder =
     expiryStatus === 'danger' ? 'border-danger'
@@ -105,23 +114,85 @@ function OfferCardContent({
   const compareUrl = `/medicine/${listing.medicine.id}/compare`;
 
   const imageBlock = (
-    <div className={cn('relative bg-surface-sunken shrink-0', variant === 'grid' ? 'aspect-square' : 'h-24 w-24 rounded-[var(--radius-md)]')}>
-      {listing.imageUrl ? (
-        <img src={listing.imageUrl} alt={listing.medicine.name} className="h-full w-full object-cover rounded-[inherit]" loading="lazy" />
+    <div
+      className={cn(
+        'relative bg-surface-sunken shrink-0 overflow-hidden rounded-t-[inherit]',
+        variant === 'featured' ? 'h-20 w-full' : variant === 'grid' ? 'aspect-square' : 'h-24 w-24 rounded-[var(--radius-md)]',
+      )}
+    >
+      {imageUrl && !imageError ? (
+        <img
+          src={imageUrl}
+          alt={listing.medicine.name}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setImageError(true)}
+        />
       ) : (
-        <div className="flex h-full items-center justify-center text-text-disabled text-3xl rounded-[inherit]">💊</div>
+        <div
+          className={cn(
+            'flex h-full items-center justify-center text-text-disabled',
+            variant === 'featured' ? 'text-xl' : 'text-3xl',
+          )}
+        >
+          💊
+        </div>
       )}
       {hasDiscount && (
-        <span className="absolute top-1.5 right-1.5 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-medium text-white">
+        <span
+          className={cn(
+            'absolute rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-medium text-white',
+            variant === 'featured' ? 'top-1 left-1' : 'top-1.5 right-1.5',
+          )}
+        >
           -{listing.discountPercent}%
         </span>
       )}
       {lowStock && (
-        <span className="absolute bottom-1.5 left-1.5 flex items-center gap-0.5 rounded bg-warning px-1.5 py-0.5 text-[10px] font-medium text-white">
+        <span
+          className={cn(
+            'flex items-center gap-0.5 rounded bg-warning px-1.5 py-0.5 text-[10px] font-medium text-white',
+            variant === 'featured' ? 'top-1 right-1' : 'bottom-1.5 left-1.5',
+          )}
+        >
           <AlertTriangle className="h-3 w-3" />
           {t('offer.lowStock')}
         </span>
       )}
+    </div>
+  );
+
+  const featuredInfoBlock = (
+    <div className="flex-1 min-w-0 space-y-1">
+      <div className="flex items-start gap-1">
+        <h3 className="font-semibold line-clamp-2 text-sm">{listing.medicine.name}</h3>
+        {verified && <VerifiedBadge size="sm" className="shrink-0" />}
+      </div>
+      {compositionText && (
+        <p className="text-[10px] text-text-secondary line-clamp-1">
+          {t('listing.composition')}: {compositionText}
+        </p>
+      )}
+      {packStrength && <p className="text-xs text-text-secondary line-clamp-1">{packStrength}</p>}
+      <p className="text-xs text-text-secondary line-clamp-1">{listing.medicine.company}</p>
+      <p className="text-xs text-text-secondary line-clamp-1">
+        ⭐ {listing.pharmacy.rating} · {listing.pharmacy.name} · {listing.pharmacy.city}
+      </p>
+      {distanceKm != null && (
+        <p className="text-xs text-text-secondary">📍 {t('home.kmAway', { km: distanceKm.toFixed(1) })}</p>
+      )}
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <span className="text-base font-semibold tabular-nums text-primary">{formatPrice(listing.finalPrice)}</span>
+        {hasDiscount && (
+          <span className="text-xs text-text-disabled line-through tabular-nums">{formatPrice(listing.sellingPrice)}</span>
+        )}
+      </div>
+      <p className="text-xs text-text-secondary">{t('listing.moq', { count: listing.moq })} · {t('listing.available', { count: listing.availableQty })}</p>
+      <StatusChip
+        label={t('listing.expiry', { label: getExpiryLabel(listing.expiryDate) })}
+        variant={expiryStatus === 'safe' ? 'success' : expiryStatus}
+        icon={Clock}
+      />
     </div>
   );
 
@@ -169,6 +240,11 @@ function OfferCardContent({
             <>
               {imageBlock}
               <div className="p-3">{infoBlock}</div>
+            </>
+          ) : variant === 'featured' ? (
+            <>
+              {imageBlock}
+              <div className="p-2.5">{featuredInfoBlock}</div>
             </>
           ) : (
             <>

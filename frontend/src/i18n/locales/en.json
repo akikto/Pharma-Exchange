@@ -181,6 +181,8 @@
     "searchPlaceholderSub": "ওষুধ, ব্র্যান্ড খুঁজুন…",
     "featuredDeals": "Featured Deals",
     "featuredDealsSub": "বিশেষ অফার",
+    "kmAway": "{{km}} km away",
+    "distanceUnavailable": "Distance unavailable",
     "shortExpiry": "Short Expiry Deals",
     "shortExpirySub": "স্বল্প মেয়াদের অফার",
     "allListings": "All Listings",

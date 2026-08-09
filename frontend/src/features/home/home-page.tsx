@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -37,7 +37,7 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<HomeQuickFilter>('filterAll');
   const [feedView, setFeedView] = useState<FeedView>('grid');
-  const { coords, requestLocation } = useGeolocation();
+  const { coords, error: geoError, requestLocation } = useGeolocation();
   const activeShopId = useDemoShopStore((s) => s.activeShopId);
 
   const listingParams = useMemo(() => {
@@ -81,6 +81,13 @@ export function HomePage() {
   const scrollRef = useInfiniteScroll(loadMore, !!hasNextPage);
 
   const featured = listings.filter((l) => l.discountPercent > 0).slice(0, 6);
+
+  useEffect(() => {
+    if (featured.length > 0 && !coords && !geoError) {
+      requestLocation();
+    }
+  }, [featured.length, coords, geoError, requestLocation]);
+
   const shortExpiry = listings.filter((l) => {
     const months = (new Date(l.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30);
     return months >= 1 && months <= 6;
@@ -220,7 +227,15 @@ export function HomePage() {
                 <h2 className="font-semibold mb-1">{t('home.featuredDeals')}</h2>
                 <p className="text-[10px] text-text-disabled mb-3">{t('home.featuredDealsSub')}</p>
                 <div className="flex gap-2.5 overflow-x-auto pb-2">
-                  {featured.map((l) => <ListingCard key={l.id} listing={l} className="w-40 shrink-0" />)}
+                  {featured.map((l) => (
+                    <ListingCard
+                      key={l.id}
+                      listing={l}
+                      variant="featured"
+                      userCoords={coords}
+                      className="w-52 shrink-0"
+                    />
+                  ))}
                 </div>
               </section>
             )}
