@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -36,6 +36,8 @@ const listing = vi.hoisted(() => ({
   },
 } as Listing));
 
+const navBadges = vi.hoisted(() => ({ cart: 0, chat: 0, requests: 0, watchlist: 0 }));
+
 vi.mock('@/hooks/use-api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/hooks/use-api')>();
   return {
@@ -44,6 +46,10 @@ vi.mock('@/hooks/use-api', async (importOriginal) => {
     useCart: () => ({ data: { items: [] } }),
   };
 });
+
+vi.mock('@/hooks/use-nav-badges', () => ({
+  useNavBadges: () => navBadges,
+}));
 
 vi.mock('@/lib/api', () => ({
   apiClient: {
@@ -85,6 +91,11 @@ function renderDetailPage() {
 }
 
 describe('MedicineDetailPage mobile action bar', () => {
+  beforeEach(() => {
+    navBadges.cart = 0;
+    navBadges.requests = 0;
+  });
+
   it('renders quantity, Buy Now, and Add to Cart controls in a grid layout', async () => {
     renderDetailPage();
 
@@ -92,9 +103,26 @@ describe('MedicineDetailPage mobile action bar', () => {
     expect(screen.getByRole('button', { name: /Add to Cart|কার্টে যোগ/i })).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
 
-    const buyNow = screen.getByRole('button', { name: /Buy Now|এখনই কিনুন/i });
-    const actionBar = buyNow.parentElement;
-    expect(actionBar?.className).toContain('grid');
-    expect(actionBar?.className).toContain('grid-cols-');
+    const actionBar = screen.getByTestId('product-action-bar');
+    const grid = actionBar.querySelector('.grid');
+    expect(grid?.className).toContain('grid-cols-');
+  });
+
+  it('positions the action bar above bottom nav when cart summary is hidden', async () => {
+    renderDetailPage();
+    const actionBar = await screen.findByTestId('product-action-bar');
+
+    expect(actionBar.className).toContain('shell-above-bottom-nav');
+    expect(actionBar.className).not.toContain('shell-above-cart-summary');
+    expect(actionBar.className).not.toContain('bottom-16');
+  });
+
+  it('stacks the action bar above the cart summary when cart has items', async () => {
+    navBadges.cart = 1;
+    renderDetailPage();
+    const actionBar = await screen.findByTestId('product-action-bar');
+
+    expect(actionBar.className).toContain('shell-above-cart-summary');
+    expect(actionBar.className).not.toContain('shell-above-bottom-nav');
   });
 });

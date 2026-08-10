@@ -14,12 +14,18 @@ test.describe('Buyer purchase flow', () => {
     await listing.locator('a').first().click();
     await expect(page).toHaveURL(/\/medicine\//, { timeout: 15_000 });
 
-    // Seed listings use MOQ 10; detail page defaults quantity to 1.
-    // Minus clamps quantity up to MOQ when below it.
-    await page.locator('.fixed.bottom-16 .border button').first().click();
-    await expect(page.locator('.fixed.bottom-16 .border span').first()).toHaveText('10');
+    // Detail page defaults quantity to 1. Minus clamps quantity up to MOQ when below it.
+    const actionBar = page.getByTestId('product-action-bar');
+    await expect(actionBar).toBeVisible({ timeout: 15_000 });
+    const moqLine = page.getByText(/MOQ \d+|ন্যূনতম অর্ডার \d+/);
+    await expect(moqLine).toBeVisible();
+    const moq = Number((await moqLine.textContent())?.match(/(\d+)/)?.[1]);
+    const quantity = actionBar.locator('span.tabular-nums');
+    await expect(quantity).toHaveText('1');
+    await actionBar.getByLabel(/decrease quantity|পরিমাণ কমান/i).click();
+    await expect(quantity).toHaveText(String(moq));
 
-    await page.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).first().click();
+    await actionBar.getByRole('button', { name: /কার্টে যোগ|add to cart/i }).click();
     await page.getByTestId('nav-bottom-cart').click();
     await expect(page).toHaveURL('/cart', { timeout: 15_000 });
     await expect(page.getByTestId('cart-panel')).toBeVisible({ timeout: 15_000 });
