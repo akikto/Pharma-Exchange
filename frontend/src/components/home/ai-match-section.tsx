@@ -44,7 +44,7 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
     <section data-testid="ai-match-section" className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="font-semibold flex items-center gap-2">
+          <h2 className="font-semibold flex items-center gap-2 text-text-primary">
             <Sparkles className="h-4 w-4 text-primary" />
             {t('aiMatch.title')}
           </h2>
@@ -56,6 +56,7 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
           type="button"
           variant="ghost"
           size="icon"
+          className="text-text-secondary hover:text-text-primary"
           aria-label={t('aiMatch.refresh')}
           onClick={() => void refetch()}
         >
