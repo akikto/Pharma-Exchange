@@ -33,7 +33,6 @@ export function LoginPage() {
   const onAuthTabKeyDown = useTabListKeyboard(AUTH_TABS, tab, setTab);
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
-  const demoLogin = useAuthStore((s) => s.demoLogin);
   const registerUser = useAuthStore((s) => s.register);
   const fetchProfile = useAuthStore((s) => s.fetchProfile);
   const { toast } = useToast();
@@ -118,20 +117,6 @@ export function LoginPage() {
       } else {
         setError(err instanceof Error ? err.message : t('auth.registerFailed'));
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onDemoLogin = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const result = await demoLogin();
-      toast({ description: t('auth.demoLoginSuccess') });
-      await showWelcome(Boolean(result.isDemo));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -339,11 +324,6 @@ export function LoginPage() {
 
         <GoogleSignInButton onSuccess={() => void showWelcome()} onError={setError} />
 
-        <Button variant="secondary" className="w-full max-w-full whitespace-normal text-center h-auto min-h-12 py-2.5" loading={loading} onClick={() => void onDemoLogin()} data-testid="demo-login">
-          {t('auth.tryDemo')}
-        </Button>
-
-        <p className="text-center text-xs text-text-secondary">{t('auth.correctSite')}</p>
         <p className="text-center text-xs text-text-secondary" data-testid="auth-legal-links">
           <Link className="underline" to="/privacy-policy">Privacy Policy</Link>
           <span className="mx-2">·</span>
