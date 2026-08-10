@@ -7,6 +7,7 @@ interface ListingCardProps {
   listing: Listing;
   className?: string;
   showActions?: boolean;
+  showAddToCart?: boolean;
   bestPrice?: number;
   variant?: 'grid' | 'list' | 'featured';
   userCoords?: { latitude: number; longitude: number } | null;
@@ -17,6 +18,7 @@ export function ListingCard({
   listing,
   className,
   showActions = false,
+  showAddToCart = false,
   bestPrice,
   variant = 'grid',
   userCoords,
@@ -33,6 +35,7 @@ export function ListingCard({
         className={className}
         variant={variant}
         showActions={showActions}
+        showAddToCart={showAddToCart}
         bestPrice={bestPrice}
         userCoords={userCoords}
       />

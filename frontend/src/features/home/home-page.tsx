@@ -265,6 +265,7 @@ export function HomePage() {
                       listing={l}
                       variant="featured"
                       userCoords={coords}
+                      showAddToCart
                       className="w-52 shrink-0"
                     />
                   ))}
@@ -277,7 +278,9 @@ export function HomePage() {
                 <h2 className="font-semibold mb-1 flex items-center gap-2">⏰ {t('home.shortExpiry')}</h2>
                 <p className="text-[10px] text-text-disabled mb-3">{t('home.shortExpirySub')}</p>
                 <div className="flex gap-2.5 overflow-x-auto pb-2">
-                  {shortExpiry.map((l) => <ListingCard key={l.id} listing={l} className="w-40 shrink-0" />)}
+                  {shortExpiry.map((l) => (
+                    <ListingCard key={l.id} listing={l} showAddToCart className="w-40 shrink-0" />
+                  ))}
                 </div>
               </section>
             )}
@@ -291,7 +294,7 @@ export function HomePage() {
                 <ListingsEmptyState onClearFilters={resetFilters} showClearFilters={hasActiveFilters} />
               ) : (
                 <div className="grid grid-cols-2 gap-2.5">
-                  {listings.map((l) => <ListingCard key={l.id} listing={l} />)}
+                  {listings.map((l) => <ListingCard key={l.id} listing={l} showAddToCart />)}
                 </div>
               )}
               <div ref={scrollRef} className="h-4" />
