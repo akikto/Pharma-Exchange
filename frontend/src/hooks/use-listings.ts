@@ -3,7 +3,10 @@ import { apiClient } from '@/lib/api';
 import { QUERY_STALE_TIMES } from '@/lib/query-config';
 import type { Listing, PaginatedResponse } from '@/types';
 
-export function useListings(params: Record<string, string | number | undefined> = {}) {
+export function useListings(
+  params: Record<string, string | number | undefined> = {},
+  options?: { enabled?: boolean },
+) {
   return useInfiniteQuery({
     queryKey: ['listings', params],
     queryFn: ({ pageParam = 1 }) => {
@@ -17,5 +20,6 @@ export function useListings(params: Record<string, string | number | undefined> 
       last.pagination.page < last.pagination.totalPages ? last.pagination.page + 1 : undefined,
     initialPageParam: 1,
     staleTime: QUERY_STALE_TIMES.listings,
+    enabled: options?.enabled ?? true,
   });
 }
