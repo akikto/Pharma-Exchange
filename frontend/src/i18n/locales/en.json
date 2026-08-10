@@ -310,7 +310,8 @@
     "noListings": "No active listings",
     "draftRestored": "Draft restored — continue where you left off",
     "clearDraft": "Clear draft",
-    "medicineRequired": "Please select a medicine from the search results."
+    "medicineRequired": "Please select a medicine from the search results.",
+    "medicineDetails": "Medicine information"
   },
   "offer": {
     "lowStock": "Low stock",
@@ -787,6 +788,7 @@
       "empty": "No medicines found.",
       "loadError": "Failed to load medicines.",
       "createSuccess": "Medicine created successfully.",
+      "existingMedicineSelected": "Existing medicine loaded. Update and save instead of creating a duplicate.",
       "updateSuccess": "Medicine updated successfully.",
       "selectDosageForm": "Select dosage form",
       "statusActive": "Active",

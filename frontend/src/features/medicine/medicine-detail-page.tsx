@@ -84,7 +84,7 @@ export function MedicineDetailPage() {
       <TopBar showBack />
       <div className="aspect-square bg-surface-sunken">
         {listing.imageUrl ? (
-          <img src={listing.imageUrl} alt={listing.medicine.name} className="h-full w-full object-cover" />
+          <img src={listing.imageUrl} alt={listing.medicine.name} className="h-full w-full object-cover" loading="lazy" />
         ) : (
           <div className="flex h-full items-center justify-center text-6xl">💊</div>
         )}
