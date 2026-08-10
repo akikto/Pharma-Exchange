@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
@@ -7,6 +7,7 @@ import i18n from '@/i18n';
 import { OrderDetailPage } from '@/features/buyer/order-detail-page';
 
 const get = vi.fn();
+const patch = vi.fn();
 
 vi.mock('@/components/layout/top-bar', () => ({
   TopBar: ({ title }: { title: string }) => <div>{title}</div>,
@@ -31,7 +32,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     apiClient: {
       get: (...args: unknown[]) => get(...args),
       post: vi.fn(),
-      patch: vi.fn(),
+      patch: (...args: unknown[]) => patch(...args),
       delete: vi.fn(),
       getText: vi.fn(),
       upload: vi.fn(),
@@ -123,5 +124,64 @@ describe('OrderDetailPage payment fulfillment UX', () => {
 
     expect(await screen.findByTestId('pay-with-razorpay-button')).toBeInTheDocument();
     expect(get).toHaveBeenCalledWith('/orders/ORD-2026-000001');
+  });
+
+  it('updates seller fulfillment status on the first click', async () => {
+    const { usePageRole } = await import('@/hooks/use-page-role');
+    vi.mocked(usePageRole).mockReturnValue('seller');
+
+    get.mockImplementation(async (url: string) => {
+      if (url === `/orders/${orderId}`) {
+        return { ...sampleOrder, paymentStatus: 'PAID' };
+      }
+      if (url === `/payments/order/${orderId}`) return { data: [] };
+      if (url === '/health') return { payments: { provider: 'RAZORPAY', enabled: true, currency: 'INR' } };
+      throw new Error(`Unexpected GET ${url}`);
+    });
+
+    patch.mockResolvedValue({ ...sampleOrder, paymentStatus: 'PAID', status: 'PACKED' });
+
+    renderOrderDetailPage();
+
+    const button = await screen.findByTestId('seller-fulfillment-button');
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(patch).toHaveBeenCalledTimes(1);
+      expect(patch).toHaveBeenCalledWith(`/orders/${orderId}/status`, { status: 'PACKED' });
+    });
+  });
+
+  it('prevents duplicate concurrent status updates from multiple clicks', async () => {
+    const { usePageRole } = await import('@/hooks/use-page-role');
+    vi.mocked(usePageRole).mockReturnValue('seller');
+
+    get.mockImplementation(async (url: string) => {
+      if (url === `/orders/${orderId}`) {
+        return { ...sampleOrder, paymentStatus: 'PAID' };
+      }
+      if (url === `/payments/order/${orderId}`) return { data: [] };
+      if (url === '/health') return { payments: { provider: 'RAZORPAY', enabled: true, currency: 'INR' } };
+      throw new Error(`Unexpected GET ${url}`);
+    });
+
+    let resolvePatch: (value: typeof sampleOrder) => void;
+    patch.mockImplementation(() => new Promise((resolve) => {
+      resolvePatch = resolve;
+    }));
+
+    renderOrderDetailPage();
+
+    const button = await screen.findByTestId('seller-fulfillment-button');
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(patch).toHaveBeenCalledTimes(1);
+
+    resolvePatch!({ ...sampleOrder, paymentStatus: 'PAID', status: 'PACKED' });
+
+    await waitFor(() => {
+      expect(button).not.toBeDisabled();
+    });
   });
 });
