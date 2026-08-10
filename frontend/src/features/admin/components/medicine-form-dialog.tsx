@@ -11,7 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { MedicineImageUpload } from '@/components/medicine/medicine-image-upload';
+import { MedicineNameAutocomplete } from '@/components/medicine/medicine-name-autocomplete';
 import { MEDICINE_DOSAGE_FORMS } from '@/lib/medicine-constants';
+import { applyMedicineAutofill, MEDICINE_AUTOFILL_FIELDS, type MedicineAutofillField } from '@/lib/medicine-autofill';
 import { getErrorMessage } from '@/lib/api-errors';
 import {
   EMPTY_MEDICINE_FORM,
@@ -29,6 +32,7 @@ type MedicineFormDialogProps = {
   medicine?: MedicineRecord | null;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: MedicineFormValues) => Promise<void>;
+  onExistingMedicineSelect?: (medicine: MedicineRecord) => void;
   isSubmitting?: boolean;
 };
 
@@ -38,28 +42,40 @@ export function MedicineFormDialog({
   medicine,
   onOpenChange,
   onSubmit,
+  onExistingMedicineSelect,
   isSubmitting = false,
 }: MedicineFormDialogProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState<MedicineFormValues>(EMPTY_MEDICINE_FORM);
   const [errors, setErrors] = useState<MedicineFormErrors>({});
   const [submitError, setSubmitError] = useState('');
+  const [touchedFields, setTouchedFields] = useState<Set<MedicineAutofillField>>(new Set());
 
   useEffect(() => {
     if (!open) return;
     setForm(mode === 'edit' && medicine ? medicineToForm(medicine) : EMPTY_MEDICINE_FORM);
     setErrors({});
     setSubmitError('');
+    setTouchedFields(new Set());
   }, [open, mode, medicine]);
 
   const updateField = <K extends keyof MedicineFormValues>(key: K, value: MedicineFormValues[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
+    if (MEDICINE_AUTOFILL_FIELDS.includes(key as MedicineAutofillField)) {
+      setTouchedFields((current) => new Set(current).add(key as MedicineAutofillField));
+    }
     setErrors((current) => {
       if (!current[key]) return current;
       const next = { ...current };
       delete next[key];
       return next;
     });
+    setSubmitError('');
+  };
+
+  const handleMedicineAutofill = (selected: MedicineRecord) => {
+    setForm((current) => applyMedicineAutofill(current, selected, touchedFields));
+    setErrors({});
     setSubmitError('');
   };
 
@@ -97,14 +113,29 @@ export function MedicineFormDialog({
 
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              id="medicine-name"
-              label={t('admin.medicines.fields.name')}
-              required
-              value={form.name}
-              error={errors.name}
-              onChange={(value) => updateField('name', value)}
-            />
+            {mode === 'create' ? (
+              <div className="sm:col-span-2">
+                <MedicineNameAutocomplete
+                  label={`${t('admin.medicines.fields.name')} *`}
+                  value={form.name}
+                  placeholder={t('admin.medicines.fields.name')}
+                  onValueChange={(value) => updateField('name', value)}
+                  onMedicineSelect={handleMedicineAutofill}
+                  onExistingMedicineSelect={onExistingMedicineSelect}
+                  inputTestId="medicine-name"
+                />
+                {errors.name && <p className="mt-1 text-xs text-danger">{errors.name}</p>}
+              </div>
+            ) : (
+              <Field
+                id="medicine-name"
+                label={t('admin.medicines.fields.name')}
+                required
+                value={form.name}
+                error={errors.name}
+                onChange={(value) => updateField('name', value)}
+              />
+            )}
             <Field
               id="medicine-company"
               label={t('admin.medicines.fields.company')}
@@ -173,13 +204,14 @@ export function MedicineFormDialog({
               error={errors.scheduleClass}
               onChange={(value) => updateField('scheduleClass', value)}
             />
-            <Field
-              id="medicine-image-url"
-              label={t('admin.medicines.fields.imageUrl')}
-              value={form.imageUrl}
-              error={errors.imageUrl}
-              onChange={(value) => updateField('imageUrl', value)}
-            />
+            <div className="sm:col-span-2">
+              <MedicineImageUpload
+                label={t('admin.medicines.fields.imageUrl')}
+                value={form.imageUrl}
+                error={errors.imageUrl}
+                onChange={(value) => updateField('imageUrl', value)}
+              />
+            </div>
           </div>
 
           <div>

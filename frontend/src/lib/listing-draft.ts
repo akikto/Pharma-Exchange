@@ -12,6 +12,7 @@ export interface ListingDraft {
   availableQty: string;
   moq: string;
   lowStockThreshold: string;
+  imageUrl?: string;
   updatedAt: string;
 }
 
@@ -22,7 +23,8 @@ export function isListingDraftEmpty(draft: ListingDraft): boolean {
     !draft.expiryDate &&
     !draft.purchasePrice &&
     !draft.sellingPrice &&
-    !draft.availableQty;
+    !draft.availableQty &&
+    !draft.imageUrl;
 }
 
 export async function loadListingDraft(): Promise<ListingDraft | null> {

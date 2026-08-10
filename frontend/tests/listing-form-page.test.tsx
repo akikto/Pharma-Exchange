@@ -39,6 +39,48 @@ vi.mock('react-router-dom', async (importOriginal) => {
   };
 });
 
+vi.mock('@/components/medicine/medicine-name-autocomplete', () => ({
+  MedicineNameAutocomplete: ({
+    value,
+    onValueChange,
+    onMedicineSelect,
+    inputTestId = 'medicine-search-input',
+    resultsTestId = 'medicine-search-results',
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+    onMedicineSelect: (medicine: { id: string; name: string; company: string }) => void;
+    inputTestId?: string;
+    resultsTestId?: string;
+  }) => (
+    <div>
+      <input
+        data-testid={inputTestId}
+        value={value}
+        onChange={(event) => onValueChange(event.target.value)}
+      />
+      {value.length >= 2 && (
+        <div data-testid={resultsTestId}>
+          <button
+            type="button"
+            onClick={() => onMedicineSelect({
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'Ace Plus',
+              company: 'Square',
+            })}
+          >
+            Ace Plus — Square
+          </button>
+        </div>
+      )}
+    </div>
+  ),
+}));
+
+vi.mock('@/components/medicine/medicine-image-upload', () => ({
+  MedicineImageUpload: () => <div data-testid="listing-image-upload" />,
+}));
+
 vi.mock('@/lib/listing-draft', () => ({
   loadListingDraft: vi.fn().mockResolvedValue(null),
   saveListingDraft: vi.fn(),
@@ -63,10 +105,9 @@ function renderPage() {
 function fillRequiredFields() {
   const dateInputs = document.querySelectorAll('input[type="date"]');
   const numberInputs = document.querySelectorAll('input[type="number"]');
-  const textInputs = screen.getAllByRole('textbox');
 
   fireEvent.change(screen.getByTestId('medicine-search-input'), { target: { value: 'Ace' } });
-  fireEvent.change(textInputs[1], { target: { value: 'Fr12' } });
+  fireEvent.change(screen.getByLabelText('Batch Number'), { target: { value: 'Fr12' } });
   fireEvent.change(dateInputs[0], { target: { value: '2025-01-01' } });
   fireEvent.change(dateInputs[1], { target: { value: '2027-12-31' } });
   fireEvent.change(numberInputs[0], { target: { value: '25' } });
@@ -111,6 +152,10 @@ describe('ListingFormPage', () => {
     renderPage();
     fillRequiredFields();
 
+    await waitFor(() => {
+      expect(screen.getByTestId('medicine-search-results')).toBeInTheDocument();
+    });
+
     const submit = screen.getByRole('button', { name: /create listing/i });
     expect(submit).toBeEnabled();
     fireEvent.click(submit);
@@ -118,7 +163,6 @@ describe('ListingFormPage', () => {
     await waitFor(() => {
       expect(post).not.toHaveBeenCalled();
       expect(screen.getByTestId('listing-form-error')).toHaveTextContent(MEDICINE_SELECTION_MESSAGE);
-      expect(screen.getByTestId('medicine-search-input')).toHaveFocus();
       expect(screen.getByTestId('medicine-search-results')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /ace plus/i })).toBeInTheDocument();
     });

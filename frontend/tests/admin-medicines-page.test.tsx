@@ -156,7 +156,7 @@ describe('AdminMedicinesPage', () => {
 
   it('shows backend validation errors clearly', async () => {
     post.mockRejectedValue(new ApiError(400, 'Validation failed', 'VALIDATION_ERROR', [
-      { path: 'imageUrl', message: 'Invalid url' },
+      { path: 'category', message: 'Invalid category' },
     ]));
     renderAdminMedicinesPage();
     await screen.findByTestId('admin-medicines-table');
@@ -167,10 +167,9 @@ describe('AdminMedicinesPage', () => {
     fireEvent.change(screen.getByTestId('medicine-dosage-form'), { target: { value: 'TABLET' } });
     fireEvent.change(screen.getByLabelText(/^Pack Size \*$/), { target: { value: '10x10 Strip' } });
     fireEvent.change(screen.getByLabelText(/^Category \*$/), { target: { value: 'Analgesic' } });
-    fireEvent.change(screen.getByLabelText(/^Image URL$/), { target: { value: 'https://example.com/med.png' } });
     fireEvent.click(screen.getByRole('button', { name: /create medicine/i }));
 
-    expect(await screen.findByTestId('medicine-form-error')).toHaveTextContent('imageUrl: Invalid url');
+    expect(await screen.findByTestId('medicine-form-error')).toHaveTextContent('category: Invalid category');
   });
 
   it('edits a medicine via PATCH /medicines/:id', async () => {
