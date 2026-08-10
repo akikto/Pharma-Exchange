@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFeaturedDealsParams, selectFeaturedDeals } from '@/lib/home-feed';
+import { buildFeaturedDealsParams, resolveFeaturedShopFilter, selectFeaturedDeals } from '@/lib/home-feed';
 import type { Listing } from '@/types';
 
 const baseListing = {
@@ -41,6 +41,19 @@ describe('home-feed', () => {
     });
     expect(buildFeaturedDealsParams()).not.toHaveProperty('maxExpiryDays');
     expect(buildFeaturedDealsParams()).not.toHaveProperty('latitude');
+  });
+
+  it('ignores stale activeShopId values that are not current demo shops', () => {
+    const demoShopIds = ['pharm-1', 'pharm-2'];
+
+    expect(resolveFeaturedShopFilter('pharm-1', demoShopIds)).toBe('pharm-1');
+    expect(resolveFeaturedShopFilter('stale-shop-id', demoShopIds)).toBeNull();
+    expect(buildFeaturedDealsParams(resolveFeaturedShopFilter('stale-shop-id', demoShopIds))).toEqual({
+      minDiscount: '1',
+      sortBy: 'discount',
+      sortOrder: 'desc',
+      limit: 6,
+    });
   });
 
   it('keeps only discounted renderable featured deals', () => {

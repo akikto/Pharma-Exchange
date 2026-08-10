@@ -9,9 +9,15 @@ import type { Listing } from '@/types';
 
 const useListings = vi.fn();
 const useAiMatches = vi.fn();
+const useDemoShops = vi.fn();
+const demoShopState = vi.hoisted(() => ({ activeShopId: null as string | null }));
 
 vi.mock('@/hooks/use-listings', () => ({
   useListings: (...args: unknown[]) => useListings(...args),
+}));
+
+vi.mock('@/hooks/use-pharmacy', () => ({
+  useDemoShops: (...args: unknown[]) => useDemoShops(...args),
 }));
 
 vi.mock('@/hooks/use-ai-matches', () => ({
@@ -44,10 +50,8 @@ vi.mock('@/stores/auth-store', () => ({
 }));
 
 vi.mock('@/stores/demo-shop-store', () => ({
-  useDemoShopStore: (selector?: (state: { activeShopId: string | null }) => unknown) => {
-    const state = { activeShopId: null };
-    return selector ? selector(state) : state;
-  },
+  useDemoShopStore: (selector?: (state: { activeShopId: string | null }) => unknown) =>
+    selector ? selector(demoShopState) : demoShopState,
 }));
 
 const baseListing = {
@@ -98,7 +102,9 @@ function renderHomePage() {
 describe('HomePage featured deals', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    demoShopState.activeShopId = null;
     useAiMatches.mockReturnValue({ data: { data: [] }, isLoading: false, isFetching: false, refetch: vi.fn() });
+    useDemoShops.mockReturnValue({ data: [{ id: 'pharm-1', name: 'City Pharmacy', city: 'Dhaka', rating: 4.6, verificationStatus: 'APPROVED' }] });
   });
 
   it('keeps Featured Deals visible when All Listings is empty', async () => {
@@ -130,9 +136,49 @@ describe('HomePage featured deals', () => {
 
     renderHomePage();
 
-    expect(await screen.findByText(/Featured Deals|ফিচার্ড ডিল/i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Featured Deals|বিশেষ অফার/i })).toBeInTheDocument();
     expect(screen.getByText('Napa')).toBeInTheDocument();
     expect(screen.getByText(/All Listings|সব লিস্টিং/i)).toBeInTheDocument();
     expect(screen.getByText(/No listings found|কোনো তালিকা পাওয়া যায়নি/i)).toBeInTheDocument();
+  });
+
+  it('keeps Featured Deals visible when activeShopId is stale and not a demo shop', async () => {
+    demoShopState.activeShopId = 'stale-shop-id';
+    const featuredListing = { ...baseListing, id: 'featured-1', discountPercent: 30 };
+
+    useListings.mockImplementation((params: Record<string, string | undefined>) => {
+      if (params.minDiscount === '1' && !params.pharmacyId) {
+        return {
+          data: { pages: [{ data: [featuredListing], pagination: { page: 1, limit: 6, total: 1, totalPages: 1 } }] },
+          fetchNextPage: vi.fn(),
+          hasNextPage: false,
+          isLoading: false,
+          isFetchingNextPage: false,
+          isFetching: false,
+          refetch: vi.fn(),
+        };
+      }
+
+      return {
+        data: { pages: [{ data: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } }] },
+        fetchNextPage: vi.fn(),
+        hasNextPage: false,
+        isLoading: false,
+        isFetchingNextPage: false,
+        isFetching: false,
+        refetch: vi.fn(),
+      };
+    });
+
+    renderHomePage();
+
+    expect(await screen.findByRole('heading', { name: /Featured Deals|বিশেষ অফার/i })).toBeInTheDocument();
+    expect(screen.getByText('Napa')).toBeInTheDocument();
+
+    const featuredCall = useListings.mock.calls.find(
+      ([params]) => (params as Record<string, string>).minDiscount === '1',
+    );
+    expect(featuredCall?.[0]).toEqual(expect.objectContaining({ minDiscount: '1' }));
+    expect(featuredCall?.[0]).not.toHaveProperty('pharmacyId');
   });
 });

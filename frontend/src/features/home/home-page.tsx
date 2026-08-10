@@ -15,6 +15,7 @@ import { CatalogGroupCard } from '@/components/home/catalog-group-card';
 import { ListingsEmptyState } from '@/components/home/listings-empty-state';
 import { PullToRefreshIndicator } from '@/components/home/pull-to-refresh-indicator';
 import { useListings } from '@/hooks/use-listings';
+import { useDemoShops } from '@/hooks/use-pharmacy';
 import { useInfiniteScroll } from '@/hooks/use-chat';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import {
@@ -22,7 +23,7 @@ import {
   groupListingsByMedicine,
   isRenderableListing,
 } from '@/lib/catalog-groups';
-import { buildFeaturedDealsParams, selectFeaturedDeals } from '@/lib/home-feed';
+import { buildFeaturedDealsParams, resolveFeaturedShopFilter, selectFeaturedDeals } from '@/lib/home-feed';
 import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
 import { useDemoShopStore } from '@/stores/demo-shop-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -40,6 +41,7 @@ export function HomePage() {
   const [feedView, setFeedView] = useState<FeedView>('grid');
   const { coords, error: geoError, requestLocation } = useGeolocation();
   const activeShopId = useDemoShopStore((s) => s.activeShopId);
+  const { data: demoShops } = useDemoShops();
 
   const listingParams = useMemo(() => {
     if (activeFilter === 'filterNearby' && !coords) {
@@ -51,10 +53,11 @@ export function HomePage() {
     };
   }, [activeFilter, coords, requestLocation, activeShopId]);
 
-  const featuredDealsParams = useMemo(
-    () => buildFeaturedDealsParams(activeShopId),
-    [activeShopId],
-  );
+  const featuredDealsParams = useMemo(() => {
+    const demoShopIds = demoShops?.map((shop) => shop.id) ?? [];
+    const validatedShopId = resolveFeaturedShopFilter(activeShopId, demoShopIds);
+    return buildFeaturedDealsParams(validatedShopId);
+  }, [activeShopId, demoShops]);
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, isFetching, refetch } = useListings(listingParams);
   const { data: featuredDealsData } = useListings(featuredDealsParams);
