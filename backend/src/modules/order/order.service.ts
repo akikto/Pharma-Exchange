@@ -80,6 +80,10 @@ export class OrderService {
     });
     if (!order) throw AppError.notFound('Order not found');
 
+    if (order.status === status) {
+      return order;
+    }
+
     const allowed = SELLER_TRANSITIONS[order.status];
     if (!allowed?.includes(status)) {
       throw AppError.badRequest(`Cannot transition from ${order.status} to ${status}`);
@@ -96,9 +100,11 @@ export class OrderService {
       await this.coordinatePaymentOnCancel(order, sellerUserId, 'USER', note);
     }
 
-    return prisma.$transaction(async (tx) => {
-      const updated = await tx.order.update({
-        where: { id: orderId },
+    const previousStatus = order.status;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.updateMany({
+        where: { id: orderId, status: previousStatus },
         data: {
           status,
           ...(status === OrderStatus.DELIVERED && {
@@ -111,28 +117,71 @@ export class OrderService {
         },
       });
 
+      if (result.count === 0) {
+        const current = await tx.order.findUnique({ where: { id: orderId } });
+        if (!current) throw AppError.notFound('Order not found');
+        if (current.status === status) return current;
+        throw AppError.badRequest(`Cannot transition from ${current.status} to ${status}`);
+      }
+
+      const fresh = await tx.order.findUnique({ where: { id: orderId } });
+      if (!fresh) throw AppError.notFound('Order not found');
+
       await tx.orderStatusHistory.create({ data: { orderId, status, note } });
 
       if (status === OrderStatus.CANCELLED) {
         await this.restoreInventory(tx, order.items);
       }
 
+      return fresh;
+    });
+
+    await this.dispatchOrderStatusSideEffects({
+      orderId,
+      buyerId: order.buyerId,
+      sellerId: order.sellerId,
+      orderNumber: order.orderNumber,
+      status,
+      actorUserId: sellerUserId,
+    });
+
+    return updated;
+  }
+
+  private async dispatchOrderStatusSideEffects(params: {
+    orderId: string;
+    buyerId: string;
+    sellerId: string;
+    orderNumber: string;
+    status: OrderStatus;
+    actorUserId: string;
+  }) {
+    try {
       await notificationService.create({
-        userId: order.buyerId,
+        userId: params.buyerId,
         type: NotificationType.ORDER_UPDATE,
         title: 'Order Status Updated',
-        body: `Order ${order.orderNumber} is now ${status.toLowerCase()}`,
-        data: { orderId, status },
+        body: `Order ${params.orderNumber} is now ${params.status.toLowerCase()}`,
+        data: { orderId: params.orderId, status: params.status },
       });
+    } catch (err) {
+      logger.warn(`Order status notification failed for ${params.orderId}: ${(err as Error).message}`);
+    }
 
-      const seller = await tx.pharmacy.findUnique({ where: { id: order.sellerId } });
-      if (seller) {
-        await chatSystemService.ensureOrderConversation(orderId, order.buyerId, seller.userId);
-        await chatSystemService.postOrderStatusMessage(orderId, sellerUserId, status, order.orderNumber);
-      }
+    try {
+      const seller = await prisma.pharmacy.findUnique({ where: { id: params.sellerId } });
+      if (!seller) return;
 
-      return updated;
-    });
+      await chatSystemService.ensureOrderConversation(params.orderId, params.buyerId, seller.userId);
+      await chatSystemService.postOrderStatusMessage(
+        params.orderId,
+        params.actorUserId,
+        params.status,
+        params.orderNumber,
+      );
+    } catch (err) {
+      logger.warn(`Order status chat side effect failed for ${params.orderId}: ${(err as Error).message}`);
+    }
   }
 
   async cancel(buyerId: string, orderId: string, reason?: string) {

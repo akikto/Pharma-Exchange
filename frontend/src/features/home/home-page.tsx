@@ -22,6 +22,7 @@ import {
   groupListingsByMedicine,
   isRenderableListing,
 } from '@/lib/catalog-groups';
+import { buildFeaturedDealsParams, selectFeaturedDeals } from '@/lib/home-feed';
 import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
 import { useDemoShopStore } from '@/stores/demo-shop-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -50,11 +51,21 @@ export function HomePage() {
     };
   }, [activeFilter, coords, requestLocation, activeShopId]);
 
+  const featuredDealsParams = useMemo(
+    () => buildFeaturedDealsParams(activeShopId),
+    [activeShopId],
+  );
+
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, isFetching, refetch } = useListings(listingParams);
+  const { data: featuredDealsData } = useListings(featuredDealsParams);
   const rawListings = (data?.pages.flatMap((p) => p.data) ?? []).filter(isRenderableListing);
   const totalFromApi = data?.pages[0]?.pagination.total;
 
   const listings = useMemo(() => filterListingsByQuery(rawListings, searchQuery), [rawListings, searchQuery]);
+  const featured = useMemo(
+    () => selectFeaturedDeals(featuredDealsData?.pages.flatMap((page) => page.data) ?? []),
+    [featuredDealsData],
+  );
 
   const catalogGroups = useMemo(() => groupListingsByMedicine(listings), [listings]);
 
@@ -79,8 +90,6 @@ export function HomePage() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   const scrollRef = useInfiniteScroll(loadMore, !!hasNextPage);
-
-  const featured = listings.filter((l) => l.discountPercent > 0).slice(0, 6);
 
   useEffect(() => {
     if (featured.length > 0 && !coords && !geoError) {
