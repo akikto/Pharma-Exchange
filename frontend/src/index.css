@@ -94,12 +94,36 @@ html[dir="rtl"] .rtl-flip {
     padding-left: max(1rem, env(safe-area-inset-left, 0px));
     padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
+
+  .shell-above-bottom-nav {
+    bottom: calc(var(--shell-bottom-nav-height) + var(--shell-safe-bottom));
+  }
+
+  .shell-above-cart-summary {
+    bottom: calc(var(--shell-bottom-nav-height) + var(--shell-cart-summary-height) + var(--shell-safe-bottom));
+  }
+
+  .pb-shell-with-action-bar {
+    padding-bottom: calc(var(--shell-bottom-nav-height) + var(--shell-product-action-height) + var(--shell-safe-bottom));
+  }
+
+  .pb-shell-with-action-bar-and-cart {
+    padding-bottom: calc(
+      var(--shell-bottom-nav-height) + var(--shell-cart-summary-height) + var(--shell-product-action-height) + var(--shell-safe-bottom)
+    );
+  }
 }
 
 :root {
   --elevation-1: 0 1px 3px rgba(15, 27, 25, 0.08);
   --elevation-2: 0 2px 8px rgba(15, 27, 25, 0.1);
   --elevation-3: 0 4px 16px rgba(15, 27, 25, 0.14);
+
+  /* Mobile shell layer heights (product action bar, cart summary, bottom nav) */
+  --shell-bottom-nav-height: 4.0625rem;
+  --shell-cart-summary-height: 2.8125rem;
+  --shell-product-action-height: 4.3125rem;
+  --shell-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Legal pages (Privacy Policy, Terms & Conditions) — BL-04/BL-05. */

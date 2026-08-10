@@ -15,6 +15,7 @@ import { apiClient } from '@/lib/api';
 import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock } from '@/lib/offer-utils';
 import { useAddToCart } from '@/hooks/use-api';
+import { useNavBadges } from '@/hooks/use-nav-badges';
 import { PharmacyContactActions } from '@/components/pharmacy/pharmacy-contact-actions';
 import { usePharmacyProfile } from '@/hooks/use-pharmacy';
 import { formatPharmacyAddress } from '@/lib/shop-utils';
@@ -33,7 +34,9 @@ export function MedicineDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
+  const badges = useNavBadges();
   const openModal = useShellStore((s) => s.openModal);
+  const cartSummaryVisible = badges.cart + badges.requests > 0;
   const { toast } = useToast();
   const toggleWatchlist = useToggleWatchlist();
   const [trendOpen, setTrendOpen] = useState(false);
@@ -80,7 +83,7 @@ export function MedicineDetailPage() {
   };
 
   return (
-    <div className="pb-24">
+    <div className={cn(cartSummaryVisible ? 'pb-shell-with-action-bar-and-cart' : 'pb-shell-with-action-bar')}>
       <TopBar showBack />
       <div className="aspect-square bg-surface-sunken">
         {listing.imageUrl ? (
@@ -153,7 +156,13 @@ export function MedicineDetailPage() {
         )}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 border-t border-border-subtle bg-surface-base px-3 py-3 safe-bottom lg:left-60">
+      <div
+        data-testid="product-action-bar"
+        className={cn(
+          'fixed left-0 right-0 z-[45] border-t border-border-subtle bg-surface-base px-3 py-3 lg:left-60',
+          cartSummaryVisible ? 'shell-above-cart-summary' : 'shell-above-bottom-nav',
+        )}
+      >
         <div className="grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
           <div className="flex shrink-0 items-center justify-between border border-border-subtle rounded-[var(--radius-md)]">
             <button type="button" className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))} aria-label={t('listing.decreaseQty', { defaultValue: 'Decrease quantity' })}><Minus className="h-4 w-4" /></button>
