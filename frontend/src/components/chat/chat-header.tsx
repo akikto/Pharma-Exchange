@@ -48,7 +48,7 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
     : [];
 
   const handleOrderStatus = async (status: string) => {
-    if (!conversation.order) return;
+    if (!conversation.order || updateOrder.isPending) return;
     try {
       await updateOrder.mutateAsync({ orderId: conversation.order.id, status });
       toast({ description: t('chat.statusUpdated') });
@@ -98,7 +98,12 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
       {(orderAction || requestActions.length > 0) && (
         <div className="flex flex-wrap gap-2">
           {orderAction && (
-            <Button size="sm" onClick={() => handleOrderStatus(orderAction.status!)} loading={updateOrder.isPending}>
+            <Button
+              size="sm"
+              onClick={() => handleOrderStatus(orderAction.status!)}
+              loading={updateOrder.isPending}
+              disabled={updateOrder.isPending}
+            >
               {t(orderAction.labelKey)}
             </Button>
           )}

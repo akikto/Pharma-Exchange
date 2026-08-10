@@ -23,7 +23,7 @@ import { apiClient } from '@/lib/api';
 import { ORDER_FLOW_STEPS, canTrackOrder } from '@/lib/order-utils';
 import { formatPrice } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 const NEXT_STATUS: Record<string, string> = {
@@ -47,6 +47,7 @@ export function OrderDetailPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const statusUpdateInFlight = useRef(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [trackOpen, setTrackOpen] = useState(false);
 
@@ -65,14 +66,20 @@ export function OrderDetailPage() {
   };
 
   const updateStatus = async (status: string) => {
+    if (statusUpdateInFlight.current || loading) return;
+
+    statusUpdateInFlight.current = true;
     setLoading(true);
     try {
-      await apiClient.patch(`/orders/${id}/status`, { status });
-      qc.invalidateQueries({ queryKey: ['order', id] });
+      const updated = await apiClient.patch<typeof order>(`/orders/${id}/status`, { status });
+      qc.setQueryData(['order', id], updated);
+      void qc.invalidateQueries({ queryKey: ['order', id] });
+      void qc.invalidateQueries({ queryKey: ['orders'] });
       toast({ description: t('orders.statusUpdated') });
     } catch (e) {
       toast({ title: t('toast.error'), description: (e as Error).message, variant: 'destructive' });
     } finally {
+      statusUpdateInFlight.current = false;
       setLoading(false);
     }
   };
@@ -280,7 +287,7 @@ export function OrderDetailPage() {
           <Button
             className="w-full"
             loading={loading}
-            disabled={paymentBlocked}
+            disabled={paymentBlocked || loading}
             onClick={() => updateStatus(nextStatus)}
             data-testid="seller-fulfillment-button"
           >
