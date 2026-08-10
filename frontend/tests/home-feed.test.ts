@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildFeaturedDealsParams, selectFeaturedDeals } from '@/lib/home-feed';
+import {
+  buildFeaturedDealsParams,
+  resolveFeaturedDeals,
+  resolveFeaturedShopFilter,
+  selectFeaturedDeals,
+} from '@/lib/home-feed';
 import type { Listing } from '@/types';
 
 const baseListing = {
@@ -43,6 +48,19 @@ describe('home-feed', () => {
     expect(buildFeaturedDealsParams()).not.toHaveProperty('latitude');
   });
 
+  it('ignores stale activeShopId values that are not current demo shops', () => {
+    const demoShopIds = ['pharm-1', 'pharm-2'];
+
+    expect(resolveFeaturedShopFilter('pharm-1', demoShopIds)).toBe('pharm-1');
+    expect(resolveFeaturedShopFilter('stale-shop-id', demoShopIds)).toBeNull();
+    expect(buildFeaturedDealsParams(resolveFeaturedShopFilter('stale-shop-id', demoShopIds))).toEqual({
+      minDiscount: '1',
+      sortBy: 'discount',
+      sortOrder: 'desc',
+      limit: 6,
+    });
+  });
+
   it('keeps only discounted renderable featured deals', () => {
     const featured = selectFeaturedDeals([
       { ...baseListing, id: 'featured-1', discountPercent: 25 },
@@ -61,5 +79,30 @@ describe('home-feed', () => {
 
     expect(featured).toHaveLength(1);
     expect(featured[0]?.id).toBe('featured-only');
+  });
+
+  it('prefers shop featured deals when the selected shop has discounts', () => {
+    const shopListing = { ...baseListing, id: 'shop-featured', pharmacy: { ...baseListing.pharmacy, id: 'pharm-2' } };
+    const marketplaceListing = { ...baseListing, id: 'market-featured' };
+
+    const featured = resolveFeaturedDeals('pharm-2', [shopListing], [marketplaceListing]);
+
+    expect(featured.map((listing) => listing.id)).toEqual(['shop-featured']);
+  });
+
+  it('falls back to marketplace featured deals when the selected shop has none', () => {
+    const marketplaceListing = { ...baseListing, id: 'market-featured' };
+
+    const featured = resolveFeaturedDeals('pharm-2', [], [marketplaceListing]);
+
+    expect(featured.map((listing) => listing.id)).toEqual(['market-featured']);
+  });
+
+  it('uses marketplace featured deals when no shop is selected', () => {
+    const marketplaceListing = { ...baseListing, id: 'market-featured' };
+
+    const featured = resolveFeaturedDeals(null, [], [marketplaceListing]);
+
+    expect(featured.map((listing) => listing.id)).toEqual(['market-featured']);
   });
 });
