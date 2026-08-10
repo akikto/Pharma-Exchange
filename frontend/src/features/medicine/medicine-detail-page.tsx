@@ -153,14 +153,16 @@ export function MedicineDetailPage() {
         )}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-surface-base border-t border-border-subtle safe-bottom flex gap-2 items-center lg:left-60">
-        <div className="flex items-center gap-2 border border-border-subtle rounded-[var(--radius-md)]">
-          <button type="button" className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))}><Minus className="h-4 w-4" /></button>
-          <span className="w-8 text-center tabular-nums font-medium">{quantity}</span>
-          <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
+      <div className="fixed bottom-16 left-0 right-0 border-t border-border-subtle bg-surface-base px-3 py-3 safe-bottom lg:left-60">
+        <div className="grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
+          <div className="flex shrink-0 items-center justify-between border border-border-subtle rounded-[var(--radius-md)]">
+            <button type="button" className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))} aria-label={t('listing.decreaseQty', { defaultValue: 'Decrease quantity' })}><Minus className="h-4 w-4" /></button>
+            <span className="w-7 text-center tabular-nums text-sm font-medium">{quantity}</span>
+            <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))} aria-label={t('listing.increaseQty', { defaultValue: 'Increase quantity' })}><Plus className="h-4 w-4" /></button>
+          </div>
+          <Button className="min-w-0 h-10 px-2 text-xs sm:text-sm" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
+          <Button className="min-w-0 h-10 px-2 text-xs sm:text-sm" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing?.id)}>{t('listing.addToCart')}</Button>
         </div>
-        <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
-        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing?.id)}>{t('listing.addToCart')}</Button>
       </div>
 
       <PriceTrendDialog
