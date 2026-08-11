@@ -15,6 +15,7 @@ import { apiClient } from '@/lib/api';
 import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
 import { isLowStock } from '@/lib/offer-utils';
 import { useAddToCart } from '@/hooks/use-api';
+import { useNavBadges } from '@/hooks/use-nav-badges';
 import { PharmacyContactActions } from '@/components/pharmacy/pharmacy-contact-actions';
 import { usePharmacyProfile } from '@/hooks/use-pharmacy';
 import { formatPharmacyAddress } from '@/lib/shop-utils';
@@ -33,7 +34,9 @@ export function MedicineDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
+  const badges = useNavBadges();
   const openModal = useShellStore((s) => s.openModal);
+  const cartSummaryVisible = badges.cart + badges.requests > 0;
   const { toast } = useToast();
   const toggleWatchlist = useToggleWatchlist();
   const [trendOpen, setTrendOpen] = useState(false);
@@ -80,11 +83,11 @@ export function MedicineDetailPage() {
   };
 
   return (
-    <div className="pb-24">
+    <div className={cn(cartSummaryVisible ? 'pb-shell-with-action-bar-and-cart' : 'pb-shell-with-action-bar')}>
       <TopBar showBack />
       <div className="aspect-square bg-surface-sunken">
         {listing.imageUrl ? (
-          <img src={listing.imageUrl} alt={listing.medicine.name} className="h-full w-full object-cover" />
+          <img src={listing.imageUrl} alt={listing.medicine.name} className="h-full w-full object-cover" loading="lazy" />
         ) : (
           <div className="flex h-full items-center justify-center text-6xl">💊</div>
         )}
@@ -153,14 +156,22 @@ export function MedicineDetailPage() {
         )}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-surface-base border-t border-border-subtle safe-bottom flex gap-2 items-center lg:left-60">
-        <div className="flex items-center gap-2 border border-border-subtle rounded-[var(--radius-md)]">
-          <button type="button" className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))}><Minus className="h-4 w-4" /></button>
-          <span className="w-8 text-center tabular-nums font-medium">{quantity}</span>
-          <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))}><Plus className="h-4 w-4" /></button>
+      <div
+        data-testid="product-action-bar"
+        className={cn(
+          'fixed left-0 right-0 z-[45] border-t border-border-subtle bg-surface-base px-3 py-3 lg:left-60',
+          cartSummaryVisible ? 'shell-above-cart-summary' : 'shell-above-bottom-nav',
+        )}
+      >
+        <div className="grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
+          <div className="flex shrink-0 items-center justify-between border border-border-subtle rounded-[var(--radius-md)]">
+            <button type="button" className="p-2" onClick={() => setQuantity(Math.max(listing.moq, quantity - 1))} aria-label={t('listing.decreaseQty', { defaultValue: 'Decrease quantity' })}><Minus className="h-4 w-4" /></button>
+            <span className="w-7 text-center tabular-nums text-sm font-medium">{quantity}</span>
+            <button type="button" className="p-2" onClick={() => setQuantity(Math.min(listing.availableQty, quantity + 1))} aria-label={t('listing.increaseQty', { defaultValue: 'Increase quantity' })}><Plus className="h-4 w-4" /></button>
+          </div>
+          <Button className="min-w-0 h-10 px-2 text-xs sm:text-sm" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
+          <Button className="min-w-0 h-10 px-2 text-xs sm:text-sm" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing?.id)}>{t('listing.addToCart')}</Button>
         </div>
-        <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>{t('listing.buyNow')}</Button>
-        <Button className="flex-1" onClick={handleAddToCart} loading={addToCart.isAddingToCart(listing?.id)}>{t('listing.addToCart')}</Button>
       </div>
 
       <PriceTrendDialog

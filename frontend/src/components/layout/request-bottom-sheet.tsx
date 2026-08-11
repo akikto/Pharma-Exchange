@@ -32,7 +32,7 @@ export function RequestBottomSheet() {
       data-testid="request-bottom-sheet"
       className={cn(
         'fixed left-0 right-0 z-40 border-t border-border-subtle bg-surface-raised/95 backdrop-blur supports-[backdrop-filter]:bg-surface-raised/90',
-        'lg:left-60 bottom-16 lg:bottom-0',
+        'shell-above-bottom-nav lg:left-60 lg:bottom-0',
       )}
     >
       <button

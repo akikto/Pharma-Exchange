@@ -15,6 +15,7 @@ import { CatalogGroupCard } from '@/components/home/catalog-group-card';
 import { ListingsEmptyState } from '@/components/home/listings-empty-state';
 import { PullToRefreshIndicator } from '@/components/home/pull-to-refresh-indicator';
 import { useListings } from '@/hooks/use-listings';
+import { useDemoShops } from '@/hooks/use-pharmacy';
 import { useInfiniteScroll } from '@/hooks/use-chat';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import {
@@ -22,7 +23,11 @@ import {
   groupListingsByMedicine,
   isRenderableListing,
 } from '@/lib/catalog-groups';
-import { buildFeaturedDealsParams, selectFeaturedDeals } from '@/lib/home-feed';
+import {
+  buildFeaturedDealsParams,
+  resolveFeaturedDeals,
+  resolveFeaturedShopFilter,
+} from '@/lib/home-feed';
 import { HOME_QUICK_FILTERS, homeFilterToParams, type HomeQuickFilter } from '@/lib/search-constants';
 import { useDemoShopStore } from '@/stores/demo-shop-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -40,6 +45,7 @@ export function HomePage() {
   const [feedView, setFeedView] = useState<FeedView>('grid');
   const { coords, error: geoError, requestLocation } = useGeolocation();
   const activeShopId = useDemoShopStore((s) => s.activeShopId);
+  const { data: demoShops } = useDemoShops();
 
   const listingParams = useMemo(() => {
     if (activeFilter === 'filterNearby' && !coords) {
@@ -51,20 +57,37 @@ export function HomePage() {
     };
   }, [activeFilter, coords, requestLocation, activeShopId]);
 
-  const featuredDealsParams = useMemo(
-    () => buildFeaturedDealsParams(activeShopId),
-    [activeShopId],
+  const validatedShopId = useMemo(() => {
+    const demoShopIds = demoShops?.map((shop) => shop.id) ?? [];
+    return resolveFeaturedShopFilter(activeShopId, demoShopIds);
+  }, [activeShopId, demoShops]);
+
+  const shopFeaturedParams = useMemo(
+    () => buildFeaturedDealsParams(validatedShopId),
+    [validatedShopId],
   );
+  const marketplaceFeaturedParams = useMemo(() => buildFeaturedDealsParams(), []);
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, isFetching, refetch } = useListings(listingParams);
-  const { data: featuredDealsData } = useListings(featuredDealsParams);
+  const { data: shopFeaturedData, isFetched: shopFeaturedFetched } = useListings(shopFeaturedParams, {
+    enabled: validatedShopId !== null,
+  });
+  const shopFeaturedListings = shopFeaturedData?.pages.flatMap((page) => page.data) ?? [];
+  const shouldFallbackToMarketplace = validatedShopId !== null && shopFeaturedFetched && shopFeaturedListings.length === 0;
+  const { data: marketplaceFeaturedData } = useListings(marketplaceFeaturedParams, {
+    enabled: validatedShopId === null || shouldFallbackToMarketplace,
+  });
   const rawListings = (data?.pages.flatMap((p) => p.data) ?? []).filter(isRenderableListing);
   const totalFromApi = data?.pages[0]?.pagination.total;
 
   const listings = useMemo(() => filterListingsByQuery(rawListings, searchQuery), [rawListings, searchQuery]);
   const featured = useMemo(
-    () => selectFeaturedDeals(featuredDealsData?.pages.flatMap((page) => page.data) ?? []),
-    [featuredDealsData],
+    () => resolveFeaturedDeals(
+      validatedShopId,
+      shopFeaturedListings,
+      marketplaceFeaturedData?.pages.flatMap((page) => page.data) ?? [],
+    ),
+    [validatedShopId, shopFeaturedListings, marketplaceFeaturedData],
   );
 
   const catalogGroups = useMemo(() => groupListingsByMedicine(listings), [listings]);
@@ -121,10 +144,10 @@ export function HomePage() {
 
         <div className="space-y-2" data-testid="home-inline-search">
           <div className="relative flex gap-2">
-            <div className="relative flex-1">
+            <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
               <Input
-                className="pl-9"
+                className="border-border-strong bg-surface-raised pl-9 text-text-primary placeholder:text-text-disabled focus-visible:border-secondary/40 focus-visible:ring-secondary/20"
                 placeholder={t('home.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -135,10 +158,11 @@ export function HomePage() {
               type="button"
               variant="secondary"
               size="icon"
+              className="shrink-0 border-border-strong bg-surface-base"
               aria-label={t('home.refreshFeed')}
               onClick={() => void runRefresh()}
             >
-              <RefreshCw className={cn('h-4 w-4', (isRefreshing || isFetching) && 'animate-spin')} />
+              <RefreshCw className={cn('h-4 w-4 text-text-secondary', (isRefreshing || isFetching) && 'animate-spin')} />
             </Button>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -149,7 +173,7 @@ export function HomePage() {
               {hasActiveFilters && (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-primary"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-text-primary"
                   onClick={resetFilters}
                 >
                   <X className="h-3.5 w-3.5" />
@@ -158,7 +182,7 @@ export function HomePage() {
               )}
               <Link
                 to={searchQuery ? `/search?q=${encodeURIComponent(searchQuery)}` : '/search'}
-                className="inline-flex items-center rounded-full border border-primary/20 bg-primary-subtle px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                className="inline-flex items-center rounded-full border border-border-strong bg-surface-raised px-3 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-sunken"
               >
                 {t('home.fullSearch')}
               </Link>
@@ -174,8 +198,8 @@ export function HomePage() {
               className={cn(
                 'shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors',
                 activeFilter === key
-                  ? 'border-primary bg-primary-subtle text-primary font-medium'
-                  : 'border-border-subtle hover:bg-primary-subtle hover:border-primary hover:text-primary',
+                  ? 'border-primary bg-primary-subtle text-primary font-semibold shadow-sm'
+                  : 'border-border-subtle bg-surface-raised text-text-secondary hover:bg-surface-sunken',
               )}
               onClick={() => setActiveFilter(key)}
             >
@@ -184,29 +208,33 @@ export function HomePage() {
           ))}
         </div>
 
-        <div className="flex gap-1 p-1 bg-surface-sunken rounded-[var(--radius-md)] w-fit">
+        <div className="flex w-full max-w-full gap-1 rounded-[var(--radius-md)] bg-surface-sunken p-1 sm:w-fit" data-testid="home-feed-view-toggle">
           <button
             type="button"
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-[var(--radius-sm)]',
-              feedView === 'grid' && 'bg-surface-base shadow-sm font-medium',
+              'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-1.5 text-sm transition-colors sm:flex-none',
+              feedView === 'grid'
+                ? 'bg-surface-base font-medium text-primary shadow-sm'
+                : 'text-text-secondary hover:text-text-primary',
             )}
             onClick={() => setFeedView('grid')}
             data-testid="feed-view-grid"
           >
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className={cn('h-4 w-4', feedView === 'grid' ? 'text-primary' : 'text-text-secondary')} />
             {t('home.gridView')}
           </button>
           <button
             type="button"
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-[var(--radius-sm)]',
-              feedView === 'catalog' && 'bg-surface-base shadow-sm font-medium',
+              'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-1.5 text-sm transition-colors sm:flex-none',
+              feedView === 'catalog'
+                ? 'bg-surface-base font-medium text-primary shadow-sm'
+                : 'text-text-secondary hover:text-text-primary',
             )}
             onClick={() => setFeedView('catalog')}
             data-testid="feed-view-catalog"
           >
-            <Layers className="h-4 w-4" />
+            <Layers className={cn('h-4 w-4', feedView === 'catalog' ? 'text-primary' : 'text-text-secondary')} />
             {t('home.catalogView')}
           </button>
         </div>
@@ -242,6 +270,7 @@ export function HomePage() {
                       listing={l}
                       variant="featured"
                       userCoords={coords}
+                      showAddToCart
                       className="w-52 shrink-0"
                     />
                   ))}
@@ -253,8 +282,10 @@ export function HomePage() {
               <section>
                 <h2 className="font-semibold mb-1 flex items-center gap-2">⏰ {t('home.shortExpiry')}</h2>
                 <p className="text-[10px] text-text-disabled mb-3">{t('home.shortExpirySub')}</p>
-                <div className="flex gap-2.5 overflow-x-auto pb-2">
-                  {shortExpiry.map((l) => <ListingCard key={l.id} listing={l} className="w-40 shrink-0" />)}
+                <div className="grid grid-cols-2 gap-2.5" data-testid="home-short-expiry-grid">
+                  {shortExpiry.map((l) => (
+                    <ListingCard key={l.id} listing={l} showAddToCart className="min-w-0 w-full" />
+                  ))}
                 </div>
               </section>
             )}
@@ -268,7 +299,7 @@ export function HomePage() {
                 <ListingsEmptyState onClearFilters={resetFilters} showClearFilters={hasActiveFilters} />
               ) : (
                 <div className="grid grid-cols-2 gap-2.5">
-                  {listings.map((l) => <ListingCard key={l.id} listing={l} />)}
+                  {listings.map((l) => <ListingCard key={l.id} listing={l} showAddToCart />)}
                 </div>
               )}
               <div ref={scrollRef} className="h-4" />

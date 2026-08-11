@@ -25,6 +25,7 @@ interface OfferCardProps {
   className?: string;
   variant?: 'grid' | 'list' | 'featured';
   showActions?: boolean;
+  showAddToCart?: boolean;
   bestPrice?: number;
   userCoords?: { latitude: number; longitude: number } | null;
 }
@@ -39,6 +40,7 @@ function OfferCardContent({
   className,
   variant = 'grid',
   showActions = false,
+  showAddToCart = false,
   bestPrice,
   userCoords,
 }: OfferCardProps & { listing: Listing }) {
@@ -112,6 +114,26 @@ function OfferCardContent({
   };
 
   const compareUrl = `/medicine/${listing.medicine.id}/compare`;
+  const showCompactAddToCart = showAddToCart && !showActions && variant !== 'list';
+  const canAddToCart = listing.status === 'ACTIVE' && listing.availableQty >= listing.moq;
+
+  const addToCartButton = (
+    <Button
+      variant="secondary"
+      size="sm"
+      className={cn(
+        'w-full h-8 text-xs inline-flex items-center justify-center gap-1',
+        variant === 'featured' && 'text-[11px]',
+      )}
+      onClick={handleAddToCart}
+      loading={addToCart.isAddingToCart(listing?.id)}
+      disabled={!canAddToCart || addToCart.isAddingToCart(listing?.id)}
+      data-testid={`offer-card-add-to-cart-${listing.id}`}
+    >
+      <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate">{t('listing.addToCart')}</span>
+    </Button>
+  );
 
   const imageBlock = (
     <div
@@ -253,6 +275,12 @@ function OfferCardContent({
             </>
           )}
         </Link>
+
+        {showCompactAddToCart && (
+          <div className={cn('px-2.5 pb-2.5', variant === 'grid' && 'px-3')}>
+            {addToCartButton}
+          </div>
+        )}
 
         {(showActions || variant === 'list') && (
           <div className="flex flex-col gap-2 p-2 pt-0 border-t border-border-subtle">

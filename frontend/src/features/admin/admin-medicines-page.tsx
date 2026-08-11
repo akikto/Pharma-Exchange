@@ -129,6 +129,11 @@ export function AdminMedicinesPage() {
         medicine={selectedMedicine}
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
+        onExistingMedicineSelect={(existingMedicine) => {
+          setDialogMode('edit');
+          setSelectedMedicine(existingMedicine);
+          toast({ title: t('admin.medicines.existingMedicineSelected') });
+        }}
         isSubmitting={createMedicine.isPending || updateMedicine.isPending}
       />
     </div>
