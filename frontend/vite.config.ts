@@ -15,7 +15,7 @@ export default defineConfig({
         id: '/',
         name: 'Pharma-Exchange — B2B Pharmacy Marketplace',
         short_name: 'Pharma-Exchange',
-        description: 'B2B Pharmacy Marketplace for Bangladesh',
+        description: 'B2B Pharmacy Marketplace',
         theme_color: '#0F4C6E',
         background_color: '#0F4C6E',
         display: 'standalone',

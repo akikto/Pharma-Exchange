@@ -101,7 +101,7 @@ user must acknowledge. Text lives in
 ## 6. Play Store listing checklist
 
 - [ ] Screenshots (7 required, 5 for tablet).
-- [ ] Short description (80 chars): "Verified B2B pharmacy marketplace for Bangladesh — list, buy, and settle."
+- [ ] Short description (80 chars): "Verified B2B Pharmacy Marketplace — list, buy, and settle."
 - [ ] Full description (4000 chars): draft in `docs/play-store-listing.md` (create when submitting; not required now).
 - [ ] Feature graphic (1024×500).
 - [ ] Icon (512×512, transparent background).
