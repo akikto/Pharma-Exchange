@@ -31,6 +31,7 @@ BL-10 closes the production-readiness gap deferred from BL-09: `npm audit` depen
 | `@playwright/test` | ^1.51.0 | ^1.62.1 | Fixes GHSA-7mvr-c777-76hp |
 | `firebase-admin` | ^13.2.0 | ^13.10.0 | Latest 13.x (Node 20 compatible); v14 requires Node 22 + modular API migration |
 | `@vercel/node` | ^5.1.14 | ^5.9.5 | Latest 5.x build toolchain |
+| `sharp` (backend) | ^0.33.5 | ^0.35.3 | Fixes GHSA-f88m-g3jw-g9cj (libvips CVEs); aligns with frontend icon pipeline |
 
 ### 2. Root `overrides` (transitive dev toolchain)
 
