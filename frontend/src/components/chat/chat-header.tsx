@@ -26,6 +26,7 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
   const pharmacy = useAuthStore((s) => s.user?.pharmacy);
   const updateOrder = useUpdateOrderStatus();
   const respondRequest = useRespondBuyRequest();
+  const pendingAction = respondRequest.isPending ? respondRequest.variables?.action ?? null : null;
 
   const counterparty = conversation.counterparty;
   const name = counterparty ? `${counterparty.firstName} ${counterparty.lastName}`.trim() : t('chat.title');
@@ -47,7 +48,7 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
     : [];
 
   const handleOrderStatus = async (status: string) => {
-    if (!conversation.order) return;
+    if (!conversation.order || updateOrder.isPending) return;
     try {
       await updateOrder.mutateAsync({ orderId: conversation.order.id, status });
       toast({ description: t('chat.statusUpdated') });
@@ -58,7 +59,7 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
   };
 
   const handleRequestAction = async (action: 'accept' | 'reject') => {
-    if (!conversation.buyRequest) return;
+    if (!conversation.buyRequest || respondRequest.isPending) return;
     try {
       await respondRequest.mutateAsync({ id: conversation.buyRequest.id, action });
       toast({ description: t('chat.requestUpdated') });
@@ -97,7 +98,12 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
       {(orderAction || requestActions.length > 0) && (
         <div className="flex flex-wrap gap-2">
           {orderAction && (
-            <Button size="sm" onClick={() => handleOrderStatus(orderAction.status!)} loading={updateOrder.isPending}>
+            <Button
+              size="sm"
+              onClick={() => handleOrderStatus(orderAction.status!)}
+              loading={updateOrder.isPending}
+              disabled={updateOrder.isPending}
+            >
               {t(orderAction.labelKey)}
             </Button>
           )}
@@ -106,8 +112,10 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
               key={action.key}
               size="sm"
               variant={action.action === 'reject' ? 'secondary' : 'primary'}
-              onClick={() => handleRequestAction(action.action!)}
-              loading={respondRequest.isPending}
+              onClick={() => void handleRequestAction(action.action!)}
+              loading={pendingAction === action.action}
+              disabled={respondRequest.isPending}
+              data-testid={`chat-buy-request-${action.action}-button`}
             >
               {t(action.labelKey)}
             </Button>

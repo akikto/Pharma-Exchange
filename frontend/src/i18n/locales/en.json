@@ -22,7 +22,16 @@
     "verifications": "Verifications",
     "verificationsSub": "যাচাইকরণ",
     "reports": "Reports",
-    "reportsSub": "রিপোর্ট"
+    "reportsSub": "রিপোর্ট",
+    "payments": "Payments",
+    "paymentsSub": "পেমেন্ট",
+    "medicines": "Medicines",
+    "medicinesSub": "মেডিসিন",
+    "desktopNavigation": "Desktop navigation",
+    "mobileNavigation": "Mobile navigation"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content"
   },
   "common": {
     "appName": "Pharma Exchange",
@@ -95,19 +104,15 @@
     "forgotPassword": "Forgot password?",
     "invalidCredentials": "Invalid email/phone or password.",
     "loginFailed": "Login failed",
-    "continueOtp": "Continue with OTP",
-    "continueOtpSub": "OTP দিয়ে চালিয়ে যান",
     "newPharmacy": "New pharmacy?",
     "createAccount": "Create account",
     "createAccountSub": "অ্যাকাউন্ট তৈরি করুন",
+    "tabsLabel": "Authentication mode",
+    "signInMethodLabel": "Sign in method",
     "register": "Register",
     "registerSub": "নিবন্ধন",
     "firstName": "First name",
     "lastName": "Last name",
-    "verifyOtp": "Verify OTP",
-    "verifyOtpDesc": "Enter the 6-digit code sent to {{contact}}",
-    "otpCode": "OTP code",
-    "resendOtp": "Resend OTP",
     "splashLoading": "Loading…",
     "onboardingTitle": "Welcome to Pharma Exchange",
     "onboardingSub": "Pharma Exchange-এ স্বাগতম",
@@ -141,14 +146,19 @@
     "continueGoogle": "Continue with Google",
     "accountExists": "This email or phone is already registered. Reset your password or sign in.",
     "registerFailed": "Registration failed",
-    "otpFailed": "OTP verification failed",
-    "otpLength": "Enter a 6-digit code",
     "resetPasswordTitle": "Reset password",
-    "resetPasswordDesc": "Enter your email and choose a new password",
+    "resetPasswordDesc": "Enter your email and we will send you a reset link",
+    "sendResetEmail": "Send reset email",
+    "resetEmailSent": "If an account exists with this email, a password reset link has been sent.",
+    "setNewPasswordTitle": "Set new password",
+    "setNewPasswordDesc": "Choose a new password for your account",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
+    "resetTokenMissing": "Reset link is invalid or missing. Request a new one.",
+    "requestNewResetLink": "Request a new reset link",
     "newPassword": "New password",
     "updatePassword": "Update password",
     "backToLogin": "Back to login",
-    "emailNotFound": "No account found with this email.",
     "resetFailed": "Password reset failed"
   },
   "aiMatch": {
@@ -171,6 +181,8 @@
     "searchPlaceholderSub": "ওষুধ, ব্র্যান্ড খুঁজুন…",
     "featuredDeals": "Featured Deals",
     "featuredDealsSub": "বিশেষ অফার",
+    "kmAway": "{{km}} km away",
+    "distanceUnavailable": "Distance unavailable",
     "shortExpiry": "Short Expiry Deals",
     "shortExpirySub": "স্বল্প মেয়াদের অফার",
     "allListings": "All Listings",
@@ -297,7 +309,9 @@
     "listings": "Listings",
     "noListings": "No active listings",
     "draftRestored": "Draft restored — continue where you left off",
-    "clearDraft": "Clear draft"
+    "clearDraft": "Clear draft",
+    "medicineRequired": "Please select a medicine from the search results.",
+    "medicineDetails": "Medicine information"
   },
   "offer": {
     "lowStock": "Low stock",
@@ -373,6 +387,7 @@
   "hub": {
     "title": "Cart & Orders",
     "titleSub": "কার্ট ও অর্ডার",
+    "tabsLabel": "Cart hub sections",
     "tabs": {
       "cart": "Cart",
       "orders": "Orders",
@@ -424,6 +439,7 @@
     "markAs": "Mark as {{status}}",
     "cancelOrder": "Cancel Order",
     "notFound": "Order not found",
+    "viewOrder": "View order",
     "back": "Back",
     "noOrders": "No orders yet",
     "loadError": "Failed to load orders",
@@ -466,6 +482,59 @@
       "shipped": "Shipped",
       "delivered": "Delivered",
       "cancelled": "Cancelled"
+    }
+  },
+  "payments": {
+    "payNow": "Pay now",
+    "methodLabel": "Payment method",
+    "methodCod": "Cash on Delivery",
+    "methodCodDesc": "Pay the seller in cash when your order is delivered.",
+    "methodOnline": "Online Payment",
+    "methodOnlineDesc": "Pay securely now with Razorpay.",
+    "codTitle": "Cash on Delivery",
+    "codBody": "You will pay the seller in cash when the order is delivered.",
+    "codStatusPending": "Payment status: Pending — pay on delivery",
+    "codSellerNotice": "This order uses cash on delivery. Collect payment from the buyer when you deliver.",
+    "pendingBuyerNotice": "Complete payment to allow the seller to pack and ship this order.",
+    "awaitingBuyerPayment": "Waiting for the buyer to complete online payment before you can pack this order.",
+    "unavailableTitle": "Online payments unavailable",
+    "unavailableBody": "Razorpay checkout is not enabled in this environment. Contact your administrator or try again later.",
+    "verifySuccess": "Payment successful",
+    "verifyFailedTitle": "Payment verification failed",
+    "startFailedTitle": "Payment could not be started",
+    "cancelAttempt": "Cancel payment attempt",
+    "cancelSuccess": "Payment attempt cancelled",
+    "requestRefund": "Request refund",
+    "refundTitle": "Issue refund",
+    "refundDesc": "A full refund of {{amount}} will be sent to the original payment method via Razorpay.",
+    "refundReasonPlaceholder": "Reason (optional)",
+    "confirmRefund": "Confirm refund",
+    "refundSuccess": "Refund initiated",
+    "historyTitle": "Payment history",
+    "historyLoading": "Loading payment history…",
+    "historyEmpty": "No payment attempts yet",
+    "historyLoadError": "Failed to load payment history",
+    "receiptPaymentStatus": "Payment status",
+    "providerOrderId": "Razorpay order",
+    "providerPaymentId": "Razorpay payment",
+    "method": "Method",
+    "refundsTitle": "Refunds",
+    "status": {
+      "pending": "Payment pending",
+      "paid": "Paid",
+      "refunded": "Refunded"
+    },
+    "attemptStatus": {
+      "created": "Awaiting payment",
+      "captured": "Captured",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "refundStatus": {
+      "pending": "Refund pending",
+      "processed": "Refund processed",
+      "failed": "Refund failed"
     }
   },
   "chat": {
@@ -527,7 +596,12 @@
     "prefBuyRequests": "Buy requests",
     "prefOrders": "Order updates",
     "prefChat": "Chat messages",
-    "prefPromotions": "Promotions"
+    "prefPromotions": "Promotions",
+    "editTitle": "Edit Profile",
+    "editDescription": "Update your name, email, and mobile number.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "updateSuccess": "Profile updated"
   },
   "seller": {
     "title": "Seller",
@@ -693,7 +767,52 @@
     "broadcastSend": "Send broadcast",
     "broadcastSent": "Broadcast sent",
     "broadcastSentDesc": "Delivered to {{count}} users",
-    "broadcastFailed": "Broadcast failed"
+    "broadcastFailed": "Broadcast failed",
+    "payments": "Payments",
+    "paymentsDesc": "Reconcile Razorpay payment attempts and refunds across orders.",
+    "paymentsEmpty": "No payment records yet",
+    "medicines": {
+      "nav": "Medicines",
+      "title": "Medicine Management",
+      "description": "Search, add, and update medicines in the master catalog used across listings and marketplace search.",
+      "addButton": "Add Medicine",
+      "addTitle": "Add Medicine",
+      "addDesc": "Create a new medicine record in the catalog.",
+      "editTitle": "Edit Medicine",
+      "editDesc": "Update an existing medicine record.",
+      "createAction": "Create Medicine",
+      "saveAction": "Save Changes",
+      "editAction": "Edit",
+      "actions": "Actions",
+      "searchPlaceholder": "Search medicines by name, generic, or brand...",
+      "empty": "No medicines found.",
+      "loadError": "Failed to load medicines.",
+      "createSuccess": "Medicine created successfully.",
+      "existingMedicineSelected": "Existing medicine loaded. Update and save instead of creating a duplicate.",
+      "updateSuccess": "Medicine updated successfully.",
+      "selectDosageForm": "Select dosage form",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "fields": {
+        "name": "Name",
+        "company": "Company",
+        "dosageForm": "Dosage Form",
+        "packSize": "Pack Size",
+        "category": "Category",
+        "genericName": "Generic Name",
+        "brandName": "Brand Name",
+        "strength": "Strength",
+        "scheduleClass": "Schedule Class",
+        "composition": "Composition",
+        "imageUrl": "Image URL",
+        "status": "Status"
+      },
+      "validation": {
+        "required": "This field is required.",
+        "dosageForm": "Select a valid dosage form.",
+        "imageUrl": "Enter a valid image URL."
+      }
+    }
   },
   "modal": {
     "watchlistTitle": "Watchlist",
@@ -707,6 +826,8 @@
     "required": "This field is required",
     "passwordMin": "Password must be at least 8 characters",
     "email": "Enter a valid email address",
+    "phone": "Enter a valid phone number",
+    "otp": "Enter a valid OTP code",
     "emailOrPhone": "Email or phone is required",
     "quantityMin": "Quantity must be at least {{min}}",
     "quantityMax": "Quantity must be at most {{max}}"

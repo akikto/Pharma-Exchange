@@ -90,7 +90,11 @@ export function computeOrderStats(orders: Order[]): OrderStats {
   );
 }
 
-export function buildOrderReceiptText(order: Order, counterpartyLabel: string): string {
+export function buildOrderReceiptText(
+  order: Order,
+  counterpartyLabel: string,
+  payments?: Array<{ status: string; providerOrderId: string; providerPaymentId?: string | null }>,
+): string {
   const lines = [
     `PharmEx — ${order.orderNumber}`,
     `${counterpartyLabel}`,
@@ -99,10 +103,16 @@ export function buildOrderReceiptText(order: Order, counterpartyLabel: string): 
     `Date: ${new Date(order.createdAt).toLocaleString()}`,
     '',
     'Items:',
-    ...order.items.map((i) => `  ${i.medicineName} × ${i.quantity} — ৳${Number(i.subtotal).toFixed(2)}`),
+    ...order.items.map((i) => `  ${i.medicineName} × ${i.quantity} — ₹${Number(i.subtotal).toFixed(2)}`),
     '',
-    `Total: ৳${Number(order.totalAmount).toFixed(2)}`,
+    `Total: ₹${Number(order.totalAmount).toFixed(2)}`,
   ];
+  if (payments && payments.length > 0) {
+    lines.push('', 'Payments:');
+    for (const payment of payments) {
+      lines.push(`  ${payment.status} · ${payment.providerOrderId}${payment.providerPaymentId ? ` · ${payment.providerPaymentId}` : ''}`);
+    }
+  }
   return lines.join('\n');
 }
 

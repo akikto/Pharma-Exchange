@@ -22,7 +22,8 @@ export default defineConfig({
     { name: 'buyer', testMatch: /buyer\/.*\.spec\.ts/ },
     { name: 'seller', testMatch: /(seller|orders)\/.*\.spec\.ts/ },
     { name: 'admin', testMatch: /admin\/.*\.spec\.ts/ },
-    { name: 'auth', testMatch: /auth\/login\.spec\.ts/ },
+    { name: 'auth', testMatch: /auth\/.*\.spec\.ts/ },
+    { name: 'chat', testMatch: /chat\/.*\.spec\.ts/ },
   ],
   webServer: skipWebServer
     ? undefined
@@ -37,7 +38,12 @@ export default defineConfig({
             DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/pharma_exchange?schema=public',
             JWT_SECRET: process.env.JWT_SECRET ?? 'dev-jwt-secret-min-32-characters-long',
             RATE_LIMIT_MAX: '10000',
-            MSG91_ENABLED: 'false',
+            SMTP_HOST: 'smtp.gmail.com',
+            SMTP_PORT: '587',
+            SMTP_SECURE: 'false',
+            SMTP_USER: 'dev-test@gmail.com',
+            SMTP_PASS: 'dev-test-app-password',
+            MAIL_FROM: 'Pharma Exchange <dev-test@gmail.com>',
             RAZORPAY_ENABLED: 'false',
           },
         },

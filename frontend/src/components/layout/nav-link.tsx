@@ -44,16 +44,20 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
       to={to}
       data-testid={`nav-bottom-${labelKey}`}
       className={cn(
-        'relative flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] min-h-[48px] justify-center',
-        active ? 'text-primary' : 'text-text-secondary',
+        'relative flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] min-h-[48px] justify-center transition-colors',
+        active ? 'text-primary' : 'text-text-disabled',
       )}
     >
       <span className="relative">
-        <Icon className={cn('h-5 w-5', active && 'fill-primary/20')} />
+        <Icon className={cn('h-5 w-5', active ? 'text-primary fill-primary/20' : 'text-text-disabled')} />
         <NavBadge count={badgeCount} />
       </span>
-      <span className="text-[10px] font-medium leading-tight text-center">{primary}</span>
-      <span className="text-[8px] text-text-disabled leading-none">{subtitle}</span>
+      <span className={cn('text-[10px] font-medium leading-tight text-center', active ? 'text-primary' : 'text-text-disabled')}>
+        {primary}
+      </span>
+      <span className={cn('text-[8px] leading-none', active ? 'text-primary/70' : 'text-text-disabled')}>
+        {subtitle}
+      </span>
     </Link>
   );
 }

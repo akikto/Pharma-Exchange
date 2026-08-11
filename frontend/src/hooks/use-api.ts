@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import type { CartItemIssue } from '@/lib/cart-validation';
 import type { CartItem, PaginatedResponse, Order, BuyRequest, Notification, SellerAnalytics, Listing, Medicine } from '@/types';
+import type { OrderPaymentRecord } from '@/lib/payments-api';
 
 export function useCart() {
   return useQuery({
@@ -116,6 +117,29 @@ export function useOrder(id?: string) {
     queryKey: ['order', id],
     queryFn: () => apiClient.get<Order>(`/orders/${id}`),
     enabled: !!id,
+  });
+}
+
+export function useOrderPayments(orderId?: string) {
+  return useQuery({
+    queryKey: ['order-payments', orderId],
+    queryFn: async () => {
+      const res = await apiClient.get<{ data: OrderPaymentRecord[] }>(`/payments/order/${orderId}`);
+      return res.data;
+    },
+    enabled: !!orderId,
+  });
+}
+
+export function useSetOrderPaymentMethod() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, method }: { orderId: string; method: 'COD' | 'RAZORPAY' }) =>
+      apiClient.patch<Order>(`/orders/${orderId}/payment-method`, { method }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['order', variables.orderId] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
+    },
   });
 }
 

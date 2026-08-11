@@ -34,11 +34,11 @@ function sendLiveness(res: VercelResponse): void {
         process.env.FIREBASE_CLIENT_EMAIL &&
         process.env.FIREBASE_PRIVATE_KEY,
       ),
-      msg91Configured: Boolean(
-        process.env.MSG91_ENABLED === 'true' &&
-        process.env.MSG91_AUTH_KEY &&
-        process.env.MSG91_SENDER_ID &&
-        process.env.MSG91_TEMPLATE_ID,
+      emailConfigured: Boolean(
+        process.env.SMTP_HOST &&
+        process.env.SMTP_USER &&
+        process.env.SMTP_PASS &&
+        process.env.MAIL_FROM,
       ),
       razorpayConfigured: Boolean(
         process.env.RAZORPAY_ENABLED === 'true' &&

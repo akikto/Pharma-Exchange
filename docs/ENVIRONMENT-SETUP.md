@@ -33,17 +33,15 @@ missing or malformed. Enforcement lives in `backend/src/config/env.ts`.
 | `FIREBASE_CLIENT_EMAIL` | ✅* | Service account email. |
 | `FIREBASE_PRIVATE_KEY` | ✅* | Store with `\n` escapes; the code un-escapes. |
 | `FIREBASE_STORAGE_BUCKET` | ✅* | Required for uploads. |
-| `MSG91_ENABLED` | ✅ | `true` in prod. |
-| `MSG91_AUTH_KEY` / `MSG91_SENDER_ID` / `MSG91_TEMPLATE_ID` | ✅ | Boot fails fast if any is missing when `MSG91_ENABLED=true`. |
-| `MSG91_OTP_LENGTH` | — | Default 6. |
-| `OTP_EXPIRY_MINUTES` | — | Default 10. |
-| `MSG91_BASE_URL` | — | Override only for staging. |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | ✅ | Required in production for password-reset email. |
+| `SMTP_USER` / `SMTP_PASS` / `MAIL_FROM` | ✅ | Gmail SMTP credentials (use an app password). |
+| `PASSWORD_RESET_URL_BASE` | ✅ | Frontend app URL for reset links (e.g. `https://pharma-exchange-frontend.vercel.app`). Must **not** be the backend API URL. |
 | `RAZORPAY_ENABLED` | ✅ | `true` in prod. |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | ✅ | Boot fails fast if any is missing when `RAZORPAY_ENABLED=true`. |
 | `RAZORPAY_CURRENCY` | — | Default `INR`. Use `USD` for Razorpay International. |
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | — | Optional AI enrichment. |
 
-**\*** = required only when the corresponding feature (Firebase, MSG91,
+**\*** = required only when the corresponding feature (Firebase, SMTP email,
 Razorpay) is enabled. When the feature flag is off, the app boots with the
 capability disabled and the value stays empty.
 
@@ -80,7 +78,7 @@ The currently-injected env for the test job:
 ```
 DATABASE_URL          postgres://…                (ephemeral CI Postgres)
 JWT_SECRET            ci-jwt-secret-min-32-…      (test-only)
-MSG91_ENABLED=true    MSG91_AUTH_KEY=ci-…         (mocked at fetch layer)
+SMTP_HOST=smtp.gmail.com    SMTP_USER=ci-test@gmail.com   (email mocked in tests)
 RAZORPAY_ENABLED=true RAZORPAY_KEY_ID=rzp_test_…  (SDK mocked in tests)
 ```
 
@@ -118,7 +116,7 @@ finalised.
 |---|---|---|
 | `JWT_SECRET` | Quarterly | Platform |
 | `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Quarterly + after suspected leak | Payments |
-| `MSG91_AUTH_KEY` | Quarterly | Auth |
+| `SMTP_PASS` | Quarterly | Auth |
 | Firebase service-account key | 90 days | Platform |
 | PostgreSQL user password | Quarterly | Platform |
 | GitHub Actions secrets | Aligned with above | Platform |

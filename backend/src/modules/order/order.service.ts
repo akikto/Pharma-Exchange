@@ -1,15 +1,25 @@
-import { NotificationType, OrderStatus } from '@prisma/client';
+import { NotificationType, OrderPaymentMethod, OrderStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../config/database';
+import { isRazorpayConfigured } from '../../config/env';
 import { AppError } from '../../shared/errors/AppError';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { notificationService } from '../notification';
 import { chatSystemService } from '../chat/chatSystem.service';
+import { paymentsService } from '../payments/payments.service';
+import { logger } from '../../shared/utils/logger';
+import { orderRequiresOnlinePaymentBeforeFulfillment } from './order.payment-method';
 
 const SELLER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.CONFIRMED]: [OrderStatus.PACKED, OrderStatus.CANCELLED],
   [OrderStatus.PACKED]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
   [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
 };
+
+const FULFILLMENT_STATUSES: OrderStatus[] = [
+  OrderStatus.PACKED,
+  OrderStatus.SHIPPED,
+  OrderStatus.DELIVERED,
+];
 
 export class OrderService {
   async list(userId: string, role: string, status?: OrderStatus, page = 1, limit = 20) {
@@ -40,16 +50,18 @@ export class OrderService {
   }
 
   async getById(id: string, userId: string) {
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        items: { include: { listing: { include: { medicine: true } } } },
-        seller: { select: { id: true, name: true, city: true, userId: true } },
-        buyer: { select: { id: true, firstName: true, lastName: true } },
-        statusHistory: { orderBy: { createdAt: 'asc' } },
-        review: true,
-      },
-    });
+    const include = {
+      items: { include: { listing: { include: { medicine: true } } } },
+      seller: { select: { id: true, name: true, city: true, userId: true } },
+      buyer: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+      statusHistory: { orderBy: { createdAt: 'asc' } },
+      review: true,
+    } as const;
+
+    let order = await prisma.order.findUnique({ where: { id }, include });
+    if (!order) {
+      order = await prisma.order.findUnique({ where: { orderNumber: id }, include });
+    }
     if (!order) throw AppError.notFound('Order not found');
 
     const pharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
@@ -68,20 +80,52 @@ export class OrderService {
     });
     if (!order) throw AppError.notFound('Order not found');
 
+    if (order.status === status) {
+      return order;
+    }
+
     const allowed = SELLER_TRANSITIONS[order.status];
     if (!allowed?.includes(status)) {
       throw AppError.badRequest(`Cannot transition from ${order.status} to ${status}`);
     }
 
-    return prisma.$transaction(async (tx) => {
-      const updated = await tx.order.update({
-        where: { id: orderId },
+    if (
+      FULFILLMENT_STATUSES.includes(status)
+      && orderRequiresOnlinePaymentBeforeFulfillment(order)
+    ) {
+      throw new AppError(400, 'Payment must be completed before order fulfillment', 'PAYMENT_REQUIRED');
+    }
+
+    if (status === OrderStatus.CANCELLED) {
+      await this.coordinatePaymentOnCancel(order, sellerUserId, 'USER', note);
+    }
+
+    const previousStatus = order.status;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.updateMany({
+        where: { id: orderId, status: previousStatus },
         data: {
           status,
-          ...(status === OrderStatus.DELIVERED && { deliveredAt: new Date() }),
+          ...(status === OrderStatus.DELIVERED && {
+            deliveredAt: new Date(),
+            ...(order.paymentMethod === OrderPaymentMethod.COD && order.paymentStatus === PaymentStatus.PENDING
+              ? { paymentStatus: PaymentStatus.PAID }
+              : {}),
+          }),
           ...(status === OrderStatus.CANCELLED && { cancelledAt: new Date(), cancelReason: note }),
         },
       });
+
+      if (result.count === 0) {
+        const current = await tx.order.findUnique({ where: { id: orderId } });
+        if (!current) throw AppError.notFound('Order not found');
+        if (current.status === status) return current;
+        throw AppError.badRequest(`Cannot transition from ${current.status} to ${status}`);
+      }
+
+      const fresh = await tx.order.findUnique({ where: { id: orderId } });
+      if (!fresh) throw AppError.notFound('Order not found');
 
       await tx.orderStatusHistory.create({ data: { orderId, status, note } });
 
@@ -89,22 +133,55 @@ export class OrderService {
         await this.restoreInventory(tx, order.items);
       }
 
+      return fresh;
+    });
+
+    await this.dispatchOrderStatusSideEffects({
+      orderId,
+      buyerId: order.buyerId,
+      sellerId: order.sellerId,
+      orderNumber: order.orderNumber,
+      status,
+      actorUserId: sellerUserId,
+    });
+
+    return updated;
+  }
+
+  private async dispatchOrderStatusSideEffects(params: {
+    orderId: string;
+    buyerId: string;
+    sellerId: string;
+    orderNumber: string;
+    status: OrderStatus;
+    actorUserId: string;
+  }) {
+    try {
       await notificationService.create({
-        userId: order.buyerId,
+        userId: params.buyerId,
         type: NotificationType.ORDER_UPDATE,
         title: 'Order Status Updated',
-        body: `Order ${order.orderNumber} is now ${status.toLowerCase()}`,
-        data: { orderId, status },
+        body: `Order ${params.orderNumber} is now ${params.status.toLowerCase()}`,
+        data: { orderId: params.orderId, status: params.status },
       });
+    } catch (err) {
+      logger.warn(`Order status notification failed for ${params.orderId}: ${(err as Error).message}`);
+    }
 
-      const seller = await tx.pharmacy.findUnique({ where: { id: order.sellerId } });
-      if (seller) {
-        await chatSystemService.ensureOrderConversation(orderId, order.buyerId, seller.userId);
-        await chatSystemService.postOrderStatusMessage(orderId, sellerUserId, status, order.orderNumber);
-      }
+    try {
+      const seller = await prisma.pharmacy.findUnique({ where: { id: params.sellerId } });
+      if (!seller) return;
 
-      return updated;
-    });
+      await chatSystemService.ensureOrderConversation(params.orderId, params.buyerId, seller.userId);
+      await chatSystemService.postOrderStatusMessage(
+        params.orderId,
+        params.actorUserId,
+        params.status,
+        params.orderNumber,
+      );
+    } catch (err) {
+      logger.warn(`Order status chat side effect failed for ${params.orderId}: ${(err as Error).message}`);
+    }
   }
 
   async cancel(buyerId: string, orderId: string, reason?: string) {
@@ -113,6 +190,8 @@ export class OrderService {
       include: { items: true },
     });
     if (!order) throw AppError.badRequest('Order cannot be cancelled');
+
+    await this.coordinatePaymentOnCancel(order, buyerId, 'USER', reason);
 
     const updated = await prisma.$transaction(async (tx) => {
       const result = await tx.order.update({
@@ -143,6 +222,58 @@ export class OrderService {
     }
 
     return updated;
+  }
+
+  async setPaymentMethod(buyerId: string, orderId: string, method: OrderPaymentMethod) {
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, buyerId },
+    });
+    if (!order) throw AppError.notFound('Order not found');
+    if (order.paymentStatus === PaymentStatus.PAID) throw AppError.badRequest('Order is already paid');
+    if (order.paymentStatus === PaymentStatus.REFUNDED) throw AppError.badRequest('Order has been refunded');
+    if (order.status === OrderStatus.CANCELLED) throw AppError.badRequest('Order is cancelled');
+    if (method === OrderPaymentMethod.RAZORPAY && !isRazorpayConfigured()) {
+      throw AppError.badRequest('Online payment is not available');
+    }
+    if (method === OrderPaymentMethod.COD && order.paymentMethod === OrderPaymentMethod.RAZORPAY) {
+      try {
+        await paymentsService.cancelOutstandingForOrder(orderId);
+      } catch (err) {
+        logger.warn(`Failed to cancel outstanding payment when switching to COD for order ${orderId}: ${(err as Error).message}`);
+      }
+    }
+
+    return prisma.order.update({
+      where: { id: orderId },
+      data: { paymentMethod: method },
+    });
+  }
+
+  private async coordinatePaymentOnCancel(
+    order: { id: string; buyerId: string; paymentStatus: PaymentStatus; paymentMethod?: OrderPaymentMethod | null },
+    actorUserId: string,
+    actorRole: string,
+    reason?: string,
+  ) {
+    if (order.paymentStatus === PaymentStatus.PENDING) {
+      if (order.paymentMethod === OrderPaymentMethod.COD) return;
+      try {
+        await paymentsService.cancelOutstandingForOrder(order.id);
+      } catch (err) {
+        logger.warn(`Failed to cancel outstanding payment for order ${order.id}: ${(err as Error).message}`);
+      }
+      return;
+    }
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      try {
+        await paymentsService.refund(actorUserId, actorRole, order.id, {
+          reason: reason ?? 'order_cancelled',
+        });
+      } catch (err) {
+        logger.warn(`Failed to refund paid order ${order.id} on cancel: ${(err as Error).message}`);
+        throw err;
+      }
+    }
   }
 
   private async restoreInventory(

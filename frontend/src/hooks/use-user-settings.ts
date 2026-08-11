@@ -5,6 +5,10 @@ import type { User } from '@/types';
 import type { NotificationPrefs } from '@/lib/notification-prefs';
 
 export interface UpdateProfileInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
   language?: 'en' | 'bn';
   theme?: 'light' | 'dark' | 'system';
   notificationPrefs?: Partial<NotificationPrefs>;

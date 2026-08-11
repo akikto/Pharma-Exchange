@@ -78,6 +78,11 @@ enum PaymentProvider {
   RAZORPAY
 }
 
+enum OrderPaymentMethod {
+  COD
+  RAZORPAY
+}
+
 enum PaymentAttemptStatus {
   CREATED
   AUTHORIZED
@@ -185,6 +190,7 @@ model User {
   reportsSubmitted  Report[]           @relation("ReportsSubmitted")
   reportsReviewed   Report[]           @relation("ReportsReviewed")
   payments          Payment[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([email])
   @@index([phone])
@@ -215,6 +221,20 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // ─── Pharmacy ────────────────────────────────────────────────────────────────
@@ -438,6 +458,7 @@ model Order {
   sellerId      String
   status        OrderStatus   @default(CREATED)
   paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod OrderPaymentMethod?
   totalAmount   Decimal       @db.Decimal(12, 2)
   shippingAddress String?
   notes         String?

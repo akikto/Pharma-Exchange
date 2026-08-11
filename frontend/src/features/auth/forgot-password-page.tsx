@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,41 +7,31 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PasswordInput } from '@/components/auth/password-input';
 import { Logo } from '@/components/brand/logo';
 import { useAuthStore } from '@/stores/auth-store';
-import { ApiError } from '@/lib/api';
 
 export function ForgotPasswordPage() {
   const { t } = useTranslation();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const resetPassword = useAuthStore((s) => s.resetPassword);
+  const [sent, setSent] = useState(false);
+  const forgotPassword = useAuthStore((s) => s.forgotPassword);
 
   const schema = z.object({
     email: z.string().email(t('validation.email')),
-    newPassword: z.string().min(8, t('validation.passwordMin')),
   });
 
-  type FormData = z.infer<typeof schema>;
+  type Form = z.infer<typeof schema>;
+  const form = useForm<Form>({ resolver: zodResolver(schema) });
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
-
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: Form) => {
     setLoading(true);
     setError('');
     try {
-      await resetPassword(data.email.trim(), data.newPassword);
-      navigate('/login');
+      await forgotPassword(data.email.trim().toLowerCase());
+      setSent(true);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
-        setError(t('auth.emailNotFound'));
-      } else {
-        setError(err instanceof Error ? err.message : t('auth.resetFailed'));
-      }
+      setError(err instanceof Error ? err.message : t('auth.resetFailed'));
     } finally {
       setLoading(false);
     }
@@ -55,22 +45,25 @@ export function ForgotPasswordPage() {
           <h1 className="text-xl font-bold">{t('auth.resetPasswordTitle')}</h1>
           <p className="text-sm text-text-secondary mt-1">{t('auth.resetPasswordDesc')}</p>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t('auth.email')}</Label>
-            <Input id="email" type="email" autoComplete="email" {...register('email')} />
-            {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
-          </div>
-          <PasswordInput
-            id="newPassword"
-            label={t('auth.newPassword')}
-            autoComplete="new-password"
-            error={errors.newPassword?.message}
-            {...register('newPassword')}
-          />
-          {error && <p className="text-sm text-danger">{error}</p>}
-          <Button type="submit" className="w-full" size="lg" loading={loading}>{t('auth.updatePassword')}</Button>
-        </form>
+
+        {sent ? (
+          <p className="text-sm text-text-secondary text-center" data-testid="forgot-password-sent">
+            {t('auth.resetEmailSent')}
+          </p>
+        ) : (
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="forgot-password-form">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('auth.email')}</Label>
+              <Input id="email" type="email" autoComplete="email" {...form.register('email')} />
+              {form.formState.errors.email && (
+                <p className="text-xs text-danger">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+            {error && <p className="text-sm text-danger">{error}</p>}
+            <Button type="submit" className="w-full" size="lg" loading={loading}>{t('auth.sendResetEmail')}</Button>
+          </form>
+        )}
+
         <p className="text-center text-sm text-text-secondary">
           <Link to="/login" className="text-primary font-medium">{t('auth.backToLogin')}</Link>
         </p>

@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { authController } from './auth.controller';
 import { authenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
-import { authRateLimiter, otpRateLimiter } from '../../shared/middleware/rateLimit.middleware';
+import { authRateLimiter } from '../../shared/middleware/rateLimit.middleware';
 import {
   registerSchema, loginSchema, firebaseAuthSchema,
-  otpVerifySchema, sendOtpSchema, resendOtpSchema, refreshTokenSchema, fcmTokenSchema, resetPasswordSchema,
+  forgotPasswordSchema, resetPasswordSchema,
+  refreshTokenSchema, fcmTokenSchema,
   updateProfileSchema,
 } from './auth.validation';
 
@@ -35,14 +36,28 @@ router.post('/demo-login', authRateLimiter, authController.demoLogin.bind(authCo
  * /api/v1/auth/firebase:
  *   post:
  *     tags: [Auth]
- *     summary: Firebase auth (Google, OTP, Email)
+ *     summary: Firebase auth (Google)
  */
 router.post('/firebase', authRateLimiter, validate(firebaseAuthSchema), authController.firebaseAuth.bind(authController));
 
-router.post('/send-otp', otpRateLimiter, validate(sendOtpSchema), authController.sendOtp.bind(authController));
-router.post('/resend-otp', otpRateLimiter, validate(resendOtpSchema), authController.resendOtp.bind(authController));
+/**
+ * @openapi
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Request password reset email
+ */
+router.post('/forgot-password', authRateLimiter, validate(forgotPasswordSchema), authController.forgotPassword.bind(authController));
+
+/**
+ * @openapi
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Reset password with email token (no JWT issued)
+ */
 router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), authController.resetPassword.bind(authController));
-router.post('/verify-otp', otpRateLimiter, validate(otpVerifySchema), authController.verifyOtp.bind(authController));
+
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refreshToken.bind(authController));
 router.post('/logout', authenticate, authController.logout.bind(authController));
 router.get('/me', authenticate, authController.getProfile.bind(authController));

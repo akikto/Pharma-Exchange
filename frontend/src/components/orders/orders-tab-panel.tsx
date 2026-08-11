@@ -5,11 +5,14 @@ import { Search, MapPin, Receipt, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
+import { PaymentStatusChip } from '@/components/payments/payment-status-chip';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { OrderReceiptDialog } from '@/components/orders/order-receipt-dialog';
 import { TrackingDialog } from '@/components/orders/tracking-dialog';
 import { useOrders, useAddToCart } from '@/hooks/use-api';
+import { usePaymentConfig } from '@/hooks/use-payment-config';
+import { showRazorpayPayButton } from '@/lib/payment-utils';
 import { useHubRole } from '@/hooks/use-hub-role';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -20,6 +23,7 @@ import {
 } from '@/lib/order-utils';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
+import { PayWithRazorpayButton } from '@/components/payments/pay-with-razorpay-button';
 
 const ORDER_FILTERS: OrderFilter[] = ['ALL', 'ACTIVE', 'DELIVERED', 'CANCELLED'];
 
@@ -27,6 +31,8 @@ export function OrdersTabPanel() {
   const { t } = useTranslation();
   const role = useHubRole();
   const { data, isLoading, isError } = useOrders(role);
+  const { data: paymentConfig } = usePaymentConfig();
+  const paymentsEnabled = paymentConfig?.enabled ?? false;
   const addToCart = useAddToCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -112,12 +118,15 @@ export function OrdersTabPanel() {
           {filtered.map((order) => (
             <div key={order.id} className="rounded-[var(--radius-md)] border border-border-subtle p-3 space-y-2">
               <Link to={`${orderBasePath}/${order.id}`} className="block">
-                <div className="flex justify-between items-start gap-2">
+                <div className="flex justify-between items-start gap-2 flex-wrap">
                   <span className="font-medium text-sm">{order.orderNumber}</span>
-                  <StatusChip
-                    label={order.status}
-                    variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}
-                  />
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <StatusChip
+                      label={order.status}
+                      variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}
+                    />
+                    <PaymentStatusChip status={order.paymentStatus} />
+                  </div>
                 </div>
                 <p className="text-sm text-text-secondary mt-1">
                   {counterparty(order)} · {formatPrice(order.totalAmount)}
@@ -125,6 +134,20 @@ export function OrdersTabPanel() {
                 <p className="text-xs text-text-disabled">{new Date(order.createdAt).toLocaleDateString()}</p>
               </Link>
               <div className="flex flex-wrap gap-2">
+                {role === 'buyer'
+                  && showRazorpayPayButton(
+                    paymentsEnabled,
+                    order.paymentMethod,
+                    order.paymentStatus,
+                    order.status,
+                  ) && (
+                  <PayWithRazorpayButton
+                    orderId={order.id}
+                    orderNumber={order.orderNumber}
+                    label={t('payments.payNow')}
+                    className="shrink-0"
+                  />
+                )}
                 {role === 'buyer' && order.status === 'DELIVERED' && (
                   <Button size="sm" variant="secondary" loading={reorderingId === order.id} onClick={() => handleReorder(order)}>
                     <RotateCcw className="h-3 w-3 mr-1" />

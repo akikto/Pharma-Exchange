@@ -4,6 +4,7 @@ import {
   calculateSavings,
   formatSavingsPercent,
   generatePriceTrend,
+  normalizePhoneToE164,
   formatPhoneHref,
   formatWhatsAppHref,
   sortCompareListings,
@@ -26,9 +27,34 @@ describe('offer-utils', () => {
     expect(trend[trend.length - 1]!.price).toBe(100);
   });
 
-  it('formats phone and WhatsApp links', () => {
+  it('formats phone and WhatsApp links for India', () => {
+    expect(normalizePhoneToE164('9876543210')).toBe('+919876543210');
+    expect(normalizePhoneToE164('09876543210')).toBe('+919876543210');
+    expect(normalizePhoneToE164('+919876543210')).toBe('+919876543210');
+    expect(normalizePhoneToE164('919876543210')).toBe('+919876543210');
+
+    expect(formatPhoneHref('9876543210')).toBe('tel:+919876543210');
+    expect(formatPhoneHref('09876543210')).toBe('tel:+919876543210');
+    expect(formatPhoneHref('+919876543210')).toBe('tel:+919876543210');
+    expect(formatPhoneHref('919876543210')).toBe('tel:+919876543210');
+
+    expect(formatPhoneHref('9153014194')).toBe('tel:+919153014194');
+    expect(formatPhoneHref('09153014194')).toBe('tel:+919153014194');
+    expect(formatPhoneHref('+919153014194')).toBe('tel:+919153014194');
+    expect(formatPhoneHref('919153014194')).toBe('tel:+919153014194');
+
     expect(formatPhoneHref('+8801700000001')).toBe('tel:+8801700000001');
-    expect(formatWhatsAppHref('01700000001', 'Hello')).toContain('wa.me');
+    expect(formatPhoneHref('+14155552671')).toBe('tel:+14155552671');
+
+    expect(formatPhoneHref(null)).toBeNull();
+    expect(formatPhoneHref(undefined)).toBeNull();
+    expect(formatPhoneHref('')).toBeNull();
+    expect(formatPhoneHref('   ')).toBeNull();
+    expect(formatPhoneHref('abc')).toBeNull();
+
+    expect(formatWhatsAppHref('9153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
+    expect(formatWhatsAppHref('+919153014194', 'Hello')).toBe('https://wa.me/919153014194?text=Hello');
+    expect(formatWhatsAppHref('9876543210', 'Hello')).toBe('https://wa.me/919876543210?text=Hello');
   });
 
   it('sorts compare listings by price', () => {

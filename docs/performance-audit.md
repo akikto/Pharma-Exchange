@@ -15,6 +15,9 @@
 | Largest route chunk (gzip) | < 30 KB | **~5.5 KB** (`home-page`) | ✅ |
 | PWA precache | < 5 MB | **4.35 MB** | ⚠️ Monitor |
 | Lighthouse Performance | ≥ 90 | ⬜ Not run on HTTPS prod | Pending |
+| Lighthouse CI (preview) | thresholds in `lighthouserc.cjs` | ✅ `npm run lighthouse:ci` | ✅ |
+| LCP (CI gate) | < 5.0s | enforced in LHCI | ✅ |
+| CLS (CI gate) | < 0.15 | enforced in LHCI | ✅ |
 | LCP | < 2.5s | ⬜ Pending prod | Pending |
 | WCAG 2.1 AA | Pass | ⬜ Full audit pending | Partial |
 

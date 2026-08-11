@@ -1,4 +1,4 @@
-import { Prisma, PaymentAttemptStatus, PaymentStatus, RefundStatus, OrderStatus, NotificationType } from '@prisma/client';
+import { Prisma, PaymentAttemptStatus, PaymentStatus, RefundStatus, OrderStatus, OrderPaymentMethod, NotificationType } from '@prisma/client';
 import prisma from '../../config/database';
 import { env } from '../../config/env';
 import { AppError } from '../../shared/errors/AppError';
@@ -70,11 +70,14 @@ export class PaymentsService {
       where: { id: orderId },
       select: {
         id: true, orderNumber: true, buyerId: true, totalAmount: true,
-        status: true, paymentStatus: true,
+        status: true, paymentStatus: true, paymentMethod: true,
       },
     });
     if (!order) throw AppError.notFound('Order not found');
     if (order.buyerId !== userId) throw AppError.forbidden('Only the buyer can pay for this order');
+    if (order.paymentMethod === OrderPaymentMethod.COD) {
+      throw AppError.badRequest('This order uses cash on delivery');
+    }
     if (order.paymentStatus === PaymentStatus.PAID) throw AppError.badRequest('Order is already paid');
     if (order.paymentStatus === PaymentStatus.REFUNDED) throw AppError.badRequest('Order has already been refunded');
     if (order.status === OrderStatus.CANCELLED) throw AppError.badRequest('Order is cancelled');
@@ -87,6 +90,13 @@ export class PaymentsService {
     });
     if (existing) {
       return this.buildCheckoutOptions(existing);
+    }
+
+    if (!order.paymentMethod) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentMethod: OrderPaymentMethod.RAZORPAY },
+      });
     }
 
     const receipt = shortReceipt(order.orderNumber);
@@ -176,6 +186,20 @@ export class PaymentsService {
 
     await this.markCaptured(payment.id, input.razorpay_payment_id);
     return this.summarize(payment.id);
+  }
+
+  /** Cancel the latest outstanding CREATED payment for an order (internal coordination). */
+  async cancelOutstandingForOrder(orderId: string) {
+    const payment = await prisma.payment.findFirst({
+      where: { orderId, status: PaymentAttemptStatus.CREATED },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!payment) return { cancelled: false as const };
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: PaymentAttemptStatus.CANCELLED, cancelledAt: new Date() },
+    });
+    return { cancelled: true as const, paymentId: payment.id };
   }
 
   /** Buyer cancels an unpaid payment attempt (before capture). */
@@ -530,11 +554,46 @@ export class PaymentsService {
     return payment;
   }
 
+  async listForAdmin(page = 1, limit = 20, status?: PaymentAttemptStatus) {
+    const skip = (page - 1) * limit;
+    const where = status ? { status } : {};
+    const [data, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+              paymentStatus: true,
+              status: true,
+              totalAmount: true,
+              buyer: { select: { id: true, firstName: true, lastName: true, email: true } },
+              seller: { select: { id: true, name: true } },
+            },
+          },
+          refunds: { orderBy: { createdAt: 'desc' } },
+        },
+      }),
+      prisma.payment.count({ where }),
+    ]);
+    return { data, total, page, limit };
+  }
+
   async getForOrder(userId: string, actorRole: string, orderId: string) {
-    const order = await prisma.order.findUnique({
+    let order = await prisma.order.findUnique({
       where: { id: orderId },
       include: { seller: { select: { userId: true } } },
     });
+    if (!order) {
+      order = await prisma.order.findUnique({
+        where: { orderNumber: orderId },
+        include: { seller: { select: { userId: true } } },
+      });
+    }
     if (!order) throw AppError.notFound('Order not found');
     const isBuyer = order.buyerId === userId;
     const isSeller = order.seller.userId === userId;

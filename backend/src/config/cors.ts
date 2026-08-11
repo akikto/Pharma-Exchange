@@ -1,18 +1,23 @@
 import { env } from './env';
-
-/** Canonical PharmEx frontend URLs (Vercel production + common misconfiguration). */
-const PHARMEX_FRONTEND_ORIGINS = [
-  'https://pharma-exchange-frontend.vercel.app',
-  'https://pharma-exchange.vercel.app',
-];
-
-/** Vercel preview deployments for the PharmEx frontend project. */
-const PHARMEX_FRONTEND_ORIGIN_PATTERN =
-  /^https:\/\/pharma-exchange-frontend(?:-[a-z0-9-]+)?\.vercel\.app$/;
+import { PHARMEX_FRONTEND_ORIGIN_PATTERN, PHARMEX_FRONTEND_ORIGINS } from './cors-origins';
 
 function configuredOrigins(): string[] {
   if (env.CORS_ORIGIN === '*') return ['*'];
   return env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean);
+}
+
+/** Fail fast in production when CORS is left wide open or unset. */
+export function assertProductionCorsConfig(nodeEnv: string, corsOrigin: string): void {
+  if (nodeEnv !== 'production') return;
+  if (corsOrigin === '*' || !corsOrigin.trim()) {
+    throw new Error(
+      'CORS_ORIGIN must be set to explicit origin(s) in production (comma-separated). Wildcard * is not allowed.',
+    );
+  }
+  const origins = corsOrigin.split(',').map((origin) => origin.trim()).filter(Boolean);
+  if (origins.length === 0) {
+    throw new Error('CORS_ORIGIN must include at least one explicit origin in production.');
+  }
 }
 
 export function isAllowedCorsOrigin(origin: string | undefined): boolean {

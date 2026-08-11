@@ -10,7 +10,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { ChatHeader } from '@/components/chat/chat-header';
 import { ChatContextFilterBar } from '@/components/chat/chat-context-filter';
 import { apiClient } from '@/lib/api';
-import { useChatSocket } from '@/hooks/use-chat';
+import { useChatSocket, useChatListSocket, appendUniqueMessage } from '@/hooks/use-chat';
 import { useConversations, useConversation } from '@/hooks/use-chat-api';
 import type { ChatContextFilter } from '@/lib/chat-utils';
 import type { Message } from '@/types';
@@ -22,6 +22,7 @@ export function ChatListPage() {
   const [filter, setFilter] = useState<ChatContextFilter>({ type: 'all' });
   const { data, isLoading } = useConversations(filter);
   const userId = useAuthStore((s) => s.user?.id);
+  useChatListSocket();
 
   return (
     <div>
@@ -81,14 +82,14 @@ export function ChatPage() {
   }, [initialMessages]);
 
   useChatSocket(id, (msg) => {
-    setMessages((prev) => [...prev, msg]);
+    setMessages((prev) => appendUniqueMessage(prev, msg));
   });
 
   const sendMessage = useMutation({
     mutationFn: (content: string) =>
       apiClient.post<Message>(`/chat/conversations/${id}/messages`, { content }),
     onSuccess: (msg: Message) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => appendUniqueMessage(prev, msg));
       apiClient.post(`/chat/conversations/${id}/read`);
     },
   });
@@ -104,7 +105,7 @@ export function ChatPage() {
   if (!conversation) return <div className="p-4 text-center text-danger">{t('common.error')}</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-[calc(100vh-4rem)]" data-testid="chat-thread">
       <TopBar showBack />
       <ChatHeader conversation={conversation} onRefreshMessages={refreshMessages} />
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

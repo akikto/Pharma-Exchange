@@ -50,11 +50,23 @@ export function generatePriceTrend(medicineId: string, currentPrice: number): Pr
   return points;
 }
 
+export function normalizePhoneToE164(phone: string): string | null {
+  const trimmed = phone.trim();
+  if (!trimmed) return null;
+  const digits = trimmed.replace(/\D/g, '');
+  if (!digits) return null;
+  if (trimmed.startsWith('+')) {
+    return `+${digits}`;
+  }
+  const national = digits.replace(/^0+/, '');
+  const e164 = national.startsWith('91') && national.length > 10 ? national : `91${national}`;
+  return `+${e164}`;
+}
+
 export function formatPhoneHref(phone?: string | null): string | null {
   if (!phone) return null;
-  const digits = phone.replace(/\D/g, '');
-  if (!digits) return null;
-  return `tel:+${digits.startsWith('880') ? digits : `880${digits.replace(/^0/, '')}`}`;
+  const e164 = normalizePhoneToE164(phone);
+  return e164 ? `tel:${e164}` : null;
 }
 
 export function formatWhatsAppHref(phone?: string | null, message?: string): string | null {

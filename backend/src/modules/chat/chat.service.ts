@@ -1,5 +1,6 @@
 import { MessageType, NotificationType } from '@prisma/client';
 import prisma from '../../config/database';
+import { getSocketIo } from '../../socket';
 import { AppError } from '../../shared/errors/AppError';
 import { notificationService } from '../notification';
 
@@ -185,8 +186,8 @@ export class ChatService {
     });
     if (!member) throw AppError.forbidden('Not a member of this conversation');
 
-    return prisma.$transaction(async (tx) => {
-      const message = await tx.message.create({
+    const message = await prisma.$transaction(async (tx) => {
+      const created = await tx.message.create({
         data: { conversationId, senderId: userId, content, type, mediaUrl },
         include: { sender: { select: { id: true, firstName: true, lastName: true } } },
       });
@@ -203,12 +204,17 @@ export class ChatService {
           type: NotificationType.CHAT_MESSAGE,
           title: 'New Message',
           body: content.slice(0, 100),
-          data: { conversationId, messageId: message.id },
+          data: { conversationId, messageId: created.id },
         });
       }
 
-      return message;
+      return created;
     });
+
+    const io = getSocketIo();
+    io?.to(`conversation:${conversationId}`).emit('message:new', message);
+
+    return message;
   }
 
   async markAsRead(userId: string, conversationId: string) {

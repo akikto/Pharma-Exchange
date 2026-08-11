@@ -1,16 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { computeFinalPrice, generateOtp, generateOrderNumber, generateRequestNumber } from '../src/shared/utils/helpers';
+import { computeFinalPrice, generateOrderNumber, generateRequestNumber } from '../src/shared/utils/helpers';
 
 describe('helpers', () => {
   it('computeFinalPrice applies discount correctly', () => {
     expect(computeFinalPrice(150, 20)).toBe(120);
     expect(computeFinalPrice(100, 0)).toBe(100);
     expect(computeFinalPrice(99.99, 10)).toBe(89.99);
-  });
-
-  it('generateOtp returns 6-digit string', () => {
-    const otp = generateOtp();
-    expect(otp).toMatch(/^\d{6}$/);
   });
 
   it('generateOrderNumber has correct format', () => {

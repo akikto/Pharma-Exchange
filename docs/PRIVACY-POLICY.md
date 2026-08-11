@@ -55,9 +55,8 @@ UID, your email and (for phone auth) your phone number. We do not receive
 your Google password.
 
 ### 2.6 SMS OTP
-One-time codes are sent by **MSG91** to the phone number you provide.
-MSG91 handles OTP generation, delivery and verification. We store only that
-a request was made, not the OTP code itself.
+Password-reset links are sent by email via **SMTP** (e.g. Gmail). We store
+only a hashed token and expiry — not the link itself or your email password.
 
 ### 2.7 Device and technical data
 - Device model, OS version, app version
@@ -83,7 +82,7 @@ cookies or trackers.
 - **PostgreSQL** (managed provider, Asia region) — primary database for accounts, listings, orders, payments and audit logs.
 - **Firebase** (Google Cloud) — Auth identities, FCM device tokens, and uploaded licence/document files (private bucket, server-brokered signed URLs).
 - **Razorpay** — payment credentials and transaction records under their own PCI-DSS-certified infrastructure.
-- **MSG91** — OTP delivery logs (regional telecom retention period).
+- **Email (SMTP)** — password-reset delivery metadata per your mail provider.
 
 ## 5. Sharing and disclosure
 

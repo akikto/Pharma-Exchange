@@ -13,17 +13,19 @@ import { buildOrderReceiptText } from '@/lib/order-utils';
 import { downloadTextFile } from '@/lib/download-utils';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
+import type { OrderPaymentRecord } from '@/lib/payments-api';
 
 interface OrderReceiptDialogProps {
   order: Order;
   counterpartyLabel: string;
+  payments?: OrderPaymentRecord[];
   open: boolean;
   onClose: () => void;
 }
 
-export function OrderReceiptDialog({ order, counterpartyLabel, open, onClose }: OrderReceiptDialogProps) {
+export function OrderReceiptDialog({ order, counterpartyLabel, payments, open, onClose }: OrderReceiptDialogProps) {
   const { t } = useTranslation();
-  const receiptText = buildOrderReceiptText(order, counterpartyLabel);
+  const receiptText = buildOrderReceiptText(order, counterpartyLabel, payments);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -48,6 +50,17 @@ export function OrderReceiptDialog({ order, counterpartyLabel, open, onClose }: 
         <div className="rounded-[var(--radius-md)] border border-border-subtle p-4 space-y-3 text-sm font-mono whitespace-pre-wrap bg-surface-sunken">
           <p className="font-sans font-semibold">{counterpartyLabel}</p>
           <p className="font-sans text-text-secondary">{t('orders.status')}: {order.status}</p>
+          <p className="font-sans text-text-secondary">{t('payments.receiptPaymentStatus')}: {order.paymentStatus}</p>
+          {payments && payments.length > 0 && (
+            <div className="font-sans text-xs text-text-secondary space-y-1">
+              {payments.map((payment) => (
+                <p key={payment.id}>
+                  {payment.status} · {payment.providerOrderId}
+                  {payment.providerPaymentId ? ` · ${payment.providerPaymentId}` : ''}
+                </p>
+              ))}
+            </div>
+          )}
           <div className="space-y-2 font-sans">
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between gap-2">

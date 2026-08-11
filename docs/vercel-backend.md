@@ -33,8 +33,14 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `DATABASE_URL` | ✅ | `postgresql://user:pass@host:5432/db?sslmode=require` |
 | `JWT_SECRET` | ✅ | 32+ random characters |
 | `NODE_ENV` | ✅ | `production` |
-| `MSG91_ENABLED` | ✅ | `false` |
 | `CORS_ORIGIN` | ✅ | `https://pharma-exchange-frontend.vercel.app` |
+| `SMTP_HOST` | ✅ | `smtp.gmail.com` |
+| `SMTP_PORT` | — | `587` |
+| `SMTP_SECURE` | — | `false` |
+| `SMTP_USER` | ✅ | Gmail address |
+| `SMTP_PASS` | ✅ | Gmail app password |
+| `MAIL_FROM` | ✅ | `"Pharma Exchange <noreply@yourdomain.com>"` |
+| `PASSWORD_RESET_URL_BASE` | ✅ | `https://pharma-exchange-frontend.vercel.app` (frontend URL — **not** the backend) |
 | `FIREBASE_PROJECT_ID` | — | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | — | Service account email |
 | `FIREBASE_PRIVATE_KEY` | — | Service account private key |
@@ -68,8 +74,8 @@ Vercel can scope environment variables to **Production** only. Preview deploymen
 | `DATABASE_URL` | Same as production (or a staging database) |
 | `JWT_SECRET` | Same as production |
 | `NODE_ENV` | `production` |
-| `MSG91_ENABLED` | `false` (required when `NODE_ENV=production`) |
 | `CORS_ORIGIN` | Frontend preview URL or `https://pharma-exchange-frontend.vercel.app` |
+| `PASSWORD_RESET_URL_BASE` | Same frontend URL as `CORS_ORIGIN` (never the backend API URL) |
 
 If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON. The lightweight probes `/`, `/health`, and the Vercel rewrite path `/api` still respond without loading Express.
 

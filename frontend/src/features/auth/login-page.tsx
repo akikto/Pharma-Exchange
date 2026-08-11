@@ -15,9 +15,11 @@ import { ApiError } from '@/lib/api';
 import { getPostLoginRoute } from '@/lib/auth-utils';
 import { Logo } from '@/components/brand/logo';
 import { useToast } from '@/hooks/use-toast';
+import { useTabListKeyboard } from '@/hooks/use-tab-list';
 import type { User } from '@/types';
 
 type AuthTab = 'signIn' | 'register';
+const AUTH_TABS: AuthTab[] = ['signIn', 'register'];
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -28,13 +30,10 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [welcomeUser, setWelcomeUser] = useState<User | null>(null);
   const [isDemoSession, setIsDemoSession] = useState(false);
-  const [registerStep, setRegisterStep] = useState<'form' | 'otp'>('form');
-  const [contact, setContact] = useState<{ email?: string; phone?: string }>({});
+  const onAuthTabKeyDown = useTabListKeyboard(AUTH_TABS, tab, setTab);
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
-  const demoLogin = useAuthStore((s) => s.demoLogin);
   const registerUser = useAuthStore((s) => s.register);
-  const verifyOtp = useAuthStore((s) => s.verifyOtp);
   const fetchProfile = useAuthStore((s) => s.fetchProfile);
   const { toast } = useToast();
 
@@ -58,15 +57,11 @@ export function LoginPage() {
     }),
   }).refine((d) => d.email || d.phone, { message: t('validation.emailOrPhone') });
 
-  const otpSchema = z.object({ code: z.string().length(6, t('auth.otpLength')) });
-
   type LoginForm = z.infer<typeof loginSchema>;
   type RegisterForm = z.infer<typeof registerSchema>;
-  type OtpForm = z.infer<typeof otpSchema>;
 
   const loginForm = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
   const registerForm = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
-  const otpForm = useForm<OtpForm>({ resolver: zodResolver(otpSchema) });
 
   const showWelcome = async (demo = false) => {
     await fetchProfile();
@@ -105,21 +100,15 @@ export function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      // `acceptedTerms` is a client-side gate — the backend does not need it.
       const { acceptedTerms: _, ...payload } = data;
       void _;
-      const result = await registerUser({
+      await registerUser({
         firstName: payload.firstName,
         lastName: payload.lastName,
         email: payload.email || undefined,
         phone: payload.phone || undefined,
         password: payload.password,
       });
-      if (result.requiresOtpVerification) {
-        setContact({ email: data.email || undefined, phone: data.phone || undefined });
-        setRegisterStep('otp');
-        return;
-      }
       toast({ description: t('toast.loginSuccess') });
       await showWelcome();
     } catch (err) {
@@ -128,38 +117,6 @@ export function LoginPage() {
       } else {
         setError(err instanceof Error ? err.message : t('auth.registerFailed'));
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onVerifyOtp = async (data: OtpForm) => {
-    setLoading(true);
-    setError('');
-    try {
-      if (!contact.phone) {
-        setError(t('auth.otpFailed'));
-        return;
-      }
-      await verifyOtp({ phone: contact.phone, code: data.code, purpose: 'registration' });
-      toast({ description: t('toast.loginSuccess') });
-      await showWelcome();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.otpFailed'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onDemoLogin = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const result = await demoLogin();
-      toast({ description: t('auth.demoLoginSuccess') });
-      await showWelcome(Boolean(result.isDemo));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -188,16 +145,32 @@ export function LoginPage() {
           <p className="text-text-secondary">{tab === 'signIn' ? t('auth.signInDesc') : t('auth.createAccountDesc')}</p>
         </div>
 
-        <div className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]" data-testid="auth-tabs">
+        <div
+          className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]"
+          data-testid="auth-tabs"
+          role="tablist"
+          aria-label={t('auth.tabsLabel')}
+          onKeyDown={onAuthTabKeyDown}
+        >
           <button
+            id="auth-tab-signin"
             type="button"
+            role="tab"
+            aria-selected={tab === 'signIn'}
+            aria-controls="auth-panel-signin"
+            tabIndex={tab === 'signIn' ? 0 : -1}
             className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'signIn' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
-            onClick={() => { setTab('signIn'); setError(''); setRegisterStep('form'); }}
+            onClick={() => { setTab('signIn'); setError(''); }}
           >
             {t('auth.signIn')}
           </button>
           <button
+            id="auth-tab-register"
             type="button"
+            role="tab"
+            aria-selected={tab === 'register'}
+            aria-controls="auth-panel-register"
+            tabIndex={tab === 'register' ? 0 : -1}
             className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${tab === 'register' ? 'bg-surface-base shadow-sm font-medium' : ''}`}
             onClick={() => { setTab('register'); setError(''); }}
           >
@@ -206,10 +179,39 @@ export function LoginPage() {
         </div>
 
         {tab === 'signIn' ? (
-          <form onSubmit={loginForm.handleSubmit(onLogin)} className="w-full min-w-0 space-y-4" data-testid="login-form">
-            <div className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]">
-              <button type="button" className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(true)}>{t('auth.email')}</button>
-              <button type="button" className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${!isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`} onClick={() => setIsEmail(false)}>{t('auth.phone')}</button>
+          <form
+            id="auth-panel-signin"
+            role="tabpanel"
+            aria-labelledby="auth-tab-signin"
+            onSubmit={loginForm.handleSubmit(onLogin)}
+            className="w-full min-w-0 space-y-4"
+            data-testid="login-form"
+          >
+            <div
+              className="flex w-full min-w-0 gap-2 p-1 bg-surface-sunken rounded-[var(--radius-md)]"
+              role="tablist"
+              aria-label={t('auth.signInMethodLabel')}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isEmail}
+                tabIndex={isEmail ? 0 : -1}
+                className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`}
+                onClick={() => setIsEmail(true)}
+              >
+                {t('auth.email')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!isEmail}
+                tabIndex={!isEmail ? 0 : -1}
+                className={`min-w-0 flex-1 truncate px-2 py-2 text-sm rounded-[var(--radius-sm)] ${!isEmail ? 'bg-surface-base shadow-sm font-medium' : ''}`}
+                onClick={() => setIsEmail(false)}
+              >
+                {t('auth.phone')}
+              </button>
             </div>
 
             <div className="space-y-2">
@@ -218,7 +220,7 @@ export function LoginPage() {
                 id="identifier"
                 type={isEmail ? 'email' : 'tel'}
                 autoComplete={isEmail ? 'email' : 'tel'}
-                placeholder={isEmail ? 'buyer@pharmex.bd' : '+8801XXXXXXXXX'}
+                placeholder={isEmail ? 'buyer@pharmex.bd' : '+919XXXXXXXXX'}
                 {...loginForm.register('identifier')}
               />
               {loginForm.formState.errors.identifier && (
@@ -245,17 +247,15 @@ export function LoginPage() {
 
             <Button type="submit" className="w-full max-w-full" size="lg" loading={loading}>{t('auth.signIn')}</Button>
           </form>
-        ) : registerStep === 'otp' ? (
-          <form onSubmit={otpForm.handleSubmit(onVerifyOtp)} className="space-y-4" data-testid="register-otp-form">
-            <p className="text-sm text-text-secondary text-center">
-              {t('auth.verifyOtpDesc', { contact: contact.email || contact.phone })}
-            </p>
-            <Input placeholder="000000" maxLength={6} className="text-center text-2xl tracking-widest" {...otpForm.register('code')} />
-            {error && <p className="text-sm text-danger">{error}</p>}
-            <Button type="submit" className="w-full" size="lg" loading={loading}>{t('auth.verifyOtp')}</Button>
-          </form>
         ) : (
-          <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4" data-testid="register-form">
+          <form
+            id="auth-panel-register"
+            role="tabpanel"
+            aria-labelledby="auth-tab-register"
+            onSubmit={registerForm.handleSubmit(onRegister)}
+            className="space-y-4"
+            data-testid="register-form"
+          >
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t('auth.firstName')}</Label>
@@ -324,15 +324,6 @@ export function LoginPage() {
 
         <GoogleSignInButton onSuccess={() => void showWelcome()} onError={setError} />
 
-        <Button variant="secondary" className="w-full max-w-full whitespace-normal text-center h-auto min-h-12 py-2.5" loading={loading} onClick={() => void onDemoLogin()} data-testid="demo-login">
-          {t('auth.tryDemo')}
-        </Button>
-
-        <Button variant="ghost" className="w-full max-w-full whitespace-normal text-center h-auto min-h-12 py-2.5" onClick={() => navigate('/otp')}>
-          {t('auth.continueOtp')}
-        </Button>
-
-        <p className="text-center text-xs text-text-secondary">{t('auth.correctSite')}</p>
         <p className="text-center text-xs text-text-secondary" data-testid="auth-legal-links">
           <Link className="underline" to="/privacy-policy">Privacy Policy</Link>
           <span className="mx-2">·</span>

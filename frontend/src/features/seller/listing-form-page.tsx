@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ListSkeleton } from '@/components/ui/skeleton';
+import { MedicineInfoPanel } from '@/components/medicine/medicine-info-panel';
+import { MedicineNameAutocomplete } from '@/components/medicine/medicine-name-autocomplete';
+import { MedicineImageUpload } from '@/components/medicine/medicine-image-upload';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api-errors';
 import {
   clearListingDraft,
   isListingDraftEmpty,
@@ -29,6 +33,7 @@ const EMPTY_FORM: Omit<ListingDraft, 'updatedAt'> = {
   availableQty: '',
   moq: '1',
   lowStockThreshold: '',
+  imageUrl: '',
 };
 
 export function ListingFormPage() {
@@ -37,20 +42,16 @@ export function ListingFormPage() {
   const isEdit = Boolean(id);
   const navigate = useNavigate();
   const [medicineQuery, setMedicineQuery] = useState('');
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [error, setError] = useState('');
   const [draftLoaded, setDraftLoaded] = useState(false);
   const saveDraftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const medicineSearchRef = useRef<HTMLInputElement>(null);
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['listing', id],
     queryFn: () => apiClient.get<Listing>(`/listings/${id}`),
     enabled: isEdit,
-  });
-
-  const { data: medicines } = useQuery({
-    queryKey: ['medicines', medicineQuery],
-    queryFn: () => apiClient.get<{ data: Medicine[] }>(`/medicines?q=${medicineQuery}&limit=10`),
-    enabled: medicineQuery.length >= 2,
   });
 
   const [form, setForm] = useState(EMPTY_FORM);
@@ -69,8 +70,10 @@ export function ListingFormPage() {
         availableQty: String(existing.availableQty),
         moq: String(existing.moq),
         lowStockThreshold: existing.lowStockThreshold != null ? String(existing.lowStockThreshold) : '',
+        imageUrl: existing.imageUrl ?? existing.medicine.imageUrl ?? '',
       });
       setMedicineQuery(existing.medicine.name);
+      setSelectedMedicine(existing.medicine);
     }
   }, [existing]);
 
@@ -90,6 +93,7 @@ export function ListingFormPage() {
           availableQty: draft.availableQty,
           moq: draft.moq,
           lowStockThreshold: draft.lowStockThreshold,
+          imageUrl: draft.imageUrl ?? '',
         });
         setMedicineQuery(draft.medicineQuery);
       }
@@ -126,6 +130,7 @@ export function ListingFormPage() {
         availableQty: Number(form.availableQty),
         moq: Number(form.moq),
         ...(form.lowStockThreshold ? { lowStockThreshold: Number(form.lowStockThreshold) } : {}),
+        ...(form.imageUrl ? { imageUrl: form.imageUrl } : {}),
         status: 'ACTIVE',
       };
       if (isEdit) return apiClient.patch(`/listings/${id}`, body);
@@ -135,13 +140,48 @@ export function ListingFormPage() {
       if (!isEdit) await clearListingDraft();
       navigate('/seller/inventory');
     },
-    onError: (e) => setError((e as Error).message),
+    onError: (e) => setError(getErrorMessage(e)),
   });
+
+  const promptMedicineSelection = () => {
+    setError(t('listing.medicineRequired'));
+    medicineSearchRef.current?.focus();
+  };
+
+  const handleMedicineQueryChange = (value: string) => {
+    setMedicineQuery(value);
+    setForm((f) => ({ ...f, medicineId: '', medicineQuery: value }));
+    setSelectedMedicine(null);
+    setError('');
+  };
+
+  const handleMedicineSelect = (medicine: Medicine) => {
+    setForm((f) => ({
+      ...f,
+      medicineId: medicine.id,
+      medicineQuery: medicine.name,
+      imageUrl: f.imageUrl || medicine.imageUrl || '',
+    }));
+    setMedicineQuery(medicine.name);
+    setSelectedMedicine(medicine);
+    setError('');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isEdit && !form.medicineId) {
+      promptMedicineSelection();
+      return;
+    }
+    setError('');
+    save.mutate();
+  };
 
   const clearDraft = async () => {
     await clearListingDraft();
     setForm(EMPTY_FORM);
     setMedicineQuery('');
+    setSelectedMedicine(null);
   };
 
   if (isEdit && isLoading) return <div className="p-4"><ListSkeleton /></div>;
@@ -149,9 +189,9 @@ export function ListingFormPage() {
   const hasDraft = !isEdit && draftLoaded && !isListingDraftEmpty({ ...form, medicineQuery, updatedAt: '' });
 
   return (
-    <div>
+    <div className="min-w-0 overflow-x-hidden">
       <TopBar title={isEdit ? 'Edit Listing' : 'Add Listing'} showBack />
-      <form className="p-4 space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <form className="p-4 space-y-4 min-w-0" onSubmit={handleSubmit}>
         {!isEdit && hasDraft && (
           <div className="rounded-[var(--radius-md)] border border-primary/30 bg-primary-subtle/30 p-3 flex items-center justify-between gap-3">
             <p className="text-sm">{t('listing.draftRestored')}</p>
@@ -161,31 +201,28 @@ export function ListingFormPage() {
           </div>
         )}
 
-        {!isEdit && (
-          <div>
-            <Label>Search Medicine</Label>
-            <Input value={medicineQuery} onChange={(e) => setMedicineQuery(e.target.value)} placeholder="Type medicine name..." />
-            {medicines?.data && (
-              <div className="mt-2 border border-border-subtle rounded-[var(--radius-md)] max-h-40 overflow-y-auto">
-                {medicines.data.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    className="w-full text-left p-2 text-sm hover:bg-surface-raised"
-                    onClick={() => {
-                      setForm((f) => ({ ...f, medicineId: m.id }));
-                      setMedicineQuery(m.name);
-                    }}
-                  >
-                    {m.name} — {m.company}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {!isEdit ? (
+          <MedicineNameAutocomplete
+            label="Search Medicine"
+            value={medicineQuery}
+            placeholder="Type medicine name..."
+            onValueChange={handleMedicineQueryChange}
+            onMedicineSelect={handleMedicineSelect}
+            inputTestId="medicine-search-input"
+            resultsTestId="medicine-search-results"
+          />
+        ) : null}
 
-        <div><Label>Batch Number</Label><Input value={form.batchNumber} onChange={(e) => setForm({ ...form, batchNumber: e.target.value })} required /></div>
+        {selectedMedicine && <MedicineInfoPanel medicine={selectedMedicine} />}
+
+        <MedicineImageUpload
+          label="Listing image (optional)"
+          value={form.imageUrl ?? ''}
+          onChange={(imageUrl) => setForm((f) => ({ ...f, imageUrl }))}
+          testId="listing-image-upload"
+        />
+
+        <div><Label htmlFor="listing-batch-number">Batch Number</Label><Input id="listing-batch-number" value={form.batchNumber} onChange={(e) => setForm({ ...form, batchNumber: e.target.value })} required /></div>
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Mfg Date</Label><Input type="date" value={form.mfgDate} onChange={(e) => setForm({ ...form, mfgDate: e.target.value })} required /></div>
           <div><Label>Expiry Date</Label><Input type="date" value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} required /></div>
@@ -201,7 +238,7 @@ export function ListingFormPage() {
         <div><Label>MOQ</Label><Input type="number" value={form.moq} onChange={(e) => setForm({ ...form, moq: e.target.value })} required /></div>
         <div><Label>Low Stock Threshold (optional)</Label><Input type="number" value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })} placeholder="Default: max(MOQ×2, 20)" /></div>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
+        {error && <p className="text-sm text-danger" data-testid="listing-form-error">{error}</p>}
         <Button type="submit" className="w-full" loading={save.isPending}>
           {isEdit ? 'Update Listing' : 'Create Listing'}
         </Button>

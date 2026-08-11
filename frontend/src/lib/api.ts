@@ -9,8 +9,15 @@ function apiUrl(path: string): string {
   return buildApiUrl(API_BASE, path);
 }
 
+export type ValidationDetail = { path: string; message: string };
+
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public code?: string) {
+  constructor(
+    public status: number,
+    message: string,
+    public code?: string,
+    public details?: ValidationDetail[],
+  ) {
     super(message);
     this.name = 'ApiError';
   }
@@ -110,7 +117,7 @@ export async function api<T>(
     const message = err.code === 'RATE_LIMIT_EXCEEDED' && err.error
       ? err.error
       : err.error || 'Request failed';
-    throw new ApiError(res.status, message, err.code);
+    throw new ApiError(res.status, message, err.code, err.details);
   }
 
   if (res.status === 204) return undefined as T;
@@ -124,7 +131,7 @@ async function apiText(path: string): Promise<string> {
   const res = await fetch(apiUrl(path), { headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new ApiError(res.status, err.error || 'Request failed', err.code);
+    throw new ApiError(res.status, err.error || 'Request failed', err.code, err.details);
   }
   return res.text();
 }

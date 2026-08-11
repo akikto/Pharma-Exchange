@@ -22,7 +22,16 @@
     "verifications": "যাচাইকরণ",
     "verificationsSub": "Verifications",
     "reports": "রিপোর্ট",
-    "reportsSub": "Reports"
+    "reportsSub": "Reports",
+    "payments": "পেমেন্ট",
+    "paymentsSub": "Payments",
+    "medicines": "মেডিসিন",
+    "medicinesSub": "Medicines",
+    "desktopNavigation": "ডেস্কটপ নেভিগেশন",
+    "mobileNavigation": "মোবাইল নেভিগেশন"
+  },
+  "a11y": {
+    "skipToContent": "মূল বিষয়বস্তুতে যান"
   },
   "common": {
     "appName": "Pharma Exchange",
@@ -95,19 +104,15 @@
     "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
     "invalidCredentials": "ইমেইল/ফোন বা পাসওয়ার্ড ভুল। পাসওয়ার্ড ভুলে গেলে রিসেট করুন।",
     "loginFailed": "লগ ইন ব্যর্থ",
-    "continueOtp": "OTP দিয়ে চালিয়ে যান",
-    "continueOtpSub": "Continue with OTP",
     "newPharmacy": "নতুন ফার্মেসি?",
     "createAccount": "অ্যাকাউন্ট তৈরি করুন",
     "createAccountSub": "Create account",
+    "tabsLabel": "প্রমাণীকরণ মোড",
+    "signInMethodLabel": "লগইন পদ্ধতি",
     "register": "নিবন্ধন",
     "registerSub": "Register",
     "firstName": "নামের প্রথম অংশ",
     "lastName": "নামের শেষ অংশ",
-    "verifyOtp": "OTP যাচাই",
-    "verifyOtpDesc": "আপনার {{contact}}-এ পাঠানো ৬-অঙ্কের কোড লিখুন",
-    "otpCode": "OTP কোড",
-    "resendOtp": "OTP আবার পাঠান",
     "splashLoading": "লোড হচ্ছে…",
     "onboardingTitle": "Pharma Exchange-এ স্বাগতম",
     "onboardingSub": "Welcome to Pharma Exchange",
@@ -141,14 +146,19 @@
     "continueGoogle": "Google দিয়ে চালিয়ে যান",
     "accountExists": "এই ইমেইল বা ফোন ইতিমধ্যে রেজিস্টার করা। পাসওয়ার্ড রিসেট করুন বা লগইন করুন।",
     "registerFailed": "রেজিস্ট্রেশন ব্যর্থ",
-    "otpFailed": "OTP যাচাই ব্যর্থ",
-    "otpLength": "৬ অঙ্কের কোড দিন",
     "resetPasswordTitle": "পাসওয়ার্ড রিসেট",
-    "resetPasswordDesc": "ইমেইল দিন এবং নতুন পাসওয়ার্ড সেট করুন",
+    "resetPasswordDesc": "আপনার ইমেইল দিন, আমরা রিসেট লিংক পাঠাব",
+    "sendResetEmail": "রিসেট ইমেইল পাঠান",
+    "resetEmailSent": "এই ইমেইলে অ্যাকাউন্ট থাকলে পাসওয়ার্ড রিসেট লিংক পাঠানো হয়েছে।",
+    "setNewPasswordTitle": "নতুন পাসওয়ার্ড সেট করুন",
+    "setNewPasswordDesc": "আপনার অ্যাকাউন্টের জন্য নতুন পাসওয়ার্ড বেছে নিন",
+    "confirmPassword": "পাসওয়ার্ড নিশ্চিত করুন",
+    "passwordMismatch": "পাসওয়ার্ড মিলছে না",
+    "resetTokenMissing": "রিসেট লিংক অবৈধ বা নেই। নতুন লিংক চান।",
+    "requestNewResetLink": "নতুন রিসেট লিংক চান",
     "newPassword": "নতুন পাসওয়ার্ড",
     "updatePassword": "পাসওয়ার্ড আপডেট করুন",
     "backToLogin": "লগইনে ফিরে যান",
-    "emailNotFound": "এই ইমেইলে কোনো অ্যাকাউন্ট নেই।",
     "resetFailed": "পাসওয়ার্ড রিসেট ব্যর্থ"
   },
   "aiMatch": {
@@ -171,6 +181,8 @@
     "searchPlaceholderSub": "Search medicines, brands…",
     "featuredDeals": "বিশেষ অফার",
     "featuredDealsSub": "Featured Deals",
+    "kmAway": "{{km}} কিমি দূরে",
+    "distanceUnavailable": "দূরত্ব উপলব্ধ নয়",
     "shortExpiry": "স্বল্প মেয়াদের অফার",
     "shortExpirySub": "Short Expiry Deals",
     "allListings": "সব তালিকা",
@@ -297,7 +309,9 @@
     "listings": "তালিকা",
     "noListings": "কোনো সক্রিয় তালিকা নেই",
     "draftRestored": "খসড়া পুনরুদ্ধার হয়েছে — যেখানে ছেড়েছিলেন সেখান থেকে চালিয়ে যান",
-    "clearDraft": "খসড়া মুছুন"
+    "clearDraft": "খসড়া মুছুন",
+    "medicineRequired": "অনুগ্রহ করে search result থেকে একটি medicine নির্বাচন করুন।",
+    "medicineDetails": "ওষুধের তথ্য"
   },
   "offer": {
     "lowStock": "কম স্টক",
@@ -371,6 +385,7 @@
   "hub": {
     "title": "কার্ট ও অর্ডার",
     "titleSub": "Cart & Orders",
+    "tabsLabel": "কার্ট হাব বিভাগ",
     "tabs": {
       "cart": "কার্ট",
       "orders": "অর্ডার",
@@ -422,6 +437,7 @@
     "markAs": "{{status}} হিসেবে চিহ্নিত করুন",
     "cancelOrder": "অর্ডার বাতিল",
     "notFound": "অর্ডার খুঁজে পাওয়া যায়নি",
+    "viewOrder": "অর্ডার দেখুন",
     "back": "ফিরে যান",
     "noOrders": "এখনো কোনো অর্ডার নেই",
     "loadError": "অর্ডার লোড করতে ব্যর্থ",
@@ -464,6 +480,59 @@
       "shipped": "শিপড",
       "delivered": "ডেলিভার্ড",
       "cancelled": "বাতিল"
+    }
+  },
+  "payments": {
+    "payNow": "এখনই পেমেন্ট করুন",
+    "methodLabel": "পেমেন্ট পদ্ধতি",
+    "methodCod": "ক্যাশ অন ডেলিভারি",
+    "methodCodDesc": "অর্ডার ডেলিভারি হলে বিক্রেতাকে নগদে পেমেন্ট করুন।",
+    "methodOnline": "অনলাইন পেমেন্ট",
+    "methodOnlineDesc": "Razorpay দিয়ে এখনই নিরাপদে পেমেন্ট করুন।",
+    "codTitle": "ক্যাশ অন ডেলিভারি",
+    "codBody": "অর্ডার ডেলিভারি হলে আপনি বিক্রেতাকে নগদে পেমেন্ট করবেন।",
+    "codStatusPending": "পেমেন্ট স্ট্যাটাস: মুলতুবি — ডেলিভারিতে পেমেন্ট",
+    "codSellerNotice": "এই অর্ডার ক্যাশ অন ডেলিভারি। ডেলিভারির সময় ক্রেতার কাছ থেকে পেমেন্ট সংগ্রহ করুন।",
+    "pendingBuyerNotice": "বিক্রেতাকে প্যাক ও শিপ করতে দিতে পেমেন্ট সম্পন্ন করুন।",
+    "awaitingBuyerPayment": "প্যাক করার আগে ক্রেতাকে অনলাইন পেমেন্ট সম্পন্ন করতে হবে।",
+    "unavailableTitle": "অনলাইন পেমেন্ট উপলব্ধ নয়",
+    "unavailableBody": "এই পরিবেশে Razorpay চেকআউট সক্রিয় নয়। পরে আবার চেষ্টা করুন বা অ্যাডমিনের সাথে যোগাযোগ করুন।",
+    "verifySuccess": "পেমেন্ট সফল হয়েছে",
+    "verifyFailedTitle": "পেমেন্ট যাচাই ব্যর্থ",
+    "startFailedTitle": "পেমেন্ট শুরু করা যায়নি",
+    "cancelAttempt": "পেমেন্ট বাতিল করুন",
+    "cancelSuccess": "পেমেন্ট প্রচেষ্টা বাতিল হয়েছে",
+    "requestRefund": "রিফান্ড অনুরোধ",
+    "refundTitle": "রিফান্ড ইস্যু করুন",
+    "refundDesc": "Razorpay-এর মাধ্যমে {{amount}} মূল পেমেন্ট পদ্ধতিতে ফেরত পাঠানো হবে।",
+    "refundReasonPlaceholder": "কারণ (ঐচ্ছিক)",
+    "confirmRefund": "রিফান্ড নিশ্চিত করুন",
+    "refundSuccess": "রিফান্ড শুরু হয়েছে",
+    "historyTitle": "পেমেন্ট ইতিহাস",
+    "historyLoading": "পেমেন্ট ইতিহাস লোড হচ্ছে…",
+    "historyEmpty": "এখনো কোনো পেমেন্ট প্রচেষ্টা নেই",
+    "historyLoadError": "পেমেন্ট ইতিহাস লোড ব্যর্থ",
+    "receiptPaymentStatus": "পেমেন্ট স্ট্যাটাস",
+    "providerOrderId": "Razorpay অর্ডার",
+    "providerPaymentId": "Razorpay পেমেন্ট",
+    "method": "পদ্ধতি",
+    "refundsTitle": "রিফান্ড",
+    "status": {
+      "pending": "পেমেন্ট বাকি",
+      "paid": "পরিশোধিত",
+      "refunded": "রিফান্ড হয়েছে"
+    },
+    "attemptStatus": {
+      "created": "পেমেন্টের অপেক্ষায়",
+      "captured": "ক্যাপচার হয়েছে",
+      "failed": "ব্যর্থ",
+      "cancelled": "বাতিল",
+      "refunded": "রিফান্ড হয়েছে"
+    },
+    "refundStatus": {
+      "pending": "রিফান্ড বাকি",
+      "processed": "রিফান্ড সম্পন্ন",
+      "failed": "রিফান্ড ব্যর্থ"
     }
   },
   "chat": {
@@ -525,7 +594,12 @@
     "prefBuyRequests": "ক্রয় অনুরোধ",
     "prefOrders": "অর্ডার আপডেট",
     "prefChat": "চ্যাট বার্তা",
-    "prefPromotions": "প্রমোশন"
+    "prefPromotions": "প্রমোশন",
+    "editTitle": "প্রোফাইল আপডেট",
+    "editDescription": "আপনার নাম, ইমেইল এবং মোবাইল নম্বর আপডেট করুন।",
+    "firstName": "নামের প্রথম অংশ",
+    "lastName": "নামের শেষ অংশ",
+    "updateSuccess": "প্রোফাইল আপডেট হয়েছে"
   },
   "seller": {
     "title": "বিক্রেতা",
@@ -682,7 +756,52 @@
     "approve": "অনুমোদন",
     "reject": "প্রত্যাখ্যান",
     "noPending": "কোনো অপেক্ষমাণ যাচাই নেই",
-    "noReports": "কোনো খোলা রিপোর্ট নেই"
+    "noReports": "কোনো খোলা রিপোর্ট নেই",
+    "payments": "পেমেন্ট",
+    "paymentsDesc": "অর্ডার জুড়ে Razorpay পেমেন্ট ও রিফান্ড মিলিয়ে দেখুন।",
+    "paymentsEmpty": "এখনো কোনো পেমেন্ট রেকর্ড নেই",
+    "medicines": {
+      "nav": "মেডিসিন",
+      "title": "মেডিসিন ম্যানেজমেন্ট",
+      "description": "তালিকা ও মার্কেটপ্লেস সার্চে ব্যবহৃত মাস্টার ক্যাটালগে ওষুধ খুঁজুন, যোগ করুন এবং আপডেট করুন।",
+      "addButton": "ওষুধ যোগ করুন",
+      "addTitle": "ওষুধ যোগ করুন",
+      "addDesc": "ক্যাটালগে নতুন ওষুধ রেকর্ড তৈরি করুন।",
+      "editTitle": "ওষুধ সম্পাদনা",
+      "editDesc": "বিদ্যমান ওষুধ রেকর্ড আপডেট করুন।",
+      "createAction": "ওষুধ তৈরি করুন",
+      "saveAction": "পরিবর্তন সংরক্ষণ",
+      "editAction": "সম্পাদনা",
+      "actions": "অ্যাকশন",
+      "searchPlaceholder": "নাম, জেনেরিক বা ব্র্যান্ড দিয়ে ওষুধ খুঁজুন...",
+      "empty": "কোনো ওষুধ পাওয়া যায়নি।",
+      "loadError": "ওষুধ লোড করা যায়নি।",
+      "createSuccess": "ওষুধ সফলভাবে তৈরি হয়েছে।",
+      "existingMedicineSelected": "বিদ্যমান ওষুধ লোড হয়েছে। নতুন তৈরি না করে আপডেট করে সংরক্ষণ করুন।",
+      "updateSuccess": "ওষুধ সফলভাবে আপডেট হয়েছে।",
+      "selectDosageForm": "ডোজ ফর্ম নির্বাচন করুন",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "fields": {
+        "name": "নাম",
+        "company": "কোম্পানি",
+        "dosageForm": "ডোজ ফর্ম",
+        "packSize": "প্যাক সাইজ",
+        "category": "ক্যাটাগরি",
+        "genericName": "জেনেরিক নাম",
+        "brandName": "ব্র্যান্ড নাম",
+        "strength": "শক্তি",
+        "scheduleClass": "শিডিউল ক্লাস",
+        "composition": "গঠন",
+        "imageUrl": "ইমেজ URL",
+        "status": "স্ট্যাটাস"
+      },
+      "validation": {
+        "required": "এই ঘরটি আবশ্যক।",
+        "dosageForm": "একটি বৈধ ডোজ ফর্ম নির্বাচন করুন।",
+        "imageUrl": "একটি বৈধ ইমেজ URL দিন।"
+      }
+    }
   },
   "modal": {
     "watchlistTitle": "ওয়াচলিস্ট",
@@ -696,6 +815,8 @@
     "required": "এই ক্ষেত্রটি আবশ্যক",
     "passwordMin": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে",
     "email": "সঠিক ইমেইল দিন",
+    "phone": "সঠিক ফোন নম্বর দিন",
+    "otp": "সঠিক OTP কোড দিন",
     "emailOrPhone": "ইমেইল বা ফোন আবশ্যক",
     "quantityMin": "পরিমাণ কমপক্ষে {{min}} হতে হবে",
     "quantityMax": "পরিমাণ সর্বোচ্চ {{max}}"

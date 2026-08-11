@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNavBadges } from '@/hooks/use-nav-badges';
 import { Logo } from '@/components/brand/logo';
@@ -7,6 +8,7 @@ import { NavLinkItem } from './nav-link';
 import { cn } from '@/lib/utils';
 
 export function SideNav() {
+  const { t } = useTranslation();
   const mode = useAuthStore((s) => s.mode);
   const user = useAuthStore((s) => s.user);
   const badges = useNavBadges();
@@ -26,7 +28,7 @@ export function SideNav() {
         <Logo size="sm" />
       </Link>
 
-      <nav className="flex flex-col gap-1 flex-1" aria-label="Main navigation" data-testid="side-nav">
+      <nav className="flex flex-col gap-1 flex-1" aria-label={t('nav.desktopNavigation')} data-testid="side-nav">
         {nav.map((item) => (
           <NavLinkItem key={item.to} item={item} variant="side" badgeCount={badgeFor(item.badgeKey)} />
         ))}

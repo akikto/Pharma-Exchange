@@ -51,6 +51,8 @@ export interface Medicine {
   category: string;
   composition?: string;
   imageUrl?: string;
+  isActive?: boolean;
+  scheduleClass?: string | null;
 }
 
 export interface Pharmacy {
@@ -114,6 +116,7 @@ export interface BuyRequest {
   items: { id: string; quantity: number; unitPrice: string; subtotal: string; listing: Listing }[];
   buyer?: { id: string; firstName: string; lastName: string };
   seller?: Pharmacy;
+  order?: { id: string; orderNumber: string; status: string };
 }
 
 export interface Order {
@@ -121,11 +124,12 @@ export interface Order {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentMethod?: 'COD' | 'RAZORPAY' | null;
   totalAmount: string | number;
   createdAt: string;
   items: { id: string; listingId?: string; medicineName: string; quantity: number; unitPrice: string; subtotal: string }[];
   seller?: Pharmacy;
-  buyer?: { id: string; firstName: string; lastName: string };
+  buyer?: { id: string; firstName: string; lastName: string; email?: string; phone?: string };
   statusHistory?: { status: string; note?: string; createdAt: string }[];
 }
 

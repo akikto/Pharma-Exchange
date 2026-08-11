@@ -8,8 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const SplashPage = lazy(() => import('@/features/auth/splash-page').then(m => ({ default: m.SplashPage })));
 const OnboardingPage = lazy(() => import('@/features/auth/onboarding-page').then(m => ({ default: m.OnboardingPage })));
 const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ default: m.LoginPage })));
-const OtpLoginPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.OtpLoginPage })));
 const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('@/features/auth/reset-password-page').then(m => ({ default: m.ResetPasswordPage })));
 const HomePage = lazy(() => import('@/features/home/home-page').then(m => ({ default: m.HomePage })));
 const SearchPage = lazy(() => import('@/features/home/search-page').then(m => ({ default: m.SearchPage })));
 const loadMedicineDetail = () => import('@/features/medicine/medicine-detail-page');
@@ -38,6 +38,8 @@ const loadAdmin = () => import('@/features/admin/admin-dashboard-page');
 const AdminDashboardPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminDashboardPage })));
 const AdminVerificationsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminVerificationsPage })));
 const AdminReportsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminReportsPage })));
+const AdminPaymentsPage = lazy(() => import('@/features/admin/admin-payments-page').then(m => ({ default: m.AdminPaymentsPage })));
+const AdminMedicinesPage = lazy(() => import('@/features/admin/admin-medicines-page').then(m => ({ default: m.AdminMedicinesPage })));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/privacy-policy-page').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsAndConditionsPage = lazy(() => import('@/features/legal/terms-and-conditions-page').then(m => ({ default: m.TermsAndConditionsPage })));
 
@@ -81,7 +83,8 @@ export function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/otp" element={<OtpLoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/otp" element={<Navigate to="/login" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
@@ -119,7 +122,9 @@ export function AppRouter() {
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="verifications" element={<AdminVerificationsPage />} />
+            <Route path="medicines" element={<AdminMedicinesPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
+            <Route path="payments" element={<AdminPaymentsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/splash" replace />} />
         </Routes>

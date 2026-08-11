@@ -1,4 +1,4 @@
-import { BuyRequestStatus, ListingStatus, NotificationType, OrderStatus } from '@prisma/client';
+import { BuyRequestStatus, ListingStatus, NotificationType, Order, OrderStatus, Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { generateOrderNumber, generateRequestNumber, parsePagination } from '../../shared/utils/helpers';
@@ -6,6 +6,15 @@ import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware'
 import { notificationService } from '../notification';
 import { chatSystemService } from '../chat/chatSystem.service';
 import { validateCartQuantity } from '../cart/cart.validation';
+import { logger } from '../../shared/utils/logger';
+
+type BuyRequestWithItems = Prisma.BuyRequestGetPayload<{
+  include: { items: { include: { listing: { include: { medicine: true } } } } };
+}>;
+
+function listingMedicineName(item: BuyRequestWithItems['items'][number]): string {
+  return item.listing.medicine?.name ?? 'Medicine';
+}
 
 export class BuyRequestService {
   async list(userId: string, role: string, status?: BuyRequestStatus, page = 1, limit = 20) {
@@ -86,8 +95,8 @@ export class BuyRequestService {
       return { listingId: item.listingId, quantity: item.quantity, unitPrice: listing.finalPrice, subtotal, listing };
     });
 
-    return prisma.$transaction(async (tx) => {
-      const request = await tx.buyRequest.create({
+    const request = await prisma.$transaction(async (tx) => {
+      const created = await tx.buyRequest.create({
         data: {
           requestNumber: generateRequestNumber(),
           buyerId, sellerId, totalAmount, note,
@@ -101,19 +110,21 @@ export class BuyRequestService {
         where: { userId: buyerId, listingId: { in: items.map((i) => i.listingId) } },
       });
 
-      const seller = await tx.pharmacy.findUnique({ where: { id: sellerId } });
-      if (seller) {
-        await notificationService.create({
-          userId: seller.userId,
-          type: NotificationType.BUY_REQUEST,
-          title: 'New Buy Request',
-          body: `New buy request ${request.requestNumber}`,
-          data: { buyRequestId: request.id, role: 'seller' },
-        });
-      }
-
-      return request;
+      return created;
     });
+
+    const seller = await prisma.pharmacy.findUnique({ where: { id: sellerId } });
+    if (seller) {
+      await notificationService.create({
+        userId: seller.userId,
+        type: NotificationType.BUY_REQUEST,
+        title: 'New Buy Request',
+        body: `New buy request ${request.requestNumber}`,
+        data: { buyRequestId: request.id, role: 'seller' },
+      });
+    }
+
+    return request;
   }
 
   async respond(sellerUserId: string, requestId: string, action: 'accept' | 'reject', sellerNote?: string) {
@@ -143,12 +154,12 @@ export class BuyRequestService {
 
     for (const item of buyRequest.items) {
       if (item.quantity > item.listing.availableQty) {
-        throw AppError.badRequest(`Insufficient stock for ${item.listing.medicine.name}`);
+        throw AppError.badRequest(`Insufficient stock for ${listingMedicineName(item)}`);
       }
     }
 
-    return prisma.$transaction(async (tx) => {
-      const request = await tx.buyRequest.update({
+    const request = await prisma.$transaction(async (tx) => {
+      const updatedRequest = await tx.buyRequest.update({
         where: { id: requestId },
         data: { status: BuyRequestStatus.ACCEPTED, sellerNote, respondedAt: new Date() },
       });
@@ -159,11 +170,16 @@ export class BuyRequestService {
           data: { availableQty: { decrement: item.quantity } },
         });
         if (updated.count === 0) {
-          throw AppError.badRequest(`Insufficient stock for ${item.listing.medicine.name}`);
+          throw AppError.badRequest(`Insufficient stock for ${listingMedicineName(item)}`);
         }
       }
 
-      const order = await tx.order.create({
+      return updatedRequest;
+    });
+
+    let order: Order & { items: Prisma.OrderItemGetPayload<object>[] };
+    try {
+      order = await prisma.order.create({
         data: {
           orderNumber: generateOrderNumber(),
           buyRequestId: requestId,
@@ -174,7 +190,7 @@ export class BuyRequestService {
           items: {
             create: buyRequest.items.map((item) => ({
               listingId: item.listingId,
-              medicineName: item.listing.medicine.name,
+              medicineName: listingMedicineName(item),
               batchNumber: item.listing.batchNumber,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
@@ -185,7 +201,42 @@ export class BuyRequestService {
         },
         include: { items: true },
       });
+    } catch (error) {
+      await this.revertAcceptedBuyRequest(requestId, buyRequest.items);
+      throw error;
+    }
 
+    await this.runAcceptSideEffects(buyRequest, requestId, sellerUserId, order);
+
+    return { buyRequest: request, order };
+  }
+
+  private async revertAcceptedBuyRequest(
+    requestId: string,
+    items: BuyRequestWithItems['items'],
+  ) {
+    await prisma.$transaction(async (tx) => {
+      await tx.buyRequest.update({
+        where: { id: requestId },
+        data: { status: BuyRequestStatus.PENDING, sellerNote: null, respondedAt: null },
+      });
+
+      for (const item of items) {
+        await tx.listing.update({
+          where: { id: item.listingId },
+          data: { availableQty: { increment: item.quantity } },
+        });
+      }
+    });
+  }
+
+  private async runAcceptSideEffects(
+    buyRequest: BuyRequestWithItems,
+    requestId: string,
+    sellerUserId: string,
+    order: Order,
+  ) {
+    try {
       await notificationService.create({
         userId: buyRequest.buyerId,
         type: NotificationType.ORDER_UPDATE,
@@ -193,13 +244,35 @@ export class BuyRequestService {
         body: `Order ${order.orderNumber} created`,
         data: { orderId: order.id, buyRequestId: requestId },
       });
+    } catch (error) {
+      logger.error('Buy request accept notification failed', {
+        buyRequestId: requestId,
+        orderId: order.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
 
+    try {
       await chatSystemService.ensureOrderConversation(order.id, buyRequest.buyerId, sellerUserId);
-      await chatSystemService.postBuyRequestStatusMessage(requestId, sellerUserId, 'ACCEPTED', buyRequest.requestNumber);
-      await chatSystemService.postOrderStatusMessage(order.id, sellerUserId, OrderStatus.CONFIRMED, order.orderNumber);
-
-      return { buyRequest: request, order };
-    });
+      await chatSystemService.postBuyRequestStatusMessage(
+        requestId,
+        sellerUserId,
+        'ACCEPTED',
+        buyRequest.requestNumber,
+      );
+      await chatSystemService.postOrderStatusMessage(
+        order.id,
+        sellerUserId,
+        OrderStatus.CONFIRMED,
+        order.orderNumber,
+      );
+    } catch (error) {
+      logger.error('Buy request accept chat side effects failed', {
+        buyRequestId: requestId,
+        orderId: order.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }
 

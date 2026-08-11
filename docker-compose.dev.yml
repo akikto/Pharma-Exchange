@@ -49,14 +49,12 @@ services:
       JWT_SECRET: dev-jwt-secret-min-32-characters-long
       JWT_EXPIRES_IN: 7d
       JWT_REFRESH_EXPIRES_IN: 30d
-      OTP_EXPIRY_MINUTES: 10
-      # MSG91 disabled by default in dev; set to true and fill in the auth key
-      # to test real SMS delivery. See docs/BL-01-MSG91.md.
-      MSG91_ENABLED: ${MSG91_ENABLED:-false}
-      MSG91_AUTH_KEY: ${MSG91_AUTH_KEY:-}
-      MSG91_SENDER_ID: ${MSG91_SENDER_ID:-}
-      MSG91_TEMPLATE_ID: ${MSG91_TEMPLATE_ID:-}
-      MSG91_OTP_LENGTH: ${MSG91_OTP_LENGTH:-6}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
       # Razorpay disabled by default in dev; set the enabled flag + secrets
       # to test real checkout. See docs/BL-02-RAZORPAY.md.
       RAZORPAY_ENABLED: ${RAZORPAY_ENABLED:-false}

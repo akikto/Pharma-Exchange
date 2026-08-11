@@ -30,6 +30,7 @@ const options: swaggerJsdoc.Options = {
       { name: 'Reports', description: 'Content moderation' },
       { name: 'Analytics', description: 'Seller and platform analytics' },
       { name: 'Admin', description: 'Admin panel APIs' },
+      { name: 'Payments', description: 'Razorpay checkout, verify, refunds, and webhooks' },
       { name: 'Upload', description: 'File uploads' },
     ],
   },

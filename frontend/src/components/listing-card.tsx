@@ -7,11 +7,22 @@ interface ListingCardProps {
   listing: Listing;
   className?: string;
   showActions?: boolean;
+  showAddToCart?: boolean;
   bestPrice?: number;
+  variant?: 'grid' | 'list' | 'featured';
+  userCoords?: { latitude: number; longitude: number } | null;
 }
 
 /** Grid marketplace card — delegates to OfferCard. */
-export function ListingCard({ listing, className, showActions = false, bestPrice }: ListingCardProps) {
+export function ListingCard({
+  listing,
+  className,
+  showActions = false,
+  showAddToCart = false,
+  bestPrice,
+  variant = 'grid',
+  userCoords,
+}: ListingCardProps) {
   if (!isRenderableListing(listing)) {
     warnInvalidListing('listing-card:render', { listing });
     return null;
@@ -22,9 +33,11 @@ export function ListingCard({ listing, className, showActions = false, bestPrice
       <OfferCard
         listing={listing}
         className={className}
-        variant="grid"
+        variant={variant}
         showActions={showActions}
+        showAddToCart={showAddToCart}
         bestPrice={bestPrice}
+        userCoords={userCoords}
       />
     </div>
   );

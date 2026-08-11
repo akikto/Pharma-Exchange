@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import prisma from '../../config/database';
@@ -5,29 +6,21 @@ import { env } from '../../config/env';
 import { verifyFirebaseToken } from '../../config/firebase';
 import { AppError } from '../../shared/errors/AppError';
 import { signAccessToken, signRefreshToken } from '../../shared/middleware/auth.middleware';
+import { resolvePasswordResetBaseUrl } from '../../config/password-reset-url';
 import {
-  Msg91ConfigError,
-  Msg91Error,
-  msg91,
-  normalizeBangladeshPhone,
-} from '../../shared/services/msg91.service';
+  EmailConfigError,
+  EmailDeliveryError,
+  isEmailConfigured,
+  sendPasswordResetEmail,
+} from '../../shared/services/email.service';
+import { isValidProfilePhone, normalizePhoneToE164 } from '../../shared/utils/phone';
 
-function mapMsg91Error(err: unknown): AppError {
-  if (err instanceof Msg91ConfigError) {
-    return AppError.badRequest('SMS OTP provider is not configured');
-  }
-  if (err instanceof Msg91Error) {
-    if (err.code === 'OTP_PROVIDER_RATE_LIMIT') {
-      return new AppError(429, 'Too many OTP requests. Please try again later.', 'RATE_LIMIT_EXCEEDED');
-    }
-    if (err.code === 'OTP_PROVIDER_UNAVAILABLE') {
-      return new AppError(503, 'OTP provider unavailable. Please try again shortly.', 'OTP_PROVIDER_UNAVAILABLE');
-    }
-    return new AppError(502, 'OTP provider request failed', 'OTP_PROVIDER_ERROR');
-  }
-  const code = (err as { code?: string })?.code;
-  if (code === 'INVALID_PHONE') return AppError.badRequest('Invalid Bangladesh mobile number');
-  return AppError.internal('Unexpected OTP error');
+const PASSWORD_RESET_TTL_MS = 15 * 60 * 1000;
+const GENERIC_RESET_MESSAGE =
+  'If an account exists with this email, a password reset link has been sent.';
+
+function hashResetToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 export class AuthService {
@@ -50,7 +43,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, 12);
     const user = await prisma.user.create({
       data: {
-        email: data.email,
+        email: data.email?.trim().toLowerCase(),
         phone: data.phone,
         passwordHash,
         firstName: data.firstName,
@@ -59,68 +52,80 @@ export class AuthService {
       },
     });
 
-    // Phone-based registration must verify OTP before tokens are issued.
-    if (data.phone) {
-      try {
-        const { requestId } = await msg91.sendOtp(data.phone);
-        return {
-          user: {
-            id: user.id,
-            email: user.email,
-            phone: user.phone,
-            firstName: user.firstName,
-            lastName: user.lastName,
-          },
-          requiresOtpVerification: true,
-          otpRequestId: requestId,
-          message: 'Registration successful. Please verify the OTP sent to your phone.',
-        };
-      } catch (err) {
-        throw mapMsg91Error(err);
-      }
-    }
-
-    // Email-only registration: issue tokens immediately (email verification is
-    // a separate flow, out of scope for BL-01).
     return this.issueTokens(user);
   }
 
-  async sendOtp(data: { phone: string; purpose: 'login' | 'password_reset' }) {
-    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
-    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
-      ?? await prisma.user.findUnique({ where: { phone: data.phone } });
-    if (!user) throw AppError.notFound('No account found with this phone number');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
+  async forgotPassword(data: { email: string }) {
+    const email = data.email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email } });
 
-    try {
-      const { requestId } = await msg91.sendOtp(data.phone);
-      return { message: 'OTP sent', requestId };
-    } catch (err) {
-      throw mapMsg91Error(err);
+    if (user?.isActive && user.email) {
+      if (!isEmailConfigured()) {
+        throw new AppError(503, 'Email service is not configured', 'EMAIL_NOT_CONFIGURED');
+      }
+
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = hashResetToken(rawToken);
+      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+
+      await prisma.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } });
+      await prisma.passwordResetToken.create({
+        data: { userId: user.id, tokenHash, expiresAt },
+      });
+
+      const resetUrl = `${resolvePasswordResetBaseUrl({
+        passwordResetUrlBase: env.PASSWORD_RESET_URL_BASE,
+        corsOrigin: env.CORS_ORIGIN,
+        nodeEnv: env.NODE_ENV,
+      })}/reset-password?token=${rawToken}`;
+      try {
+        await sendPasswordResetEmail(user.email, resetUrl);
+      } catch (err) {
+        await prisma.passwordResetToken.deleteMany({ where: { userId: user.id, tokenHash } });
+        if (err instanceof EmailConfigError) {
+          throw new AppError(503, 'Email service is not configured', 'EMAIL_NOT_CONFIGURED');
+        }
+        if (err instanceof EmailDeliveryError) {
+          throw new AppError(502, 'Failed to send password reset email', 'EMAIL_DELIVERY_FAILED');
+        }
+        throw err;
+      }
     }
+
+    return { message: GENERIC_RESET_MESSAGE };
   }
 
-  async resendOtp(data: { phone: string }) {
-    try {
-      const { requestId } = await msg91.resendOtp(data.phone);
-      return { message: 'OTP resent', requestId };
-    } catch (err) {
-      throw mapMsg91Error(err);
-    }
-  }
-
-  async resetPassword(data: { email: string; newPassword: string }) {
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
-    if (!user) throw AppError.notFound('No account found with this email');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
-
-    const passwordHash = await bcrypt.hash(data.newPassword, 12);
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash },
+  async resetPassword(data: { token: string; newPassword: string }) {
+    const tokenHash = hashResetToken(data.token.trim());
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      include: { user: true },
     });
 
-    return this.issueTokens(updated);
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      throw AppError.badRequest('Invalid or expired reset token');
+    }
+    if (!record.user.isActive) throw AppError.forbidden('Account is deactivated');
+    if (!record.user.passwordHash && !record.user.email) {
+      throw AppError.badRequest('Password reset is not available for this account');
+    }
+
+    const passwordHash = await bcrypt.hash(data.newPassword, 12);
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { passwordHash },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: record.id },
+        data: { usedAt: new Date() },
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: { userId: record.userId, id: { not: record.id }, usedAt: null },
+      }),
+    ]);
+
+    return { message: 'Password updated successfully. Please sign in with your new password.' };
   }
 
   async login(data: { email?: string; phone?: string; password: string }) {
@@ -192,24 +197,6 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
-  async verifyOtp(data: { phone: string; code: string; purpose: 'registration' | 'login' | 'password_reset' }) {
-    let verified: boolean;
-    try {
-      verified = await msg91.verifyOtp(data.phone, data.code);
-    } catch (err) {
-      throw mapMsg91Error(err);
-    }
-    if (!verified) throw AppError.badRequest('Invalid or expired OTP');
-
-    const normalizedPhone = normalizeBangladeshPhoneSafe(data.phone);
-    const user = await prisma.user.findUnique({ where: { phone: normalizedPhone } })
-      ?? await prisma.user.findFirst({ where: { phone: data.phone } });
-    if (!user) throw AppError.notFound('No account found for this phone');
-    if (!user.isActive) throw AppError.forbidden('Account is deactivated');
-
-    return this.issueTokens(user);
-  }
-
   async refreshToken(token: string) {
     const stored = await prisma.refreshToken.findUnique({ where: { token } });
     if (!stored || stored.expiresAt < new Date()) {
@@ -247,7 +234,15 @@ export class AuthService {
 
   async updateProfile(
     userId: string,
-    data: { language?: string; theme?: string; notificationPrefs?: Record<string, boolean> },
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      language?: string;
+      theme?: string;
+      notificationPrefs?: Record<string, boolean>;
+    },
   ) {
     const existing = await prisma.user.findUnique({
       where: { id: userId },
@@ -260,9 +255,34 @@ export class AuthService {
         ? (existing.notificationPrefs as Record<string, boolean>)
         : {};
 
+    let normalizedPhone: string | undefined;
+    if (data.phone !== undefined) {
+      if (!isValidProfilePhone(data.phone)) {
+        throw AppError.badRequest('Invalid phone number');
+      }
+      normalizedPhone = normalizePhoneToE164(data.phone)!;
+      const phoneOwner = await prisma.user.findFirst({
+        where: { phone: normalizedPhone, id: { not: userId } },
+      });
+      if (phoneOwner) throw AppError.conflict('Phone already registered');
+    }
+
+    let normalizedEmail: string | undefined;
+    if (data.email !== undefined) {
+      normalizedEmail = data.email.trim().toLowerCase();
+      const emailOwner = await prisma.user.findFirst({
+        where: { email: normalizedEmail, id: { not: userId } },
+      });
+      if (emailOwner) throw AppError.conflict('Email already registered');
+    }
+
     return prisma.user.update({
       where: { id: userId },
       data: {
+        ...(data.firstName !== undefined && { firstName: data.firstName.trim() }),
+        ...(data.lastName !== undefined && { lastName: data.lastName.trim() }),
+        ...(normalizedEmail !== undefined && { email: normalizedEmail }),
+        ...(normalizedPhone !== undefined && { phone: normalizedPhone }),
         ...(data.language !== undefined && { language: data.language }),
         ...(data.theme !== undefined && { theme: data.theme }),
         ...(data.notificationPrefs !== undefined && {
@@ -322,14 +342,6 @@ export class AuthService {
         role: user.role,
       },
     };
-  }
-}
-
-function normalizeBangladeshPhoneSafe(phone: string): string {
-  try {
-    return normalizeBangladeshPhone(phone);
-  } catch {
-    return phone;
   }
 }
 

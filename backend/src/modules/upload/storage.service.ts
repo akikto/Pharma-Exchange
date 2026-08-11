@@ -1,10 +1,73 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getFirebaseStorage } from '../../config/firebase';
 import { env } from '../../config/env';
-import { AppError } from '../../shared/errors/AppError';
 import { logger } from '../../shared/utils/logger';
 
+export type UploadResult = {
+  url: string;
+  storageKey: string;
+  fileName: string;
+};
+
 export class StorageService {
+  buildPublicUrl(storageKey: string): string {
+    if (!env.FIREBASE_STORAGE_BUCKET) {
+      return `https://storage.example.com/${storageKey}`;
+    }
+    return `https://storage.googleapis.com/${env.FIREBASE_STORAGE_BUCKET}/${storageKey}`;
+  }
+
+  extractStorageKey(urlOrKey: string): string | null {
+    if (!urlOrKey) return null;
+    if (urlOrKey.startsWith('public/')) return urlOrKey;
+
+    const bucketPrefix = env.FIREBASE_STORAGE_BUCKET
+      ? `https://storage.googleapis.com/${env.FIREBASE_STORAGE_BUCKET}/`
+      : 'https://storage.example.com/';
+    if (urlOrKey.startsWith(bucketPrefix)) {
+      return urlOrKey.slice(bucketPrefix.length);
+    }
+
+    const signedMarker = `${env.FIREBASE_STORAGE_BUCKET}/`;
+    const signedIndex = urlOrKey.indexOf(signedMarker);
+    if (signedIndex >= 0) {
+      const path = urlOrKey.slice(signedIndex + signedMarker.length).split('?')[0];
+      return decodeURIComponent(path);
+    }
+
+    return null;
+  }
+
+  async uploadOptimizedImage(
+    buffer: Buffer,
+    mimeType: string,
+    folder: string,
+    extension: string,
+  ): Promise<UploadResult> {
+    const storage = getFirebaseStorage();
+    const storageKey = `${folder}/${uuidv4()}.${extension}`;
+
+    if (!storage) {
+      const url = this.buildPublicUrl(storageKey);
+      logger.warn(`[DEV] Optimized image upload simulated: ${url}`);
+      return { url, storageKey, fileName: storageKey.split('/').pop() ?? storageKey };
+    }
+
+    const bucket = storage.bucket();
+    const file = bucket.file(storageKey);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: mimeType,
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+      public: storageKey.startsWith('public/'),
+    });
+
+    const url = this.buildPublicUrl(storageKey);
+    return { url, storageKey, fileName: storageKey.split('/').pop() ?? storageKey };
+  }
+
   async uploadFile(
     buffer: Buffer,
     originalName: string,
@@ -35,16 +98,21 @@ export class StorageService {
     return { url, fileName: originalName };
   }
 
-  async deleteFile(fileUrl: string): Promise<void> {
+  async deleteByStorageKey(storageKey: string): Promise<void> {
     const storage = getFirebaseStorage();
-    if (!storage) return;
+    if (!storage || !storageKey) return;
 
     try {
-      const bucket = storage.bucket();
-      const path = fileUrl.split(`${env.FIREBASE_STORAGE_BUCKET}/`)[1];
-      if (path) await bucket.file(path).delete();
+      await storage.bucket().file(storageKey).delete({ ignoreNotFound: true });
     } catch {
-      logger.warn(`Failed to delete file: ${fileUrl}`);
+      logger.warn(`Failed to delete storage object: ${storageKey}`);
+    }
+  }
+
+  async deleteFile(fileUrl: string): Promise<void> {
+    const storageKey = this.extractStorageKey(fileUrl);
+    if (storageKey) {
+      await this.deleteByStorageKey(storageKey);
     }
   }
 }
