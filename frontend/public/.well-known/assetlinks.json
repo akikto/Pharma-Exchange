@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pharmex.exchange",
+      "sha256_cert_fingerprints": [
+        "CA:33:FD:35:03:77:1C:1D:7B:3C:3B:39:0C:EC:9E:8E:5D:34:10:E7:AB:AD:E4:BD:12:5C:24:A9:3B:48:D6:29"
+      ]
+    }
+  }
+]
