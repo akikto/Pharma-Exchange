@@ -40,7 +40,7 @@ Upload AAB to Play Console internal testing track first.
 ## Store Listing
 
 - App name: PharmEx
-- Short description: B2B Pharmacy Marketplace for Bangladesh
+- Short description: B2B Pharmacy Marketplace
 - Category: Business / Medical
 - Screenshots: phone + tablet (required sizes per Play Console)
 - Feature graphic: 1024x500
