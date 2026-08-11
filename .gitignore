@@ -19,4 +19,8 @@ test-results/
 credentials.json
 *.pem
 *.key
+*.keystore
+android.keystore
 .credentials
+twa/android.keystore
+twa/*.keystore
