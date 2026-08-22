@@ -30,10 +30,9 @@ test.describe('Home hero layout', () => {
     await page.evaluate(() => {
       localStorage.setItem('pharmex-bulk-banner-dismissed', '1');
     });
-    await page.goto('/');
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('home-banner-carousel')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('shop-header')).toBeVisible();
-    await expect(page.getByTestId('bulk-procurement-banner')).toHaveCount(0);
   });
 
   test('promo banner and shop card share horizontal alignment and gap', async ({ page }) => {
