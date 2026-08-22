@@ -6,6 +6,7 @@ import { Search, LayoutGrid, Layers, X, RefreshCw, Sparkles, Clock, LayoutList }
 import { HomeHeroStack } from '@/components/home/home-hero-stack';
 import { HOME_GUTTER_CLASS } from '@/components/home/home-layout';
 import { HomeAppBar } from '@/components/home/home-app-bar';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { ListingCard } from '@/components/listing-card';
 import { ListingCardSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
