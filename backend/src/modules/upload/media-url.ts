@@ -1,4 +1,4 @@
-import { env } from '../../config/env';
+import { getFirebaseStorageBucket } from '../../config/env';
 
 const DEV_STORAGE_HOST = 'storage.example.com';
 
@@ -55,9 +55,10 @@ export async function assertMediaUrlReadable(url: string): Promise<void> {
 }
 
 export function buildFirebaseDownloadUrl(storageKey: string, downloadToken: string): string {
-  if (!env.FIREBASE_STORAGE_BUCKET) {
+  const bucket = getFirebaseStorageBucket();
+  if (!bucket) {
     return `https://${DEV_STORAGE_HOST}/${storageKey}`;
   }
   const encoded = encodeURIComponent(storageKey);
-  return `https://firebasestorage.googleapis.com/v0/b/${env.FIREBASE_STORAGE_BUCKET}/o/${encoded}?alt=media&token=${downloadToken}`;
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encoded}?alt=media&token=${downloadToken}`;
 }

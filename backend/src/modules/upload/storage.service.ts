@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getFirebaseStorage } from '../../config/firebase';
-import { env, isFirebaseStorageConfigured } from '../../config/env';
+import { env, isFirebaseStorageConfigured, getFirebaseStorageBucket } from '../../config/env';
 import { logger } from '../../shared/utils/logger';
 import {
   assertMediaUrlReadable,
@@ -16,14 +16,15 @@ export type UploadResult = {
 
 export class StorageService {
   buildPublicUrl(storageKey: string, downloadToken?: string): string {
-    if (!env.FIREBASE_STORAGE_BUCKET) {
+    const bucket = getFirebaseStorageBucket();
+    if (!bucket) {
       return `https://storage.example.com/${storageKey}`;
     }
     if (downloadToken) {
       return buildFirebaseDownloadUrl(storageKey, downloadToken);
     }
     const encoded = encodeURIComponent(storageKey);
-    return `https://firebasestorage.googleapis.com/v0/b/${env.FIREBASE_STORAGE_BUCKET}/o/${encoded}?alt=media`;
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encoded}?alt=media`;
   }
 
   extractStorageKey(urlOrKey: string): string | null {
@@ -42,18 +43,21 @@ export class StorageService {
       // fall through
     }
 
-    const bucketPrefix = env.FIREBASE_STORAGE_BUCKET
-      ? `https://storage.googleapis.com/${env.FIREBASE_STORAGE_BUCKET}/`
+    const bucket = getFirebaseStorageBucket();
+    const bucketPrefix = bucket
+      ? `https://storage.googleapis.com/${bucket}/`
       : 'https://storage.example.com/';
     if (urlOrKey.startsWith(bucketPrefix)) {
       return urlOrKey.slice(bucketPrefix.length);
     }
 
-    const signedMarker = `${env.FIREBASE_STORAGE_BUCKET}/`;
-    const signedIndex = urlOrKey.indexOf(signedMarker);
-    if (signedIndex >= 0) {
-      const path = urlOrKey.slice(signedIndex + signedMarker.length).split('?')[0];
-      return decodeURIComponent(path);
+    if (bucket) {
+      const signedMarker = `${bucket}/`;
+      const signedIndex = urlOrKey.indexOf(signedMarker);
+      if (signedIndex >= 0) {
+        const path = urlOrKey.slice(signedIndex + signedMarker.length).split('?')[0];
+        return decodeURIComponent(path);
+      }
     }
 
     return null;
