@@ -82,11 +82,15 @@ try {
   audit = JSON.parse(raw);
 } catch (err) {
   const stdout = err.stdout?.toString?.() ?? '';
+  const stderr = err.stderr?.toString?.() ?? '';
   try {
     audit = JSON.parse(stdout);
   } catch {
-    console.error('audit:ci — failed to parse npm audit output');
-    console.error(stdout || err.message);
+    const message = `audit:ci — failed to parse npm audit output\n\nstdout:\n${stdout || '(empty)'}\n\nstderr:\n${stderr || err.message}`;
+    console.error(message);
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Security audit parse failure\n\n\`\`\`\n${message}\n\`\`\`\n`);
+    }
     process.exit(1);
   }
 }
