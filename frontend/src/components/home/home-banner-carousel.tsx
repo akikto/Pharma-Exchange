@@ -12,6 +12,8 @@ import type { HomeBanner } from '@/lib/banner-form';
 import { cn } from '@/lib/utils';
 
 const AUTOPLAY_MS = 6000;
+const BANNER_FRAME_CLASS = 'border border-border-subtle shadow-elevation-1';
+const BANNER_FRAME_EMBEDDED_CLASS = 'rounded-none border-0 shadow-none bg-transparent';
 
 function BannerSlide({
   banner,
@@ -75,7 +77,7 @@ function BannerSlide({
   );
 }
 
-export function HomeBannerCarousel() {
+export function HomeBannerCarousel({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const { data: banners = [], isLoading, isError } = useHomeBanners();
   const [index, setIndex] = useState(0);
@@ -108,10 +110,12 @@ export function HomeBannerCarousel() {
 
   if (isError) return null;
 
+  const frameClass = embedded ? BANNER_FRAME_EMBEDDED_CLASS : BANNER_FRAME_CLASS;
+
   if (isLoading) {
     return (
-      <div className="px-4 pt-2" data-testid="home-banner-carousel-loading">
-        <BannerFrame>
+      <div className="w-full min-w-0 max-w-full" data-testid="home-banner-carousel-loading">
+        <BannerFrame className={frameClass}>
           <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
         </BannerFrame>
       </div>
@@ -137,14 +141,14 @@ export function HomeBannerCarousel() {
 
   return (
     <section
-      className="px-4 pt-2"
+      className="block w-full min-w-0 max-w-full box-border"
       aria-roledescription="carousel"
       aria-label={t('home.bannerCarouselAria')}
       data-testid="home-banner-carousel"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <BannerFrame>
+      <BannerFrame className={frameClass}>
         <div className="absolute inset-0">
           {banners.map((banner, i) => (
             <div

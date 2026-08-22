@@ -2,8 +2,16 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../shared/middleware/auth.middleware';
 import { storageService } from './storage.service';
 import { AppError } from '../../shared/errors/AppError';
-import { assertAllowedImageUpload, optimizeMedicineImage } from './image-optimization.service';
+import {
+  assertAllowedImageUpload,
+  assertBannerRasterImageUpload,
+  optimizeBannerImage,
+  optimizeMedicineImage,
+} from './image-optimization.service';
+import { BANNER_MEDIA_UPLOAD_MAX_BYTES } from './upload.middleware';
 import { medicineService } from '../medicine/medicine.service';
+import { isFirebaseStorageConfigured, env } from '../../config/env';
+import { assertValidPersistableMediaUrl } from './media-url';
 
 export class UploadController {
   async uploadDocument(req: AuthRequest, res: Response, next: NextFunction) {
@@ -51,14 +59,57 @@ export class UploadController {
   async uploadBannerMedia(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       if (!req.file) throw AppError.badRequest('No file uploaded');
-      const result = await storageService.uploadFile(
-        req.file.buffer,
-        req.file.originalname,
-        req.file.mimetype,
-        'public/banners',
-      );
+      if (env.NODE_ENV === 'production' && !isFirebaseStorageConfigured()) {
+        throw AppError.internal('Banner media storage is not configured');
+      }
+
+      const { buffer, mimetype, originalname, size } = req.file;
+      const folder = 'public/banners';
+
+      let result;
+      if (mimetype === 'image/gif') {
+        if (size > BANNER_MEDIA_UPLOAD_MAX_BYTES) {
+          throw AppError.badRequest('Banner image must be 15MB or smaller');
+        }
+        result = await storageService.uploadPublicBinary(buffer, mimetype, folder, 'gif', originalname);
+      } else if (mimetype.startsWith('image/')) {
+        assertBannerRasterImageUpload(mimetype, originalname, size);
+        const optimized = await optimizeBannerImage(buffer);
+        result = await storageService.uploadOptimizedImage(
+          optimized.buffer,
+          optimized.mimeType,
+          folder,
+          optimized.extension,
+        );
+      } else if (mimetype === 'video/mp4' || mimetype === 'video/webm') {
+        if (size > BANNER_MEDIA_UPLOAD_MAX_BYTES) {
+          throw AppError.badRequest('Banner video must be 15MB or smaller');
+        }
+        const extension = mimetype === 'video/webm' ? 'webm' : 'mp4';
+        result = await storageService.uploadPublicBinary(buffer, mimetype, folder, extension, originalname);
+      } else {
+        throw AppError.badRequest(`Banner media type ${mimetype} not allowed`);
+      }
+
+      try {
+        assertValidPersistableMediaUrl(result.url);
+      } catch (validationError) {
+        await storageService.deleteByStorageKey(result.storageKey);
+        throw AppError.internal(
+          validationError instanceof Error ? validationError.message : 'Invalid media URL returned from storage',
+        );
+      }
+
       res.status(201).json(result);
     } catch (err) {
+      if (err instanceof Error && err.message.includes('not publicly readable')) {
+        next(AppError.internal('Uploaded banner media could not be verified as publicly accessible'));
+        return;
+      }
+      if (err instanceof Error && err.message.includes('Firebase Storage is not configured')) {
+        next(AppError.internal(err.message));
+        return;
+      }
       next(err);
     }
   }

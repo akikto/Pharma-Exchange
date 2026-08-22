@@ -868,6 +868,7 @@
       "validation": {
         "titleRequired": "শিরোনাম আবশ্যক।",
         "mediaRequired": "ব্যানার মিডিয়া আপলোড করুন।",
+        "invalidMediaUrl": "স্টোরেজ থেকে বৈধ ছবি বা ভিডিও URL আপলোড করুন।",
         "invalidUrl": "বৈধ http(s) URL দিন।",
         "internalPathRequired": "অ্যাপ পেজ নির্বাচন করুন।",
         "targetRequired": "অ্যাকশন টার্গেট আবশ্যক।"

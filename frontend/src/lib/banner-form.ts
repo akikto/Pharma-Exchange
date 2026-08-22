@@ -105,6 +105,7 @@ export function formToUpdatePayload(values: BannerFormValues) {
 }
 
 import type { TFunction } from 'i18next';
+import { isValidBannerMediaHttpUrl } from '@/lib/banner-media-url';
 
 export function validateBannerForm(
   values: BannerFormValues,
@@ -113,6 +114,9 @@ export function validateBannerForm(
   const errors: BannerFormErrors = {};
   if (!values.title.trim()) errors.title = t('admin.banners.validation.titleRequired');
   if (!values.mediaUrl.trim()) errors.mediaUrl = t('admin.banners.validation.mediaRequired');
+  else if (!isValidBannerMediaHttpUrl(values.mediaUrl)) {
+    errors.mediaUrl = t('admin.banners.validation.invalidMediaUrl');
+  }
   if (values.actionType === 'EXTERNAL_URL') {
     try {
       const url = new URL(values.actionTarget.trim());

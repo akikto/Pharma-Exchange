@@ -40,7 +40,7 @@ export function BulkProcurementBanner() {
 
   return (
     <div
-      className="mb-3 rounded-[var(--radius-lg)] border border-primary/25 bg-gradient-to-br from-primary-subtle via-surface-raised to-surface-base p-3 shadow-elevation-1 relative"
+      className="rounded-[var(--radius-lg)] border border-primary/25 bg-gradient-to-br from-primary-subtle via-surface-raised to-surface-base p-3 shadow-elevation-1 relative"
       data-testid="bulk-procurement-banner"
     >
       <button

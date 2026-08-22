@@ -83,8 +83,22 @@ function loadEnv(): Env {
 
 export const env = loadEnv();
 
+export function getFirebaseStorageBucket(): string | undefined {
+  const fromProcess = process.env.FIREBASE_STORAGE_BUCKET?.trim();
+  if (fromProcess) return fromProcess;
+  return env.FIREBASE_STORAGE_BUCKET?.trim() || undefined;
+}
+
 export const isFirebaseConfigured = (): boolean =>
   Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+
+export const isFirebaseStorageConfigured = (): boolean =>
+  Boolean(
+    env.FIREBASE_PROJECT_ID &&
+      env.FIREBASE_CLIENT_EMAIL &&
+      env.FIREBASE_PRIVATE_KEY &&
+      getFirebaseStorageBucket(),
+  );
 
 export const isGeminiConfigured = (): boolean => Boolean(env.GEMINI_API_KEY);
 
