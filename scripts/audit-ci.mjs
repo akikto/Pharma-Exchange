@@ -120,6 +120,10 @@ if (blocking.length > 0) {
   ];
   const message = lines.join('\n');
   console.error(message);
+  for (const item of blocking) {
+    const ids = [...collectGhsaIds(vulnMap[item.name], vulnMap, advisories)];
+    console.error(`::error title=audit:ci::${item.name} (${item.severity})${ids.length ? ` [${ids.join(', ')}]` : ''}`);
+  }
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Security audit failure\n\n\`\`\`\n${message}\n\`\`\`\n`);
   }
