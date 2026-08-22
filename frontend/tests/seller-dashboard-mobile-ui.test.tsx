@@ -8,6 +8,11 @@ import { SellerDashboardPage } from '@/features/seller/seller-dashboard-page';
 const useSellerAnalytics = vi.fn();
 const useBuyRequests = vi.fn();
 const openModal = vi.fn();
+const navBadges = vi.hoisted(() => ({ cart: 0, chat: 0, requests: 0, watchlist: 0 }));
+
+vi.mock('@/hooks/use-nav-badges', () => ({
+  useNavBadges: () => navBadges,
+}));
 
 vi.mock('@/hooks/use-api', () => ({
   useSellerAnalytics: (...args: unknown[]) => useSellerAnalytics(...args),
@@ -52,6 +57,8 @@ function renderSellerDashboard() {
 describe('SellerDashboardPage mobile UI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    navBadges.cart = 0;
+    navBadges.requests = 0;
     useSellerAnalytics.mockReturnValue({
       data: {
         todaySales: 1200,
@@ -78,5 +85,22 @@ describe('SellerDashboardPage mobile UI', () => {
     expect(button?.className).toContain('whitespace-normal');
     expect(label?.className).toContain('break-words');
     expect(link.className).toContain('min-w-0');
+  });
+
+  it('positions bulk FAB above cart summary when cart has items', async () => {
+    navBadges.cart = 1;
+    renderSellerDashboard();
+
+    const fab = await screen.findByTestId('bulk-fab');
+    expect(fab.className).toContain('shell-above-cart-summary');
+    expect(fab.className).not.toContain('shell-above-bottom-nav');
+  });
+
+  it('positions bulk FAB above bottom nav when cart summary is hidden', async () => {
+    renderSellerDashboard();
+
+    const fab = await screen.findByTestId('bulk-fab');
+    expect(fab.className).toContain('shell-above-bottom-nav');
+    expect(fab.className).not.toContain('shell-above-cart-summary');
   });
 });
