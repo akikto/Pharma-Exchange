@@ -78,7 +78,7 @@ export function AdminNavLinkItem({ item, variant = 'side' }: { item: AdminNavIte
     return (
       <Link
         to={to}
-        data-testid={`nav-admin-${labelKey}`}
+        data-testid={`nav-admin-mobile-${labelKey}`}
         className={cn(
           'shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
           active
