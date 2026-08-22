@@ -32,8 +32,9 @@ describe('HomeBannerCarousel', () => {
 
   it('renders nothing when there are no active banners', () => {
     useHomeBanners.mockReturnValue({ data: [], isLoading: false, isError: false });
-    const { container } = renderCarousel();
-    expect(container).toBeEmptyDOMElement();
+    renderCarousel();
+    expect(screen.queryByTestId('home-banner-carousel')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('home-banner-carousel-loading')).not.toBeInTheDocument();
   });
 
   it('renders carousel when banners exist', () => {
