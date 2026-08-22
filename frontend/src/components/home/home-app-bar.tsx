@@ -4,6 +4,7 @@ import { Bell } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 import { NavBadge } from '@/components/ui/nav-badge';
 import { useNavBadges } from '@/hooks/use-nav-badges';
+import { HomeHeaderActions } from '@/components/home/home-header-actions';
 import { HOME_GUTTER_CLASS } from '@/components/home/home-layout';
 import { cn } from '@/lib/utils';
 
