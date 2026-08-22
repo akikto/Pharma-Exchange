@@ -9,8 +9,9 @@ import { useDemoShops } from '@/hooks/use-pharmacy';
 import { resolveActiveShop } from '@/lib/shop-utils';
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import type { Pharmacy } from '@/types';
+import { cn } from '@/lib/utils';
 
-export function ShopHeader() {
+export function ShopHeader({ className }: { className?: string }) {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const hasPharmacy = Boolean(user?.pharmacy);
@@ -31,7 +32,10 @@ export function ShopHeader() {
 
   return (
     <div
-      className="rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3 space-y-2.5"
+      className={cn(
+        'rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3 space-y-2.5',
+        className,
+      )}
       data-testid="shop-header"
     >
       <div className="flex items-start gap-3">

@@ -14,7 +14,8 @@ export class StorageService {
     if (!env.FIREBASE_STORAGE_BUCKET) {
       return `https://storage.example.com/${storageKey}`;
     }
-    return `https://storage.googleapis.com/${env.FIREBASE_STORAGE_BUCKET}/${storageKey}`;
+    const encoded = encodeURIComponent(storageKey);
+    return `https://firebasestorage.googleapis.com/v0/b/${env.FIREBASE_STORAGE_BUCKET}/o/${encoded}?alt=media`;
   }
 
   extractStorageKey(urlOrKey: string): string | null {
