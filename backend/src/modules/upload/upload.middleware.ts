@@ -15,7 +15,7 @@ const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(AppError.badRequest(`File type ${file.mimetype} not allowed`) as unknown as null, false);
+    cb(AppError.badRequest(`File type ${file.mimetype} not allowed`));
   }
 };
 
@@ -26,7 +26,7 @@ const medicineImageFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   if (allowed.includes(file.mimetype) && allowedExtensions.includes(extension)) {
     cb(null, true);
   } else {
-    cb(AppError.badRequest('Only JPG, PNG, and WebP images are allowed') as unknown as null, false);
+    cb(AppError.badRequest('Only JPG, PNG, and WebP images are allowed'));
   }
 };
 

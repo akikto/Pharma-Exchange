@@ -153,7 +153,7 @@ function OfferCardContent({
       ) : (
         <div
           className={cn(
-            'flex h-full items-center justify-center text-text-disabled',
+            'flex h-full items-center justify-center bg-gradient-to-br from-primary-subtle via-surface-sunken to-surface-raised text-text-disabled',
             variant === 'featured' ? 'text-xl' : 'text-3xl',
           )}
         >
@@ -173,7 +173,7 @@ function OfferCardContent({
       {lowStock && (
         <span
           className={cn(
-            'flex items-center gap-0.5 rounded bg-warning px-1.5 py-0.5 text-[10px] font-medium text-white',
+            'absolute flex items-center gap-0.5 rounded bg-warning px-1.5 py-0.5 text-[10px] font-medium text-white',
             variant === 'featured' ? 'top-1 right-1' : 'bottom-1.5 left-1.5',
           )}
         >
@@ -248,7 +248,7 @@ function OfferCardContent({
     <>
       <div
         className={cn(
-          'rounded-[var(--radius-md)] border bg-surface-base overflow-hidden transition-shadow hover:shadow-md',
+          'listing-card-interactive rounded-[var(--radius-md)] border bg-surface-base overflow-hidden shadow-elevation-1',
           urgencyBorder,
           className,
         )}

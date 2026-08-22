@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { Search, LayoutGrid, Layers, X, RefreshCw } from 'lucide-react';
+import { Search, LayoutGrid, Layers, X, RefreshCw, Sparkles, Clock, LayoutList } from 'lucide-react';
 import { HomeAppBar } from '@/components/home/home-app-bar';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { ListingCard } from '@/components/listing-card';
 import { ListingCardSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -147,7 +148,7 @@ export function HomePage() {
             <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
               <Input
-                className="border-border-strong bg-surface-raised pl-9 text-text-primary placeholder:text-text-disabled focus-visible:border-secondary/40 focus-visible:ring-secondary/20"
+                className="h-11 rounded-full border-border-strong bg-surface-raised/90 pl-9 shadow-elevation-1 text-text-primary placeholder:text-text-disabled focus-visible:border-primary/40 focus-visible:ring-primary/20"
                 placeholder={t('home.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -158,7 +159,7 @@ export function HomePage() {
               type="button"
               variant="secondary"
               size="icon"
-              className="shrink-0 border-border-strong bg-surface-base"
+              className="h-11 w-11 shrink-0 rounded-full border-border-strong bg-surface-base shadow-elevation-1"
               aria-label={t('home.refreshFeed')}
               onClick={() => void runRefresh()}
             >
@@ -198,8 +199,8 @@ export function HomePage() {
               className={cn(
                 'shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors',
                 activeFilter === key
-                  ? 'border-primary bg-primary-subtle text-primary font-semibold shadow-sm'
-                  : 'border-border-subtle bg-surface-raised text-text-secondary hover:bg-surface-sunken',
+                  ? 'border-primary bg-primary text-white font-semibold shadow-elevation-1'
+                  : 'border-border-subtle bg-surface-raised/80 text-text-secondary hover:bg-surface-sunken hover:border-border-strong',
               )}
               onClick={() => setActiveFilter(key)}
             >
@@ -208,13 +209,13 @@ export function HomePage() {
           ))}
         </div>
 
-        <div className="flex w-full max-w-full gap-1 rounded-[var(--radius-md)] bg-surface-sunken p-1 sm:w-fit" data-testid="home-feed-view-toggle">
+        <div className="flex w-full max-w-full gap-1 rounded-[var(--radius-lg)] border border-border-subtle bg-surface-raised/60 p-1 shadow-elevation-1 sm:w-fit" data-testid="home-feed-view-toggle">
           <button
             type="button"
             className={cn(
               'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-1.5 text-sm transition-colors sm:flex-none',
               feedView === 'grid'
-                ? 'bg-surface-base font-medium text-primary shadow-sm'
+                ? 'bg-surface-base font-medium text-primary shadow-elevation-1'
                 : 'text-text-secondary hover:text-text-primary',
             )}
             onClick={() => setFeedView('grid')}
@@ -228,7 +229,7 @@ export function HomePage() {
             className={cn(
               'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-1.5 text-sm transition-colors sm:flex-none',
               feedView === 'catalog'
-                ? 'bg-surface-base font-medium text-primary shadow-sm'
+                ? 'bg-surface-base font-medium text-primary shadow-elevation-1'
                 : 'text-text-secondary hover:text-text-primary',
             )}
             onClick={() => setFeedView('catalog')}
@@ -243,8 +244,11 @@ export function HomePage() {
 
         {feedView === 'catalog' ? (
           <section>
-            <h2 className="font-semibold mb-1">{t('home.catalogComparison')}</h2>
-            <p className="text-[10px] text-text-disabled mb-3">{t('home.catalogComparisonSub')}</p>
+            <HomeSectionHeader
+              title={t('home.catalogComparison')}
+              subtitle={t('home.catalogComparisonSub')}
+              icon={Layers}
+            />
             {isLoading ? (
               <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
             ) : catalogGroups.length === 0 ? (
@@ -261,8 +265,11 @@ export function HomePage() {
           <>
             {featured.length > 0 && (
               <section>
-                <h2 className="font-semibold mb-1">{t('home.featuredDeals')}</h2>
-                <p className="text-[10px] text-text-disabled mb-3">{t('home.featuredDealsSub')}</p>
+                <HomeSectionHeader
+                  title={t('home.featuredDeals')}
+                  subtitle={t('home.featuredDealsSub')}
+                  icon={Sparkles}
+                />
                 <div className="flex gap-2.5 overflow-x-auto pb-2">
                   {featured.map((l) => (
                     <ListingCard
@@ -280,8 +287,11 @@ export function HomePage() {
 
             {shortExpiry.length > 0 && (
               <section>
-                <h2 className="font-semibold mb-1 flex items-center gap-2">⏰ {t('home.shortExpiry')}</h2>
-                <p className="text-[10px] text-text-disabled mb-3">{t('home.shortExpirySub')}</p>
+                <HomeSectionHeader
+                  title={t('home.shortExpiry')}
+                  subtitle={t('home.shortExpirySub')}
+                  icon={Clock}
+                />
                 <div className="grid grid-cols-2 gap-2.5" data-testid="home-short-expiry-grid">
                   {shortExpiry.map((l) => (
                     <ListingCard key={l.id} listing={l} showAddToCart className="min-w-0 w-full" />
@@ -291,8 +301,11 @@ export function HomePage() {
             )}
 
             <section>
-              <h2 className="font-semibold mb-1">{t('home.allListings')}</h2>
-              <p className="text-[10px] text-text-disabled mb-3">{t('home.allListingsSub')}</p>
+              <HomeSectionHeader
+                title={t('home.allListings')}
+                subtitle={t('home.allListingsSub')}
+                icon={LayoutList}
+              />
               {isLoading ? (
                 <div className="grid grid-cols-2 gap-2.5">{Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
               ) : listings.length === 0 ? (

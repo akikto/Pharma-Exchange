@@ -13,7 +13,7 @@ export function HomeAppBar() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-14 items-center justify-between gap-1 border-b border-border-subtle bg-surface-base/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80"
+      className="sticky top-0 z-40 flex h-14 items-center justify-between gap-1 border-b border-border-subtle glass-surface px-3 shadow-elevation-1"
       data-testid="home-app-bar"
     >
       <div className="flex items-center gap-1.5">
