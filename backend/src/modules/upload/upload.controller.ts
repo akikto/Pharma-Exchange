@@ -48,6 +48,21 @@ export class UploadController {
     } catch (err) { next(err); }
   }
 
+  async uploadBannerMedia(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      if (!req.file) throw AppError.badRequest('No file uploaded');
+      const result = await storageService.uploadFile(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        'public/banners',
+      );
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async uploadVoice(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       if (!req.file) throw AppError.badRequest('No file uploaded');

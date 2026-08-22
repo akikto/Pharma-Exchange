@@ -127,6 +127,20 @@ enum ReportTargetType {
   USER
 }
 
+enum BannerMediaType {
+  IMAGE
+  VIDEO
+}
+
+enum BannerActionType {
+  NONE
+  EXTERNAL_URL
+  INTERNAL_PATH
+  MEDICINE
+  PHARMACY
+  CATEGORY
+}
+
 enum BulkRequestUrgency {
   LOW
   NORMAL
@@ -734,4 +748,24 @@ model Report {
 
   @@index([status])
   @@index([targetType, targetId])
+}
+
+// ─── Home promotional banners ────────────────────────────────────────────────
+
+model HomeBanner {
+  id           String           @id @default(uuid())
+  title        String
+  subtitle     String?
+  mediaUrl     String
+  mediaType    BannerMediaType
+  mediaAlt     String?
+  ctaText      String?
+  actionType   BannerActionType @default(NONE)
+  actionTarget String?
+  isActive     Boolean          @default(true)
+  sortOrder    Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([isActive, sortOrder])
 }

@@ -36,6 +36,30 @@ export const upload = multer({
   fileFilter,
 });
 
+export const BANNER_MEDIA_UPLOAD_MAX_BYTES = 15 * 1024 * 1024;
+
+const bannerMediaFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  const allowed = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'video/mp4',
+    'video/webm',
+  ];
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(AppError.badRequest(`Banner media type ${file.mimetype} not allowed`));
+  }
+};
+
+export const bannerMediaUpload = multer({
+  storage,
+  limits: { fileSize: BANNER_MEDIA_UPLOAD_MAX_BYTES },
+  fileFilter: bannerMediaFilter,
+});
+
 export const medicineImageUpload = multer({
   storage,
   limits: { fileSize: MEDICINE_IMAGE_UPLOAD_MAX_BYTES },

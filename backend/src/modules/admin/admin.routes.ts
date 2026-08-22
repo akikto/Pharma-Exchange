@@ -12,7 +12,7 @@ import { paginationMeta } from '../../shared/utils/helpers';
 import prisma from '../../config/database';
 import { notificationService } from '../notification';
 import { broadcastSchema } from '../notification/notification.validation';
-import { paymentsService } from '../payments/payments.service';
+import { adminBannerRouter } from '../banner/banner.routes';
 
 const verifySchema = z.object({
   action: z.enum(['approve', 'reject']),
@@ -135,5 +135,6 @@ adminRouter.post('/reports/:id/resolve', validate(resolveSchema), adminCtrl.reso
 adminRouter.get('/users', adminCtrl.users.bind(adminCtrl));
 adminRouter.get('/payments', adminCtrl.payments.bind(adminCtrl));
 adminRouter.post('/notifications/broadcast', validate(broadcastSchema), adminCtrl.broadcastNotification.bind(adminCtrl));
+adminRouter.use('/banners', adminBannerRouter);
 
 export { analyticsRouter, adminRouter };

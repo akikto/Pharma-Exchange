@@ -27,6 +27,8 @@
     "paymentsSub": "পেমেন্ট",
     "medicines": "Medicines",
     "medicinesSub": "মেডিসিন",
+    "banners": "Banners",
+    "bannersSub": "ব্যানার",
     "desktopNavigation": "Desktop navigation",
     "mobileNavigation": "Mobile navigation"
   },
@@ -227,6 +229,10 @@
     "cartShortcut_one": "Cart, {{count}} item",
     "cartShortcut_other": "Cart, {{count}} items",
     "bulkBannerTitle": "Need bulk procurement?",
+    "bannerCarouselAria": "Promotional banners",
+    "bannerPrev": "Previous banner",
+    "bannerNext": "Next banner",
+    "bannerDot": "Banner {{index}} of {{count}}: {{title}}",
     "bulkBannerDesc": "Post a request for large-volume medicine orders",
     "bulkBannerCta": "Bulk request",
     "bulkBannerBrowse": "Browse"
@@ -811,6 +817,70 @@
         "required": "This field is required.",
         "dosageForm": "Select a valid dosage form.",
         "imageUrl": "Enter a valid image URL."
+      }
+    },
+    "banners": {
+      "title": "Home Banner Management",
+      "description": "Manage promotional banners shown on the buyer home page carousel.",
+      "addButton": "Add Banner",
+      "createTitle": "Add Banner",
+      "editTitle": "Edit Banner",
+      "createSuccess": "Banner created.",
+      "updateSuccess": "Banner updated.",
+      "deleteSuccess": "Banner deleted.",
+      "deleteConfirm": "Delete banner \"{{title}}\"?",
+      "deleteButton": "Delete",
+      "empty": "No banners yet.",
+      "loadError": "Failed to load banners.",
+      "uploadError": "Failed to upload media.",
+      "previewEmpty": "Upload media to preview the 2:1 frame.",
+      "previewFallback": "Banner preview",
+      "active": "Active",
+      "inactive": "Inactive",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "orderLabel": "Order {{order}}",
+      "actionSummary": "{{type}} → {{target}}",
+      "selectPath": "Select a page",
+      "selectMedicine": "Select a medicine",
+      "medicineSearchPlaceholder": "Search medicines…",
+      "pharmacyIdPlaceholder": "Pharmacy ID",
+      "categoryPlaceholder": "Category name",
+      "fields": {
+        "media": "Image or video",
+        "title": "Title",
+        "subtitle": "Subtitle",
+        "ctaText": "CTA label",
+        "mediaAlt": "Image alt text",
+        "actionType": "Click action",
+        "actionTarget": "Target",
+        "medicine": "Medicine",
+        "isActive": "Active on home page",
+        "sortOrder": "Display order"
+      },
+      "actionTypes": {
+        "none": "No action",
+        "external": "External URL",
+        "internal": "App page",
+        "medicine": "Product (medicine)",
+        "pharmacy": "Shop (pharmacy)",
+        "category": "Category search"
+      },
+      "internalPaths": {
+        "home": "Home",
+        "search": "Search",
+        "watchlist": "Watchlist",
+        "cart": "Cart & orders",
+        "notifications": "Notifications",
+        "profile": "Profile",
+        "settings": "Settings"
+      },
+      "validation": {
+        "titleRequired": "Title is required.",
+        "mediaRequired": "Upload banner media.",
+        "invalidUrl": "Enter a valid http(s) URL.",
+        "internalPathRequired": "Select an app page.",
+        "targetRequired": "Action target is required."
       }
     }
   },

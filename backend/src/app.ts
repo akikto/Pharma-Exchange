@@ -29,6 +29,7 @@ import { analyticsRouter, adminRouter } from './modules/admin/admin.routes';
 import healthRoutes from './modules/health/health.routes';
 import aiMatchRoutes from './modules/ai-match/aiMatch.routes';
 import paymentsRoutes, { paymentsWebhookRouter } from './modules/payments/payments.routes';
+import { publicBannerRouter } from './modules/banner/banner.routes';
 
 export function createApp(): express.Application {
   initializeFirebase();
@@ -88,6 +89,7 @@ export function createApp(): express.Application {
   v1.use('/notifications', notificationRoutes);
   v1.use('/reviews', reviewRoutes);
   v1.use('/reports', reportRoutes);
+  v1.use('/banners', publicBannerRouter);
   v1.use('/upload', uploadRoutes);
   v1.use('/analytics', analyticsRouter);
   v1.use('/admin', adminRouter);

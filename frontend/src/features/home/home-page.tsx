@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search, LayoutGrid, Layers, X, RefreshCw, Sparkles, Clock, LayoutList } from 'lucide-react';
+import { HomeBannerCarousel } from '@/components/home/home-banner-carousel';
 import { HomeAppBar } from '@/components/home/home-app-bar';
 import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { ListingCard } from '@/components/listing-card';
@@ -131,6 +132,8 @@ export function HomePage() {
   return (
     <div {...handlers}>
       <HomeAppBar />
+
+      <HomeBannerCarousel />
 
       <BulkProcurementBanner />
 

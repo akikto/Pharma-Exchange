@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { authenticate } from '../../shared/middleware/auth.middleware';
+import { authenticate, requireAdmin } from '../../shared/middleware/auth.middleware';
 import { requireAdminOrVerifiedPharmacy } from '../../shared/middleware/upload-auth.middleware';
-import { upload, medicineImageUpload } from './upload.middleware';
+import { upload, medicineImageUpload, bannerMediaUpload } from './upload.middleware';
 import { uploadController } from './upload.controller';
 
 const router = Router();
@@ -14,6 +14,13 @@ router.post(
   requireAdminOrVerifiedPharmacy,
   medicineImageUpload.single('file'),
   uploadController.uploadMedicineImage.bind(uploadController),
+);
+router.post(
+  '/banner-media',
+  authenticate,
+  requireAdmin,
+  bannerMediaUpload.single('file'),
+  uploadController.uploadBannerMedia.bind(uploadController),
 );
 router.post('/voice', authenticate, upload.single('file'), uploadController.uploadVoice.bind(uploadController));
 
