@@ -78,7 +78,8 @@ for (const [name, vuln] of vulnerabilities) {
 if (blocking.length > 0) {
   console.error('audit:ci — unaccepted high/critical production vulnerabilities:\n');
   for (const item of blocking) {
-    console.error(`  • ${item.name} (${item.severity})`);
+    const ids = [...collectGhsaIds(vulnMap[item.name], vulnMap)];
+    console.error(`  • ${item.name} (${item.severity})${ids.length ? ` [${ids.join(', ')}]` : ''}`);
   }
   console.error('\nSee docs/BL-10-SECURITY-AUDIT.md for accepted-risk documentation.');
   process.exit(1);
