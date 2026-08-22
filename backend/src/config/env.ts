@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { assertProductionCorsConfig } from './cors';
 import { assertProductionPasswordResetConfig } from './password-reset-url';
+import {
+  getFirebaseStorageBucket,
+  getFirebaseStorageDiagnostics,
+} from './firebase-env';
 
 const booleanFromEnv = z.preprocess((value) => {
   if (typeof value === 'boolean') return value;
@@ -83,22 +87,20 @@ function loadEnv(): Env {
 
 export const env = loadEnv();
 
-export function getFirebaseStorageBucket(): string | undefined {
-  const fromProcess = process.env.FIREBASE_STORAGE_BUCKET?.trim();
-  if (fromProcess) return fromProcess;
-  return env.FIREBASE_STORAGE_BUCKET?.trim() || undefined;
-}
-
-export const isFirebaseConfigured = (): boolean =>
-  Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+export const isFirebaseConfigured = (): boolean => {
+  const diagnostics = getFirebaseStorageDiagnostics();
+  return (
+    diagnostics.firebaseProjectConfigured &&
+    diagnostics.firebaseClientConfigured &&
+    diagnostics.firebasePrivateKeyConfigured &&
+    diagnostics.firebasePrivateKeyLooksValid
+  );
+};
 
 export const isFirebaseStorageConfigured = (): boolean =>
-  Boolean(
-    env.FIREBASE_PROJECT_ID &&
-      env.FIREBASE_CLIENT_EMAIL &&
-      env.FIREBASE_PRIVATE_KEY &&
-      getFirebaseStorageBucket(),
-  );
+  getFirebaseStorageDiagnostics().firebaseStorageConfigured;
+
+export { getFirebaseStorageBucket, getFirebaseStorageDiagnostics, listMissingFirebaseStorageConfig };
 
 export const isGeminiConfigured = (): boolean => Boolean(env.GEMINI_API_KEY);
 

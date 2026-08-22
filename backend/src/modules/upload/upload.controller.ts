@@ -10,8 +10,9 @@ import {
 } from './image-optimization.service';
 import { BANNER_MEDIA_UPLOAD_MAX_BYTES } from './upload.middleware';
 import { medicineService } from '../medicine/medicine.service';
-import { isFirebaseStorageConfigured, env } from '../../config/env';
-import { assertValidPersistableMediaUrl } from './media-url';
+import { isFirebaseStorageConfigured, env, getFirebaseStorageDiagnostics, listMissingFirebaseStorageConfig } from '../../config/env';
+import { assertValidPersistableMediaUrl, describeMediaUrlForDiagnostics } from './media-url';
+import { logger } from '../../shared/utils/logger';
 
 export class UploadController {
   async uploadDocument(req: AuthRequest, res: Response, next: NextFunction) {
@@ -60,7 +61,12 @@ export class UploadController {
     try {
       if (!req.file) throw AppError.badRequest('No file uploaded');
       if (env.NODE_ENV === 'production' && !isFirebaseStorageConfigured()) {
-        throw AppError.internal('Banner media storage is not configured');
+        const diagnostics = getFirebaseStorageDiagnostics();
+        const missing = listMissingFirebaseStorageConfig();
+        logger.warn('[banner-upload] Firebase storage not configured for production upload', diagnostics);
+        throw AppError.internal(
+          `Banner media storage is not configured. Missing or invalid: ${missing.join(', ') || 'unknown'}`,
+        );
       }
 
       const { buffer, mimetype, originalname, size } = req.file;
@@ -94,6 +100,10 @@ export class UploadController {
       try {
         assertValidPersistableMediaUrl(result.url);
       } catch (validationError) {
+        logger.warn('[banner-upload] Invalid media URL returned from storage', {
+          ...describeMediaUrlForDiagnostics(result.url),
+          storageKey: result.storageKey,
+        });
         await storageService.deleteByStorageKey(result.storageKey);
         throw AppError.internal(
           validationError instanceof Error ? validationError.message : 'Invalid media URL returned from storage',

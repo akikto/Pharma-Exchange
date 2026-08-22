@@ -1,5 +1,12 @@
 import admin from 'firebase-admin';
 import { env, isFirebaseConfigured } from './env';
+import {
+  formatFirebasePrivateKeyForSdk,
+  getFirebaseClientEmail,
+  getFirebasePrivateKey,
+  getFirebaseProjectId,
+  getFirebaseStorageBucket,
+} from './firebase-env';
 import { logger } from '../shared/utils/logger';
 
 let firebaseApp: admin.app.App | null = null;
@@ -12,13 +19,23 @@ export function initializeFirebase(): admin.app.App | null {
 
   if (firebaseApp) return firebaseApp;
 
+  const projectId = getFirebaseProjectId();
+  const clientEmail = getFirebaseClientEmail();
+  const privateKey = getFirebasePrivateKey();
+  const storageBucket = getFirebaseStorageBucket();
+
+  if (!projectId || !clientEmail || !privateKey) {
+    logger.warn('Firebase credentials incomplete — auth/storage/FCM will use dev fallbacks');
+    return null;
+  }
+
   firebaseApp = admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: env.FIREBASE_PROJECT_ID!,
-      clientEmail: env.FIREBASE_CLIENT_EMAIL!,
-      privateKey: env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+      projectId,
+      clientEmail,
+      privateKey: formatFirebasePrivateKeyForSdk(privateKey),
     }),
-    storageBucket: env.FIREBASE_STORAGE_BUCKET,
+    storageBucket,
   });
 
   logger.info('Firebase Admin SDK initialized');
@@ -43,9 +60,6 @@ export function getFirebaseMessaging(): admin.messaging.Messaging | null {
 export async function verifyFirebaseToken(idToken: string): Promise<admin.auth.DecodedIdToken | null> {
   const auth = getFirebaseAuth();
   if (!auth) return null;
-  // `checkRevoked=true` in production forces Firebase to re-check the user's
-  // token against the revocation list — catches disabled/deleted users and
-  // reset sessions. Skipped in dev/test to avoid the extra RTT.
   const checkRevoked = env.NODE_ENV === 'production';
   return auth.verifyIdToken(idToken, checkRevoked);
 }

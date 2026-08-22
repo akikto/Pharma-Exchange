@@ -41,10 +41,10 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | `SMTP_PASS` | ✅ | Gmail app password |
 | `MAIL_FROM` | ✅ | `"Pharma Exchange <noreply@yourdomain.com>"` |
 | `PASSWORD_RESET_URL_BASE` | ✅ | `https://pharma-exchange-frontend.vercel.app` (frontend URL — **not** the backend) |
-| `FIREBASE_PROJECT_ID` | — | Firebase project ID |
-| `FIREBASE_CLIENT_EMAIL` | — | Service account email |
-| `FIREBASE_PRIVATE_KEY` | — | Service account private key |
-| `FIREBASE_STORAGE_BUCKET` | — | Storage bucket |
+| `FIREBASE_PROJECT_ID` | ✅ (banner/media uploads) | Firebase project ID |
+| `FIREBASE_CLIENT_EMAIL` | ✅ (banner/media uploads) | Service account email |
+| `FIREBASE_PRIVATE_KEY` | ✅ (banner/media uploads) | Service account private key (use `\\n` for newlines on Vercel) |
+| `FIREBASE_STORAGE_BUCKET` | ✅ (banner/media uploads) | Storage bucket name (e.g. `your-project.appspot.com`, not `gs://`) |
 | `GEMINI_API_KEY` | — | Google AI API key for AI match suggestions |
 | `GEMINI_MODEL` | — | Gemini model id (default: `gemini-2.0-flash`) |
 
@@ -91,7 +91,7 @@ curl https://your-api.vercel.app/api/v1/health
 
 ## Preview deployments
 
-Enable the same environment variables for **Preview** (not only Production) in **Settings → Environment Variables**. If Preview env vars are missing, `/api/v1/*` routes return a bootstrap error JSON while `/`, `/health`, and `/api` still respond.
+Enable the same environment variables for **Preview** (not only Production) in **Settings → Environment Variables**. Banner uploads require all four `FIREBASE_*` variables on the **backend** project (`pharma-exchange-backend`), not the frontend project.
 
 ## Limitations on Vercel serverless
 

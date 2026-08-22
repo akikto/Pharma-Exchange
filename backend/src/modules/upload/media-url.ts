@@ -32,6 +32,38 @@ export function assertValidPersistableMediaUrl(url: string): void {
   }
 }
 
+export function describeMediaUrlForDiagnostics(url: string): {
+  hostname: string | null;
+  pathname: string | null;
+  hasToken: boolean;
+  isPlaceholder: boolean;
+  isEmpty: boolean;
+} {
+  const trimmed = url?.trim();
+  if (!trimmed) {
+    return { hostname: null, pathname: null, hasToken: false, isPlaceholder: false, isEmpty: true };
+  }
+  try {
+    const parsed = new URL(trimmed);
+    return {
+      hostname: parsed.hostname,
+      pathname: parsed.pathname,
+      hasToken: parsed.searchParams.has('token'),
+      isPlaceholder: isDevPlaceholderMediaUrl(trimmed),
+      isEmpty: false,
+    };
+  } catch {
+    return { hostname: null, pathname: null, hasToken: false, isPlaceholder: false, isEmpty: false };
+  }
+}
+
+export function isBrokenPersistedBannerMediaUrl(mediaUrl: string): boolean {
+  const info = describeMediaUrlForDiagnostics(mediaUrl);
+  if (info.isEmpty || info.isPlaceholder) return true;
+  if (info.hostname === 'firebasestorage.googleapis.com' && !info.hasToken) return true;
+  return false;
+}
+
 export async function assertMediaUrlReadable(url: string): Promise<void> {
   if (isDevPlaceholderMediaUrl(url)) {
     return;

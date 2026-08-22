@@ -1,7 +1,8 @@
 import { BannerActionType, BannerMediaType, Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
-import { assertValidPersistableMediaUrl } from '../upload/media-url';
+import { assertValidPersistableMediaUrl, describeMediaUrlForDiagnostics, isBrokenPersistedBannerMediaUrl } from '../upload/media-url';
+import { logger } from '../../shared/utils/logger';
 
 export type PublicBannerDto = {
   id: string;
@@ -48,6 +49,7 @@ function assertBannerMediaUrl(mediaUrl: string) {
   try {
     assertValidPersistableMediaUrl(mediaUrl);
   } catch (error) {
+    logger.warn('[banner] Rejected mediaUrl for persistence', describeMediaUrlForDiagnostics(mediaUrl));
     throw AppError.badRequest(error instanceof Error ? error.message : 'Invalid banner media URL');
   }
 }
@@ -116,6 +118,21 @@ export class BannerService {
       data.actionTarget !== undefined ? (data.actionTarget as string | null) : existing.actionTarget;
     await assertActionTarget(actionType, actionTarget);
     return prisma.homeBanner.update({ where: { id }, data });
+  }
+
+  async auditMediaUrls() {
+    const banners = await prisma.homeBanner.findMany({
+      select: { id: true, title: true, mediaUrl: true, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+    return banners
+      .filter((banner) => isBrokenPersistedBannerMediaUrl(banner.mediaUrl))
+      .map((banner) => ({
+        id: banner.id,
+        title: banner.title,
+        isActive: banner.isActive,
+        ...describeMediaUrlForDiagnostics(banner.mediaUrl),
+      }));
   }
 
   async delete(id: string) {
