@@ -3,15 +3,13 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search, LayoutGrid, Layers, X, RefreshCw, Sparkles, Clock, LayoutList } from 'lucide-react';
-import { HomeBannerCarousel } from '@/components/home/home-banner-carousel';
+import { HomeHeroStack } from '@/components/home/home-hero-stack';
+import { HOME_GUTTER_CLASS } from '@/components/home/home-layout';
 import { HomeAppBar } from '@/components/home/home-app-bar';
-import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { ListingCard } from '@/components/listing-card';
 import { ListingCardSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShopHeader } from '@/components/home/shop-header';
-import { BulkProcurementBanner } from '@/components/home/bulk-procurement-banner';
 import { AiMatchSection } from '@/components/home/ai-match-section';
 import { CatalogGroupCard } from '@/components/home/catalog-group-card';
 import { ListingsEmptyState } from '@/components/home/listings-empty-state';
@@ -133,13 +131,10 @@ export function HomePage() {
     <div {...handlers}>
       <HomeAppBar />
 
-      <div className="px-3 pt-2 pb-3 space-y-3" data-testid="home-page-feed">
-        <HomeBannerCarousel />
+      <div className={cn('box-border w-full max-w-full pb-3 pt-2', HOME_GUTTER_CLASS)} data-testid="home-page-feed">
+        <HomeHeroStack />
 
-        <BulkProcurementBanner />
-
-        <ShopHeader />
-
+        <div className={cn('mt-2.5 flex flex-col gap-3')}>
         <PullToRefreshIndicator
           pullDistance={pullDistance}
           isRefreshing={isRefreshing || isFetching}
@@ -327,6 +322,7 @@ export function HomePage() {
             </section>
           </>
         )}
+        </div>
       </div>
     </div>
   );

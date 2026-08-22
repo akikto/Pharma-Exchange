@@ -12,6 +12,7 @@ import type { HomeBanner } from '@/lib/banner-form';
 import { cn } from '@/lib/utils';
 
 const AUTOPLAY_MS = 6000;
+const BANNER_FRAME_CLASS = 'border border-border-subtle shadow-elevation-1';
 
 function BannerSlide({
   banner,
@@ -110,8 +111,8 @@ export function HomeBannerCarousel() {
 
   if (isLoading) {
     return (
-      <div data-testid="home-banner-carousel-loading">
-        <BannerFrame>
+      <div className="w-full min-w-0 max-w-full" data-testid="home-banner-carousel-loading">
+        <BannerFrame className={BANNER_FRAME_CLASS}>
           <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
         </BannerFrame>
       </div>
@@ -137,14 +138,14 @@ export function HomeBannerCarousel() {
 
   return (
     <section
-      className="w-full"
+      className="block w-full min-w-0 max-w-full box-border"
       aria-roledescription="carousel"
       aria-label={t('home.bannerCarouselAria')}
       data-testid="home-banner-carousel"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <BannerFrame>
+      <BannerFrame className={BANNER_FRAME_CLASS}>
         <div className="absolute inset-0">
           {banners.map((banner, i) => (
             <div

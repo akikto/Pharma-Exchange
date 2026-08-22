@@ -4,7 +4,8 @@ import { Bell } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 import { NavBadge } from '@/components/ui/nav-badge';
 import { useNavBadges } from '@/hooks/use-nav-badges';
-import { HomeHeaderActions } from '@/components/home/home-header-actions';
+import { HOME_GUTTER_CLASS } from '@/components/home/home-layout';
+import { cn } from '@/lib/utils';
 
 export function HomeAppBar() {
   const { t } = useTranslation();
@@ -13,7 +14,10 @@ export function HomeAppBar() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-14 items-center justify-between gap-1 border-b border-border-subtle glass-surface px-3 shadow-elevation-1"
+      className={cn(
+        'sticky top-0 z-40 flex h-14 items-center justify-between gap-1 border-b border-border-subtle glass-surface shadow-elevation-1',
+        HOME_GUTTER_CLASS,
+      )}
       data-testid="home-app-bar"
     >
       <div className="flex items-center gap-1.5">
