@@ -104,9 +104,11 @@ export function formToUpdatePayload(values: BannerFormValues) {
   return formToCreatePayload(values);
 }
 
+import type { TFunction } from 'i18next';
+
 export function validateBannerForm(
   values: BannerFormValues,
-  t: (key: string) => string,
+  t: TFunction,
 ): BannerFormErrors {
   const errors: BannerFormErrors = {};
   if (!values.title.trim()) errors.title = t('admin.banners.validation.titleRequired');
