@@ -5,5 +5,5 @@ export const HOME_GUTTER_CLASS = 'px-3';
 export const HOME_CARD_SHELL_CLASS =
   'w-full max-w-full box-border rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised overflow-hidden';
 
-/** 16px vertical gap between promo banner and shop card (see home hero stack). */
-export const HOME_HERO_STACK_CLASS = 'grid w-full grid-cols-1 gap-4';
+/** 12px space below promo banner before the next hero block (Shop Card when bulk is hidden). */
+export const HOME_PROMO_BANNER_SPACING_CLASS = 'mb-3';
