@@ -38,34 +38,55 @@ export class StorageService {
     return null;
   }
 
+  private async savePublicObject(
+    buffer: Buffer,
+    mimeType: string,
+    storageKey: string,
+    displayFileName: string,
+  ): Promise<UploadResult> {
+    if (!storageKey.startsWith('public/')) {
+      throw new Error('savePublicObject requires a public/ storage key');
+    }
+
+    const storage = getFirebaseStorage();
+    if (!storage) {
+      const url = this.buildPublicUrl(storageKey);
+      logger.warn(`[DEV] Public media upload simulated: ${url}`);
+      return { url, storageKey, fileName: displayFileName };
+    }
+
+    const file = storage.bucket().file(storageKey);
+    await file.save(buffer, {
+      metadata: {
+        contentType: mimeType,
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+      public: true,
+    });
+
+    return { url: this.buildPublicUrl(storageKey), storageKey, fileName: displayFileName };
+  }
+
   async uploadOptimizedImage(
     buffer: Buffer,
     mimeType: string,
     folder: string,
     extension: string,
   ): Promise<UploadResult> {
-    const storage = getFirebaseStorage();
     const storageKey = `${folder}/${uuidv4()}.${extension}`;
+    return this.savePublicObject(buffer, mimeType, storageKey, storageKey.split('/').pop() ?? storageKey);
+  }
 
-    if (!storage) {
-      const url = this.buildPublicUrl(storageKey);
-      logger.warn(`[DEV] Optimized image upload simulated: ${url}`);
-      return { url, storageKey, fileName: storageKey.split('/').pop() ?? storageKey };
-    }
-
-    const bucket = storage.bucket();
-    const file = bucket.file(storageKey);
-
-    await file.save(buffer, {
-      metadata: {
-        contentType: mimeType,
-        cacheControl: 'public, max-age=31536000, immutable',
-      },
-      public: storageKey.startsWith('public/'),
-    });
-
-    const url = this.buildPublicUrl(storageKey);
-    return { url, storageKey, fileName: storageKey.split('/').pop() ?? storageKey };
+  async uploadPublicBinary(
+    buffer: Buffer,
+    mimeType: string,
+    folder: string,
+    extension: string,
+    displayFileName: string,
+  ): Promise<UploadResult> {
+    const safeExt = extension.replace(/^\./, '');
+    const storageKey = `${folder}/${uuidv4()}.${safeExt}`;
+    return this.savePublicObject(buffer, mimeType, storageKey, displayFileName);
   }
 
   async uploadFile(
