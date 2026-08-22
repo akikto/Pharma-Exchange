@@ -13,9 +13,15 @@ const ACCEPTED_GHSA = new Set([
 const SEVERITY_RANK = { low: 1, moderate: 2, high: 3, critical: 4 };
 const FAIL_AT = SEVERITY_RANK.high;
 
-function collectGhsaIds(vuln, allVulns) {
+function collectGhsaIds(vuln, allVulns, advisories = {}) {
   const ids = new Set();
   const visited = new Set();
+
+  function addFromUrl(url) {
+    if (!url) return;
+    const match = String(url).match(/GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/i);
+    if (match) ids.add(match[0]);
+  }
 
   function walk(entry) {
     if (!entry || visited.has(entry.name)) return;
@@ -29,10 +35,11 @@ function collectGhsaIds(vuln, allVulns) {
         }
         continue;
       }
-      if (via?.url) {
-        const match = String(via.url).match(/GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/i);
-        if (match) ids.add(match[0]);
+      if (via?.source != null) {
+        const advisory = advisories[String(via.source)] ?? advisories[via.source];
+        addFromUrl(advisory?.url);
       }
+      addFromUrl(via?.url);
     }
   }
 
@@ -40,8 +47,8 @@ function collectGhsaIds(vuln, allVulns) {
   return ids;
 }
 
-function isAccepted(vuln, allVulns) {
-  const ids = collectGhsaIds(vuln, allVulns);
+function isAccepted(vuln, allVulns, advisories) {
+  const ids = collectGhsaIds(vuln, allVulns, advisories);
   if (ids.size === 0) return false;
   return [...ids].every((id) => ACCEPTED_GHSA.has(id));
 }
@@ -66,19 +73,20 @@ try {
 
 const vulnerabilities = Object.entries(audit.vulnerabilities ?? {});
 const vulnMap = Object.fromEntries(vulnerabilities);
+const advisories = audit.advisories ?? {};
 const blocking = [];
 
 for (const [name, vuln] of vulnerabilities) {
   const rank = SEVERITY_RANK[vuln.severity] ?? 0;
   if (rank < FAIL_AT) continue;
-  if (isAccepted(vuln, vulnMap)) continue;
+  if (isAccepted(vuln, vulnMap, advisories)) continue;
   blocking.push({ name, severity: vuln.severity, via: vuln.via });
 }
 
 if (blocking.length > 0) {
   console.error('audit:ci — unaccepted high/critical production vulnerabilities:\n');
   for (const item of blocking) {
-    const ids = [...collectGhsaIds(vulnMap[item.name], vulnMap)];
+    const ids = [...collectGhsaIds(vulnMap[item.name], vulnMap, advisories)];
     console.error(`  • ${item.name} (${item.severity})${ids.length ? ` [${ids.join(', ')}]` : ''}`);
   }
   console.error('\nSee docs/BL-10-SECURITY-AUDIT.md for accepted-risk documentation.');
