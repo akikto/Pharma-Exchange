@@ -10,8 +10,8 @@ describe('home layout tokens', () => {
     expect(HOME_GUTTER_CLASS).toBe('px-3');
   });
 
-  it('uses a 10px hero grid gap', () => {
-    expect(HOME_HERO_STACK_CLASS).toContain('gap-[10px]');
+  it('uses a 16px hero grid gap', () => {
+    expect(HOME_HERO_STACK_CLASS).toContain('gap-4');
   });
 
   it('defines a shared card shell for banner and shop', () => {

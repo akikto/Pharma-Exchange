@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils';
 export function HomeHeroStack({ className }: { className?: string }) {
   return (
     <div className={cn(HOME_HERO_STACK_CLASS, className)} data-testid="home-hero-stack">
-      <div className={HOME_CARD_SHELL_CLASS} data-testid="home-promo-banner-shell">
+      <div className={cn(HOME_CARD_SHELL_CLASS, 'min-w-0')} data-testid="home-promo-banner-shell">
         <HomeBannerCarousel embedded />
       </div>
       <BulkProcurementBanner />
-      <ShopHeader className="w-full max-w-full box-border" />
+      <ShopHeader />
     </div>
   );
 }

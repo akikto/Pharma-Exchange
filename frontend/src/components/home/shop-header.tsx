@@ -10,6 +10,7 @@ import { resolveActiveShop } from '@/lib/shop-utils';
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import type { Pharmacy } from '@/types';
 import { cn } from '@/lib/utils';
+import { HOME_CARD_SHELL_CLASS } from '@/components/home/home-layout';
 
 export function ShopHeader({ className }: { className?: string }) {
   const { t } = useTranslation();
@@ -32,10 +33,7 @@ export function ShopHeader({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn(
-        'rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3 space-y-2.5',
-        className,
-      )}
+      className={cn(HOME_CARD_SHELL_CLASS, 'p-3 space-y-2.5 min-w-0', className)}
       data-testid="shop-header"
     >
       <div className="flex items-start gap-3">
