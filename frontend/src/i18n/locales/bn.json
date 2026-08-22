@@ -27,6 +27,8 @@
     "paymentsSub": "Payments",
     "medicines": "মেডিসিন",
     "medicinesSub": "Medicines",
+    "banners": "ব্যানার",
+    "bannersSub": "Banners",
     "desktopNavigation": "ডেস্কটপ নেভিগেশন",
     "mobileNavigation": "মোবাইল নেভিগেশন"
   },
@@ -227,6 +229,10 @@
     "cartShortcut_one": "কার্ট, {{count}} আইটেম",
     "cartShortcut_other": "কার্ট, {{count}} আইটেম",
     "bulkBannerTitle": "বাল্ক ক্রয় প্রয়োজন?",
+    "bannerCarouselAria": "প্রচারমূলক ব্যানার",
+    "bannerPrev": "আগের ব্যানার",
+    "bannerNext": "পরের ব্যানার",
+    "bannerDot": "ব্যানার {{index}}/{{count}}: {{title}}",
     "bulkBannerDesc": "একসাথে বড় পরিমাণে ওষুধের জন্য অনুরোধ পোস্ট করুন",
     "bulkBannerCta": "বাল্ক অনুরোধ",
     "bulkBannerBrowse": "ব্রাউজ করুন"
@@ -800,6 +806,70 @@
         "required": "এই ঘরটি আবশ্যক।",
         "dosageForm": "একটি বৈধ ডোজ ফর্ম নির্বাচন করুন।",
         "imageUrl": "একটি বৈধ ইমেজ URL দিন।"
+      }
+    },
+    "banners": {
+      "title": "হোম ব্যানার ম্যানেজমেন্ট",
+      "description": "ক্রেতার হোম পেজে দেখানো প্রচারমূলক ব্যানার পরিচালনা করুন।",
+      "addButton": "ব্যানার যোগ করুন",
+      "createTitle": "ব্যানার যোগ করুন",
+      "editTitle": "ব্যানার সম্পাদনা",
+      "createSuccess": "ব্যানার তৈরি হয়েছে।",
+      "updateSuccess": "ব্যানার আপডেট হয়েছে।",
+      "deleteSuccess": "ব্যানার মুছে ফেলা হয়েছে।",
+      "deleteConfirm": "\"{{title}}\" ব্যানার মুছবেন?",
+      "deleteButton": "মুছুন",
+      "empty": "এখনো কোনো ব্যানার নেই।",
+      "loadError": "ব্যানার লোড করা যায়নি।",
+      "uploadError": "মিডিয়া আপলোড ব্যর্থ।",
+      "previewEmpty": "২:১ ফ্রেম প্রিভিউতে মিডিয়া আপলোড করুন।",
+      "previewFallback": "ব্যানার প্রিভিউ",
+      "active": "সক্রিয়",
+      "inactive": "নিষ্ক্রিয়",
+      "activate": "সক্রিয় করুন",
+      "deactivate": "নিষ্ক্রিয় করুন",
+      "orderLabel": "ক্রম {{order}}",
+      "actionSummary": "{{type}} → {{target}}",
+      "selectPath": "পেজ নির্বাচন করুন",
+      "selectMedicine": "ওষুধ নির্বাচন করুন",
+      "medicineSearchPlaceholder": "ওষুধ খুঁজুন…",
+      "pharmacyIdPlaceholder": "ফার্মেসি আইডি",
+      "categoryPlaceholder": "ক্যাটাগরি নাম",
+      "fields": {
+        "media": "ছবি বা ভিডিও",
+        "title": "শিরোনাম",
+        "subtitle": "উপশিরোনাম",
+        "ctaText": "CTA লেবেল",
+        "mediaAlt": "ছবির alt টেক্সট",
+        "actionType": "ক্লিক অ্যাকশন",
+        "actionTarget": "টার্গেট",
+        "medicine": "ওষুধ",
+        "isActive": "হোম পেজে সক্রিয়",
+        "sortOrder": "প্রদর্শন ক্রম"
+      },
+      "actionTypes": {
+        "none": "কোনো অ্যাকশন নেই",
+        "external": "বাহ্যিক URL",
+        "internal": "অ্যাপ পেজ",
+        "medicine": "পণ্য (ওষুধ)",
+        "pharmacy": "দোকান (ফার্মেসি)",
+        "category": "ক্যাটাগরি সার্চ"
+      },
+      "internalPaths": {
+        "home": "হোম",
+        "search": "খুঁজুন",
+        "watchlist": "ওয়াচলিস্ট",
+        "cart": "কার্ট ও অর্ডার",
+        "notifications": "নোটিফিকেশন",
+        "profile": "প্রোফাইল",
+        "settings": "সেটিংস"
+      },
+      "validation": {
+        "titleRequired": "শিরোনাম আবশ্যক।",
+        "mediaRequired": "ব্যানার মিডিয়া আপলোড করুন।",
+        "invalidUrl": "বৈধ http(s) URL দিন।",
+        "internalPathRequired": "অ্যাপ পেজ নির্বাচন করুন।",
+        "targetRequired": "অ্যাকশন টার্গেট আবশ্যক।"
       }
     }
   },

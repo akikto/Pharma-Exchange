@@ -42,6 +42,10 @@ vi.mock('@/hooks/use-chat', () => ({
   useInfiniteScroll: () => ({ current: null }),
 }));
 
+vi.mock('@/hooks/use-banners', () => ({
+  useHomeBanners: () => ({ data: [], isLoading: false, isError: false }),
+}));
+
 vi.mock('@/stores/auth-store', () => ({
   useAuthStore: (selector?: (state: { isAuthenticated: boolean }) => unknown) => {
     const state = { isAuthenticated: false };
