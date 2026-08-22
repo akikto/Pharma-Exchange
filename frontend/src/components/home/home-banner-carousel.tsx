@@ -20,7 +20,6 @@ function BannerSlide({
   banner: HomeBanner;
   isActive: boolean;
 }) {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const destination = resolveBannerDestination(banner.actionType, banner.actionTarget);
   const alt = banner.mediaAlt?.trim() || banner.title;

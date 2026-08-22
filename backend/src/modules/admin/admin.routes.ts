@@ -12,6 +12,7 @@ import { paginationMeta } from '../../shared/utils/helpers';
 import prisma from '../../config/database';
 import { notificationService } from '../notification';
 import { broadcastSchema } from '../notification/notification.validation';
+import { paymentsService } from '../payments/payments.service';
 import { adminBannerRouter } from '../banner/banner.routes';
 
 const verifySchema = z.object({
