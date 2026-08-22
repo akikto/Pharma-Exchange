@@ -21,7 +21,7 @@ export default defineConfig({
   projects: [
     { name: 'buyer', testMatch: /buyer\/.*\.spec\.ts/ },
     { name: 'seller', testMatch: /(seller|orders)\/.*\.spec\.ts/ },
-    { name: 'admin', testMatch: /admin\/.*\.spec\.ts/ },
+    { name: 'admin', testMatch: /admin\/.*\.spec\.ts/, use: { viewport: { width: 1280, height: 800 } } },
     { name: 'auth', testMatch: /auth\/.*\.spec\.ts/ },
     { name: 'chat', testMatch: /chat\/.*\.spec\.ts/ },
   ],
