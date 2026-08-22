@@ -10,10 +10,14 @@ import { useSellerAnalytics, useBuyRequests } from '@/hooks/use-api';
 import { useAuthStore } from '@/stores/auth-store';
 import { formatPrice } from '@/lib/utils';
 import { useShellStore } from '@/stores/shell-store';
+import { useNavBadges } from '@/hooks/use-nav-badges';
+import { cn } from '@/lib/utils';
 
 export function SellerDashboardPage() {
   const { t } = useTranslation();
   const openModal = useShellStore((s) => s.openModal);
+  const badges = useNavBadges();
+  const cartSummaryVisible = badges.cart + badges.requests > 0;
   const { isAuthenticated, user } = useAuthStore();
   const pharmacy = user?.pharmacy;
   const isApprovedSeller = Boolean(pharmacy && pharmacy.verificationStatus === 'APPROVED');
@@ -131,7 +135,10 @@ export function SellerDashboardPage() {
       <button
         type="button"
         onClick={() => openModal('bulk')}
-        className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-primary text-on-primary shadow-lg px-4 py-3 font-medium text-sm"
+        className={cn(
+          'fixed right-4 z-40 flex items-center gap-2 rounded-full bg-primary text-on-primary shadow-lg px-4 py-3 font-medium text-sm',
+          cartSummaryVisible ? 'shell-above-cart-summary' : 'shell-above-bottom-nav',
+        )}
         data-testid="bulk-fab"
         aria-label={t('bulk.fabLabel')}
       >
