@@ -13,6 +13,8 @@ import {
 import { BannerFrame } from '@/components/banner/banner-frame';
 import { BannerMedia } from '@/components/banner/banner-media';
 import { useBannerMediaUpload } from '@/hooks/use-banner-media-upload';
+import { useToast } from '@/hooks/use-toast';
+import { isValidBannerMediaHttpUrl } from '@/lib/banner-media-url';
 import { useAdminMedicines } from '@/hooks/use-admin-medicines';
 import { getErrorMessage } from '@/lib/api-errors';
 import {
@@ -45,6 +47,7 @@ export function BannerFormDialog({
   isSubmitting = false,
 }: BannerFormDialogProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [form, setForm] = useState<BannerFormValues>(EMPTY_BANNER_FORM);
   const [errors, setErrors] = useState<BannerFormErrors>({});
   const [submitError, setSubmitError] = useState('');
@@ -82,11 +85,21 @@ export function BannerFormDialog({
     if (!file) return;
     try {
       const result = await uploadMedia.mutateAsync(file);
+      if (!result.url?.trim() || !isValidBannerMediaHttpUrl(result.url)) {
+        toast({
+          title: t('admin.banners.uploadError'),
+          description: t('admin.banners.validation.invalidMediaUrl'),
+          variant: 'destructive',
+        });
+        return;
+      }
       updateField('mediaUrl', result.url);
       if (file.type.startsWith('video/')) updateField('mediaType', 'VIDEO' as BannerMediaType);
       else updateField('mediaType', 'IMAGE' as BannerMediaType);
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('admin.banners.uploadError')));
+      const message = getErrorMessage(error, t('admin.banners.uploadError'));
+      setSubmitError(message);
+      toast({ title: t('admin.banners.uploadError'), description: message, variant: 'destructive' });
     }
   };
 

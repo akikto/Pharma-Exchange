@@ -38,3 +38,41 @@ export async function optimizeMedicineImage(
     extension: 'webp',
   };
 }
+
+export const BANNER_IMAGE_MAX_BYTES = 15 * 1024 * 1024;
+export const BANNER_IMAGE_MAX_WIDTH = 1600;
+export const BANNER_IMAGE_WEBP_QUALITY = 85;
+
+const BANNER_RASTER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const BANNER_RASTER_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+
+export function assertBannerRasterImageUpload(mimeType: string, originalName: string, size: number): void {
+  const extension = originalName.toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+  if (!BANNER_RASTER_MIME_TYPES.has(mimeType) || !BANNER_RASTER_EXTENSIONS.has(extension)) {
+    throw AppError.badRequest('Only JPG, PNG, and WebP images are allowed');
+  }
+  if (size > BANNER_IMAGE_MAX_BYTES) {
+    throw AppError.badRequest('Banner image must be 15MB or smaller');
+  }
+}
+
+export async function optimizeBannerImage(
+  buffer: Buffer,
+): Promise<{ buffer: Buffer; mimeType: string; extension: string }> {
+  const optimized = await sharp(buffer)
+    .rotate()
+    .resize({
+      width: BANNER_IMAGE_MAX_WIDTH,
+      height: BANNER_IMAGE_MAX_WIDTH / 2,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: BANNER_IMAGE_WEBP_QUALITY })
+    .toBuffer();
+
+  return {
+    buffer: optimized,
+    mimeType: 'image/webp',
+    extension: 'webp',
+  };
+}
