@@ -1,5 +1,26 @@
 const DEV_STORAGE_PREFIX = 'https://storage.example.com/';
 
+export function isDevPlaceholderBannerMediaUrl(mediaUrl: string): boolean {
+  try {
+    return new URL(mediaUrl).hostname === 'storage.example.com';
+  } catch {
+    return false;
+  }
+}
+
+export function isValidBannerMediaHttpUrl(mediaUrl: string): boolean {
+  const trimmed = mediaUrl.trim();
+  if (!trimmed) return false;
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+    if (isDevPlaceholderBannerMediaUrl(trimmed)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function extractBannerStorageKey(mediaUrl: string, bucket?: string): string | null {
   if (!mediaUrl) return null;
   if (mediaUrl.startsWith('public/banners/')) return mediaUrl;
@@ -39,8 +60,9 @@ export function extractBannerStorageKey(mediaUrl: string, bucket?: string): stri
   return null;
 }
 
-export function buildFirebaseMediaUrl(bucket: string, storageKey: string): string {
-  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(storageKey)}?alt=media`;
+export function buildFirebaseMediaUrl(bucket: string, storageKey: string, downloadToken?: string): string {
+  const base = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(storageKey)}?alt=media`;
+  return downloadToken ? `${base}&token=${downloadToken}` : base;
 }
 
 export function buildGcsMediaUrl(bucket: string, storageKey: string): string {
@@ -52,6 +74,15 @@ export function buildGcsMediaUrl(bucket: string, storageKey: string): string {
  */
 export function resolveBannerMediaUrl(mediaUrl: string): string {
   if (!mediaUrl) return mediaUrl;
+
+  try {
+    const parsed = new URL(mediaUrl);
+    if (parsed.hostname === 'firebasestorage.googleapis.com' && parsed.searchParams.has('token')) {
+      return mediaUrl;
+    }
+  } catch {
+    return mediaUrl;
+  }
 
   const bucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET?.trim();
   const storageKey = bucket ? extractBannerStorageKey(mediaUrl, bucket) : null;

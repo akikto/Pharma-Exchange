@@ -86,6 +86,14 @@ export const env = loadEnv();
 export const isFirebaseConfigured = (): boolean =>
   Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
 
+export const isFirebaseStorageConfigured = (): boolean =>
+  Boolean(
+    env.FIREBASE_PROJECT_ID &&
+      env.FIREBASE_CLIENT_EMAIL &&
+      env.FIREBASE_PRIVATE_KEY &&
+      env.FIREBASE_STORAGE_BUCKET,
+  );
+
 export const isGeminiConfigured = (): boolean => Boolean(env.GEMINI_API_KEY);
 
 export const isEmailConfigured = (): boolean =>

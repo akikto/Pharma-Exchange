@@ -1,6 +1,7 @@
 import { BannerActionType, BannerMediaType, Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
+import { assertValidPersistableMediaUrl } from '../upload/media-url';
 
 export type PublicBannerDto = {
   id: string;
@@ -43,6 +44,14 @@ async function assertActionTarget(actionType: BannerActionType, actionTarget?: s
   }
 }
 
+function assertBannerMediaUrl(mediaUrl: string) {
+  try {
+    assertValidPersistableMediaUrl(mediaUrl);
+  } catch (error) {
+    throw AppError.badRequest(error instanceof Error ? error.message : 'Invalid banner media URL');
+  }
+}
+
 export class BannerService {
   async listActive(): Promise<PublicBannerDto[]> {
     const banners = await prisma.homeBanner.findMany({
@@ -78,6 +87,7 @@ export class BannerService {
   }) {
     const actionType = input.actionType ?? BannerActionType.NONE;
     await assertActionTarget(actionType, input.actionTarget);
+    assertBannerMediaUrl(input.mediaUrl);
     const maxOrder = await prisma.homeBanner.aggregate({ _max: { sortOrder: true } });
     const sortOrder = input.sortOrder ?? (maxOrder._max.sortOrder ?? -1) + 1;
     return prisma.homeBanner.create({
@@ -98,6 +108,9 @@ export class BannerService {
 
   async update(id: string, data: Prisma.HomeBannerUpdateInput) {
     const existing = await this.getById(id);
+    if (typeof data.mediaUrl === 'string') {
+      assertBannerMediaUrl(data.mediaUrl);
+    }
     const actionType = (data.actionType as BannerActionType | undefined) ?? existing.actionType;
     const actionTarget =
       data.actionTarget !== undefined ? (data.actionTarget as string | null) : existing.actionTarget;

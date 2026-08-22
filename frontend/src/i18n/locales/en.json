@@ -879,6 +879,7 @@
       "validation": {
         "titleRequired": "Title is required.",
         "mediaRequired": "Upload banner media.",
+        "invalidMediaUrl": "Upload a valid image or video URL from storage.",
         "invalidUrl": "Enter a valid http(s) URL.",
         "internalPathRequired": "Select an app page.",
         "targetRequired": "Action target is required."

@@ -10,6 +10,8 @@ import {
 } from './image-optimization.service';
 import { BANNER_MEDIA_UPLOAD_MAX_BYTES } from './upload.middleware';
 import { medicineService } from '../medicine/medicine.service';
+import { isFirebaseStorageConfigured, env } from '../../config/env';
+import { assertValidPersistableMediaUrl } from './media-url';
 
 export class UploadController {
   async uploadDocument(req: AuthRequest, res: Response, next: NextFunction) {
@@ -57,6 +59,10 @@ export class UploadController {
   async uploadBannerMedia(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       if (!req.file) throw AppError.badRequest('No file uploaded');
+      if (env.NODE_ENV === 'production' && !isFirebaseStorageConfigured()) {
+        throw AppError.internal('Banner media storage is not configured');
+      }
+
       const { buffer, mimetype, originalname, size } = req.file;
       const folder = 'public/banners';
 
@@ -85,8 +91,25 @@ export class UploadController {
         throw AppError.badRequest(`Banner media type ${mimetype} not allowed`);
       }
 
+      try {
+        assertValidPersistableMediaUrl(result.url);
+      } catch (validationError) {
+        await storageService.deleteByStorageKey(result.storageKey);
+        throw AppError.internal(
+          validationError instanceof Error ? validationError.message : 'Invalid media URL returned from storage',
+        );
+      }
+
       res.status(201).json(result);
     } catch (err) {
+      if (err instanceof Error && err.message.includes('not publicly readable')) {
+        next(AppError.internal('Uploaded banner media could not be verified as publicly accessible'));
+        return;
+      }
+      if (err instanceof Error && err.message.includes('Firebase Storage is not configured')) {
+        next(AppError.internal(err.message));
+        return;
+      }
       next(err);
     }
   }
