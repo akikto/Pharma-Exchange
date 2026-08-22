@@ -44,6 +44,13 @@ function collectGhsaIds(vuln, allVulns, advisories = {}) {
   }
 
   walk(vuln);
+
+  for (const advisory of Object.values(advisories)) {
+    const moduleName = advisory?.module_name ?? advisory?.name;
+    if (moduleName !== vuln.name) continue;
+    addFromUrl(advisory?.url);
+  }
+
   return ids;
 }
 
