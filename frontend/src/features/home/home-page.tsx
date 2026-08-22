@@ -133,11 +133,11 @@ export function HomePage() {
     <div {...handlers}>
       <HomeAppBar />
 
-      <HomeBannerCarousel />
+      <div className="px-3 pt-2 pb-3 space-y-3" data-testid="home-page-feed">
+        <HomeBannerCarousel />
 
-      <BulkProcurementBanner />
+        <BulkProcurementBanner />
 
-      <div className="pb-3 space-y-3">
         <ShopHeader />
 
         <PullToRefreshIndicator
