@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search, LayoutGrid, Layers, X, RefreshCw, Sparkles, Clock, LayoutList } from 'lucide-react';
 import { HomeAppBar } from '@/components/home/home-app-bar';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { ListingCard } from '@/components/listing-card';
 import { ListingCardSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
