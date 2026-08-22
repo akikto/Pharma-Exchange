@@ -80,10 +80,10 @@ export function HomeBannerCarousel() {
   const { data: banners = [], isLoading, isError } = useHomeBanners();
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
-  const reducedMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  );
+  const reducedMotion = useMemo(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
 
   const count = banners.length;
   const activeIndex = count > 0 ? ((index % count) + count) % count : 0;
