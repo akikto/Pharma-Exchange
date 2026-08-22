@@ -17,8 +17,6 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm ls multer
-      - run: npm audit --omit=dev || true
       - run: npm run audit:ci
       - run: npm audit --omit=dev || true
 
