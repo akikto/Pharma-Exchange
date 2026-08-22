@@ -110,7 +110,7 @@ export function HomeBannerCarousel() {
 
   if (isLoading) {
     return (
-      <div className="px-4 pt-2" data-testid="home-banner-carousel-loading">
+      <div className="pt-2 mb-2.5" data-testid="home-banner-carousel-loading">
         <BannerFrame>
           <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
         </BannerFrame>
@@ -137,7 +137,7 @@ export function HomeBannerCarousel() {
 
   return (
     <section
-      className="px-4 pt-2"
+      className="pt-2 mb-2.5"
       aria-roledescription="carousel"
       aria-label={t('home.bannerCarouselAria')}
       data-testid="home-banner-carousel"
