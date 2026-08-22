@@ -31,9 +31,19 @@ export function AdminLayout() {
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <header className="md:hidden sticky top-0 z-40 border-b border-border-subtle bg-surface-base px-4 h-14 flex items-center gap-3">
-          <Logo size="sm" />
-          <span className="font-semibold text-sm">{t('admin.dashboard')}</span>
+        <header className="md:hidden sticky top-0 z-40 border-b border-border-subtle bg-surface-base">
+          <div className="px-4 h-14 flex items-center gap-3">
+            <Logo size="sm" />
+            <span className="font-semibold text-sm">{t('admin.dashboard')}</span>
+          </div>
+          <nav
+            className="flex gap-2 overflow-x-auto px-4 pb-3 -mt-1 scrollbar-none"
+            aria-label="Admin navigation"
+          >
+            {adminNav.map((item) => (
+              <AdminNavLinkItem key={item.to} item={item} variant="mobile" />
+            ))}
+          </nav>
         </header>
         <main id="admin-main-content" className="flex-1" tabIndex={-1}>
           <Outlet />

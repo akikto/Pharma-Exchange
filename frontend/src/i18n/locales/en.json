@@ -820,6 +820,7 @@
       }
     },
     "banners": {
+      "nav": "Banner Management",
       "title": "Home Banner Management",
       "description": "Manage promotional banners shown on the buyer home page carousel.",
       "addButton": "Add Banner",

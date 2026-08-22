@@ -68,11 +68,28 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
   );
 }
 
-export function AdminNavLinkItem({ item }: { item: AdminNavItem }) {
+export function AdminNavLinkItem({ item, variant = 'side' }: { item: AdminNavItem; variant?: 'side' | 'mobile' }) {
   const { pathname } = useLocation();
   const { to, icon: Icon, labelKey } = item;
   const { primary, subtitle } = useNavLabel(labelKey);
   const active = pathname === item.to || (item.to !== '/admin' && pathname.startsWith(item.to));
+
+  if (variant === 'mobile') {
+    return (
+      <Link
+        to={to}
+        data-testid={`nav-admin-mobile-${labelKey}`}
+        className={cn(
+          'shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
+          active
+            ? 'border-primary bg-primary-subtle text-primary'
+            : 'border-border-subtle bg-surface-raised text-text-secondary',
+        )}
+      >
+        {primary}
+      </Link>
+    );
+  }
 
   return (
     <Link
