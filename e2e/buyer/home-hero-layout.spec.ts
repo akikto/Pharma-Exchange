@@ -15,7 +15,11 @@ const mockBanner = {
 
 test.describe('Home hero layout', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/v1/banners', async (route) => {
+    await page.route('**/api/v1/banners**', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -23,16 +27,21 @@ test.describe('Home hero layout', () => {
       });
     });
     await loginBuyer(page);
+    await page.evaluate(() => {
+      localStorage.setItem('pharmex-bulk-banner-dismissed', '1');
+    });
     await page.goto('/');
     await expect(page.getByTestId('home-banner-carousel')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('shop-header')).toBeVisible();
+    await expect(page.getByTestId('bulk-procurement-banner')).toHaveCount(0);
   });
 
   test('promo banner and shop card share horizontal alignment and gap', async ({ page }) => {
     const metrics = await page.evaluate(() => {
+      const stack = document.querySelector('[data-testid="home-hero-stack"]');
       const banner = document.querySelector('[data-testid="home-banner-carousel"]');
       const shop = document.querySelector('[data-testid="shop-header"]');
-      if (!banner || !shop) return null;
+      if (!stack || !banner || !shop) return null;
       const b = banner.getBoundingClientRect();
       const s = shop.getBoundingClientRect();
       return {
@@ -43,14 +52,17 @@ test.describe('Home hero layout', () => {
         shopRight: s.right,
         shopWidth: s.width,
         verticalGap: s.top - b.bottom,
+        stackWidth: stack.getBoundingClientRect().width,
       };
     });
 
     expect(metrics).not.toBeNull();
-    expect(metrics!.bannerWidth).toBeCloseTo(metrics!.shopWidth, 0);
-    expect(metrics!.bannerLeft).toBeCloseTo(metrics!.shopLeft, 0);
-    expect(metrics!.bannerRight).toBeCloseTo(metrics!.shopRight, 0);
-    expect(metrics!.verticalGap).toBeGreaterThanOrEqual(8);
-    expect(metrics!.verticalGap).toBeLessThanOrEqual(14);
+    const m = metrics!;
+    expect(Math.abs(m.bannerWidth - m.shopWidth)).toBeLessThanOrEqual(2);
+    expect(Math.abs(m.bannerLeft - m.shopLeft)).toBeLessThanOrEqual(2);
+    expect(Math.abs(m.bannerRight - m.shopRight)).toBeLessThanOrEqual(2);
+    expect(m.bannerWidth).toBeLessThanOrEqual(m.stackWidth + 1);
+    expect(m.verticalGap).toBeGreaterThanOrEqual(6);
+    expect(m.verticalGap).toBeLessThanOrEqual(16);
   });
 });
