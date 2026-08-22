@@ -49,6 +49,10 @@ vi.mock('@/hooks/use-chat', () => ({
   useInfiniteScroll: () => ({ current: null }),
 }));
 
+vi.mock('@/hooks/use-banners', () => ({
+  useHomeBanners: () => ({ data: [], isLoading: false, isError: false }),
+}));
+
 vi.mock('@/hooks/use-watchlist', () => ({
   useToggleWatchlist: () => ({ mutate: vi.fn() }),
   useIsWatched: () => false,

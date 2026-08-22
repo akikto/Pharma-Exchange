@@ -11,7 +11,7 @@ describe('BannerFrame', () => {
     );
 
     const frame = screen.getByTestId('banner-frame');
-    const aspect = frame.querySelector('.aspect-\\[2\\/1\\]');
-    expect(aspect).toBeTruthy();
+    const aspectBox = frame.firstElementChild;
+    expect(aspectBox?.className).toContain('aspect-[2/1]');
   });
 });
