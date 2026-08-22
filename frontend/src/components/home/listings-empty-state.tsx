@@ -12,10 +12,10 @@ export function ListingsEmptyState({ onClearFilters, showClearFilters }: Listing
 
   return (
     <div
-      className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-border-subtle bg-surface-raised px-4 py-8 text-center"
+      className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-border-subtle bg-surface-raised/80 px-4 py-10 text-center shadow-elevation-1 backdrop-blur-sm"
       data-testid="listings-empty-state"
     >
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-sunken text-text-secondary">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary-subtle to-surface-sunken text-primary ring-1 ring-primary/15">
         <SearchX className="h-7 w-7" aria-hidden />
       </div>
       <p className="font-medium text-text-primary">{t('home.emptyListingsTitle')}</p>

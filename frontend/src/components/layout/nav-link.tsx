@@ -44,18 +44,24 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
       to={to}
       data-testid={`nav-bottom-${labelKey}`}
       className={cn(
-        'relative flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] min-h-[48px] justify-center transition-colors',
+        'relative flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] min-h-[48px] justify-center rounded-[var(--radius-md)] transition-colors',
         active ? 'text-primary' : 'text-text-disabled',
       )}
     >
+      {active && (
+        <span
+          className="pointer-events-none absolute inset-x-1 top-1 bottom-1 rounded-[var(--radius-md)] bg-primary-subtle"
+          aria-hidden
+        />
+      )}
       <span className="relative">
         <Icon className={cn('h-5 w-5', active ? 'text-primary fill-primary/20' : 'text-text-disabled')} />
         <NavBadge count={badgeCount} />
       </span>
-      <span className={cn('text-[10px] font-medium leading-tight text-center', active ? 'text-primary' : 'text-text-disabled')}>
+      <span className={cn('relative text-[10px] font-medium leading-tight text-center', active ? 'text-primary' : 'text-text-disabled')}>
         {primary}
       </span>
-      <span className={cn('text-[8px] leading-none', active ? 'text-primary/70' : 'text-text-disabled')}>
+      <span className={cn('relative text-[8px] leading-none', active ? 'text-primary/70' : 'text-text-disabled')}>
         {subtitle}
       </span>
     </Link>
