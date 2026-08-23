@@ -6,7 +6,7 @@ import {
 } from '@/components/home/home-layout';
 
 describe('home layout tokens', () => {
-  it('uses the same horizontal gutter as the app bar (px-3)', () => {
+  it('uses px-3 for home horizontal gutter (shell .edge-to-edge is safe-area only)', () => {
     expect(HOME_GUTTER_CLASS).toBe('px-3');
   });
 

@@ -65,6 +65,15 @@ export class BannerController {
       next(err);
     }
   }
+
+  async auditMediaUrls(_req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const data = await bannerService.auditMediaUrls();
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const bannerController = new BannerController();

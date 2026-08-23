@@ -11,6 +11,7 @@ const publicBannerRouter = Router();
 publicBannerRouter.get('/', bannerController.listActive.bind(bannerController));
 
 const adminBannerRouter = Router();
+adminBannerRouter.get('/media-audit', bannerController.auditMediaUrls.bind(bannerController));
 adminBannerRouter.get('/', bannerController.listAdmin.bind(bannerController));
 adminBannerRouter.post('/', validate(createBannerSchema), bannerController.create.bind(bannerController));
 adminBannerRouter.patch('/reorder', validate(reorderBannersSchema), bannerController.reorder.bind(bannerController));

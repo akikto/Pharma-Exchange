@@ -32,9 +32,9 @@ export function RequestsHubPage() {
   const onTabKeyDown = useTabListKeyboard(TABS, activeTab, setTab);
 
   return (
-    <div className="pb-4">
+    <div className="pb-4 px-3">
       <TopBar title={t('hub.title')} />
-      <div className="px-4 pt-2">
+      <div className="pt-2">
         <p className="text-[10px] text-text-disabled mb-3">{t('hub.titleSub')}</p>
         <div
           className="flex rounded-[var(--radius-md)] border border-border-subtle p-1 mb-4"

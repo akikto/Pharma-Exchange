@@ -37,7 +37,7 @@ export function RequestBottomSheet() {
     >
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-2 px-4 py-2 min-h-[44px]"
+        className="flex w-full items-center justify-between gap-2 shell-gutter-x py-2 min-h-[44px]"
         onClick={toggle}
         aria-expanded={expanded}
         aria-label={expanded ? t('shell.collapse') : t('shell.expand')}
@@ -60,7 +60,7 @@ export function RequestBottomSheet() {
       </button>
 
       {expanded && (
-        <div className="px-4 pb-3 flex flex-col gap-2 border-t border-border-subtle pt-2">
+        <div className="shell-gutter-x pb-3 flex flex-col gap-2 border-t border-border-subtle pt-2">
           <p className="text-xs text-text-secondary">
             {t('shell.requestSheetTitle')}
             <span className="block text-[10px] text-text-disabled">{t('shell.requestSheetSub')}</span>

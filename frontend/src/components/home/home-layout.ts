@@ -1,4 +1,4 @@
-/** Matches `HomeAppBar` horizontal padding — keep promo + shop on this gutter. */
+/** Shared horizontal inset for home feed, app bar, and aligned blocks (12px). */
 export const HOME_GUTTER_CLASS = 'px-3';
 
 /** Shared outer shell for shop card and promo banner (same border box). */

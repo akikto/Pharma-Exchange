@@ -141,7 +141,7 @@ export function HomeBannerCarousel({ embedded = false }: { embedded?: boolean })
 
   return (
     <section
-      className="block w-full min-w-0 max-w-full box-border"
+      className="block w-full min-w-0 max-w-full box-border touch-pan-x"
       aria-roledescription="carousel"
       aria-label={t('home.bannerCarouselAria')}
       data-testid="home-banner-carousel"
