@@ -45,6 +45,14 @@ describe('LoginPage UI', () => {
     expect(screen.queryByText(/সঠিক সাইট/i)).not.toBeInTheDocument();
   });
 
+  it('applies horizontal gutter on the auth shell (safe-area-only edge-to-edge)', () => {
+    renderLoginPage();
+
+    const root = screen.getByTestId('login-page-root');
+    expect(root.className).toContain('px-6');
+    expect(root.className).toContain('edge-to-edge');
+  });
+
   it('keeps sign-in form and legal links', () => {
     renderLoginPage();
 

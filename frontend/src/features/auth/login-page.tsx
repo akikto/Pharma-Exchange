@@ -124,7 +124,10 @@ export function LoginPage() {
 
   if (welcomeUser) {
     return (
-      <div className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden px-6 py-6 mx-auto edge-to-edge justify-center">
+      <div
+        className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto edge-to-edge px-6 justify-center"
+        data-testid="login-page-root"
+      >
         <AuthWelcomeCard
           user={welcomeUser}
           isDemo={isDemoSession}
@@ -138,7 +141,10 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden px-6 py-6 mx-auto edge-to-edge">
+    <div
+      className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto edge-to-edge px-6"
+      data-testid="login-page-root"
+    >
       <div className="flex w-full min-w-0 flex-1 flex-col justify-center gap-6">
         <div className="text-center flex flex-col items-center gap-3">
           <Logo size="xl" className="justify-center" />
