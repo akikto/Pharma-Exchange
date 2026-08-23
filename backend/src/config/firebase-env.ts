@@ -63,20 +63,20 @@ export function getFirebaseStorageDiagnostics(): FirebaseStorageDiagnostics {
   const firebaseProjectConfigured = Boolean(projectId);
   const firebaseClientConfigured = Boolean(clientEmail);
   const firebasePrivateKeyConfigured = Boolean(privateKey);
-  const firebasePrivateKeyLooksValid = firebasePrivateKeyLooksValid(privateKey);
+  const privateKeyLooksValid = firebasePrivateKeyLooksValid(privateKey);
   const firebaseStorageBucketConfigured = Boolean(storageBucket);
 
   return {
     firebaseProjectConfigured,
     firebaseClientConfigured,
     firebasePrivateKeyConfigured,
-    firebasePrivateKeyLooksValid,
+    firebasePrivateKeyLooksValid: privateKeyLooksValid,
     firebaseStorageBucketConfigured,
     firebaseStorageConfigured: Boolean(
       firebaseProjectConfigured &&
         firebaseClientConfigured &&
         firebasePrivateKeyConfigured &&
-        firebasePrivateKeyLooksValid &&
+        privateKeyLooksValid &&
         firebaseStorageBucketConfigured,
     ),
   };

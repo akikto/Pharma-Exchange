@@ -4,6 +4,7 @@ import { assertProductionPasswordResetConfig } from './password-reset-url';
 import {
   getFirebaseStorageBucket,
   getFirebaseStorageDiagnostics,
+  listMissingFirebaseStorageConfig,
 } from './firebase-env';
 
 const booleanFromEnv = z.preprocess((value) => {
