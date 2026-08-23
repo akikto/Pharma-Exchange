@@ -6,8 +6,8 @@ import {
 } from '@/components/home/home-layout';
 
 describe('home layout tokens', () => {
-  it('does not double-stack shell gutter (inset is on .edge-to-edge only)', () => {
-    expect(HOME_GUTTER_CLASS).toBe('');
+  it('uses px-3 for home horizontal gutter (shell .edge-to-edge is safe-area only)', () => {
+    expect(HOME_GUTTER_CLASS).toBe('px-3');
   });
 
   it('uses mb-3 (12px) below the promo banner', () => {
