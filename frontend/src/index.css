@@ -105,8 +105,9 @@ html[dir="rtl"] .rtl-flip {
   .tabular-nums { font-variant-numeric: tabular-nums; }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .edge-to-edge {
-    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+    /* Single horizontal content gutter (12px); safe-area on notched devices only */
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
   }
 
   .app-scroll-region {

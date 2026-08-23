@@ -6,8 +6,8 @@ import {
 } from '@/components/home/home-layout';
 
 describe('home layout tokens', () => {
-  it('uses the same horizontal gutter as the app bar (px-2)', () => {
-    expect(HOME_GUTTER_CLASS).toBe('px-2');
+  it('does not double-stack shell gutter (inset is on .edge-to-edge only)', () => {
+    expect(HOME_GUTTER_CLASS).toBe('');
   });
 
   it('uses mb-3 (12px) below the promo banner', () => {
