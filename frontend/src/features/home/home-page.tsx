@@ -129,7 +129,7 @@ export function HomePage() {
   const resultCount = searchQuery.trim() ? listings.length : (totalFromApi ?? listings.length);
 
   return (
-    <div {...handlers}>
+    <div {...handlers} className="min-w-0 max-w-full">
       <HomeAppBar />
 
       <div className={cn('box-border w-full max-w-full pb-3 pt-2', HOME_GUTTER_CLASS)} data-testid="home-page-feed">
@@ -190,7 +190,7 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1" data-testid="home-quick-filters">
+        <div className="flex gap-2 overflow-x-auto pb-1 overscroll-x-contain" data-testid="home-quick-filters">
           {HOME_QUICK_FILTERS.map((key) => (
             <button
               key={key}
@@ -269,7 +269,7 @@ export function HomePage() {
                   subtitle={t('home.featuredDealsSub')}
                   icon={Sparkles}
                 />
-                <div className="flex gap-2.5 overflow-x-auto pb-2">
+                <div className="flex gap-2.5 overflow-x-auto pb-2 overscroll-x-contain">
                   {featured.map((l) => (
                     <ListingCard
                       key={l.id}
