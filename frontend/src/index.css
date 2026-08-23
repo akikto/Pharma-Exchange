@@ -179,8 +179,8 @@ html[dir="rtl"] .rtl-flip {
   --shell-cart-summary-height: 2.8125rem;
   --shell-product-action-height: 4.3125rem;
   --shell-safe-bottom: env(safe-area-inset-bottom, 0px);
-  /* Horizontal inset for buyer shell (12px); safe-area adds on notched devices only */
-  --shell-gutter-x: 0.75rem;
+  /* Horizontal inset for buyer shell (8px); safe-area adds on notched devices only */
+  --shell-gutter-x: 0.5rem;
 }
 
 /* Legal pages (Privacy Policy, Terms & Conditions) — BL-04/BL-05. */
