@@ -23,7 +23,7 @@ export function AppLayout() {
         <OfflineBanner />
         <main
           id="main-content"
-          className="mx-auto w-full max-w-lg lg:max-w-5xl xl:max-w-6xl flex-1 w-full"
+          className="mx-auto w-full max-w-2xl lg:max-w-5xl xl:max-w-6xl flex-1"
           tabIndex={-1}
         >
           <Outlet />

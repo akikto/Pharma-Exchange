@@ -20,7 +20,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-subtle glass-surface shadow-[0_-4px_24px_rgba(15,27,25,0.08)] safe-bottom lg:hidden dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)]" aria-label={t('nav.mobileNavigation')} data-testid="bottom-nav">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+      <div className="flex items-center justify-around h-16 max-w-2xl mx-auto w-full">
         {nav.map((item) => (
           <NavLinkItem key={item.to} item={item} variant="bottom" badgeCount={badgeFor(item.badgeKey)} />
         ))}

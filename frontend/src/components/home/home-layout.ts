@@ -1,5 +1,5 @@
 /** Matches `HomeAppBar` horizontal padding — keep promo + shop on this gutter. */
-export const HOME_GUTTER_CLASS = 'px-3';
+export const HOME_GUTTER_CLASS = 'px-2';
 
 /** Shared outer shell for shop card and promo banner (same border box). */
 export const HOME_CARD_SHELL_CLASS =
