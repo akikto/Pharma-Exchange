@@ -1,4 +1,4 @@
-/** Horizontal inset comes from AppLayout `.edge-to-edge` (12px); keep in sync with app bar. */
+/** Horizontal inset comes from AppLayout `.edge-to-edge` (--shell-gutter-x, 12px). */
 export const HOME_GUTTER_CLASS = '';
 
 /** Shared outer shell for shop card and promo banner (same border box). */

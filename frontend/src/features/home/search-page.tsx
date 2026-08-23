@@ -105,7 +105,7 @@ export function SearchPage() {
   return (
     <div>
       <TopBar title={t('search.title')} showBack />
-      <div className="sticky top-14 z-30 bg-surface-base px-4 py-3 border-b border-border-subtle space-y-3">
+      <div className="sticky top-14 z-30 bg-surface-base py-3 border-b border-border-subtle space-y-3">
         <div className="flex gap-2 items-start">
           <SearchInput
             value={query}

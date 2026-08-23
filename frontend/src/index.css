@@ -105,9 +105,13 @@ html[dir="rtl"] .rtl-flip {
   .tabular-nums { font-variant-numeric: tabular-nums; }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .edge-to-edge {
-    /* Single horizontal content gutter (12px); safe-area on notched devices only */
-    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    padding-left: max(var(--shell-gutter-x), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--shell-gutter-x), env(safe-area-inset-right, 0px));
+  }
+
+  .shell-gutter-x {
+    padding-left: max(var(--shell-gutter-x), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--shell-gutter-x), env(safe-area-inset-right, 0px));
   }
 
   .app-scroll-region {
@@ -175,6 +179,8 @@ html[dir="rtl"] .rtl-flip {
   --shell-cart-summary-height: 2.8125rem;
   --shell-product-action-height: 4.3125rem;
   --shell-safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Horizontal inset for buyer shell (12px); safe-area adds on notched devices only */
+  --shell-gutter-x: 0.75rem;
 }
 
 /* Legal pages (Privacy Policy, Terms & Conditions) — BL-04/BL-05. */
