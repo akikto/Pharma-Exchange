@@ -75,25 +75,25 @@ export function SellerCartGroup({
           {items.map((item) => {
             if (!item.listing?.id) return null;
             return (
-            <div key={item.id} className="border-t border-border-subtle p-3 space-y-2">
-              <div className="flex gap-3 min-w-0">
-                <div className="h-12 w-12 rounded bg-surface-sunken flex items-center justify-center text-lg shrink-0">
-                  💊
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium leading-snug break-words line-clamp-2">
-                    {item.listing.medicine?.name ?? '—'}
-                  </p>
-                  <p className="text-xs text-text-secondary tabular-nums mt-0.5">
-                    {formatPrice(Number(item.listing.finalPrice))} × {item.quantity} ={' '}
-                    {formatPrice(Number(item.listing.finalPrice) * item.quantity)}
-                  </p>
-                  {itemIssues[item.id] && (
-                    <p className="text-xs text-danger mt-0.5">{itemIssues[item.id]}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-1 pl-[3.75rem]">
+            <article
+              key={item.id}
+              className="border-t border-border-subtle p-3 space-y-2"
+              data-testid="cart-line-item"
+            >
+              <p
+                className="w-full text-sm font-medium leading-snug break-words [overflow-wrap:anywhere]"
+                data-testid="cart-item-medicine-name"
+              >
+                {item.listing.medicine?.name ?? '—'}
+              </p>
+              <p className="text-xs text-text-secondary tabular-nums">
+                {formatPrice(Number(item.listing.finalPrice))} × {item.quantity} ={' '}
+                {formatPrice(Number(item.listing.finalPrice) * item.quantity)}
+              </p>
+              {itemIssues[item.id] && (
+                <p className="text-xs text-danger">{itemIssues[item.id]}</p>
+              )}
+              <div className="flex items-center justify-end gap-1 pt-1">
                 <QuantityStepper
                   className="shrink-0"
                   value={item.quantity}
@@ -112,7 +112,7 @@ export function SellerCartGroup({
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-            </div>
+            </article>
             );
           })}
 
