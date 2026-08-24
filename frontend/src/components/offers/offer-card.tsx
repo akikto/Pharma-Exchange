@@ -18,16 +18,24 @@ import { useShellStore } from '@/stores/shell-store';
 import { useToast } from '@/hooks/use-toast';
 import { ContactActions } from '@/components/offers/contact-actions';
 import { PriceTrendDialog } from '@/components/offers/price-trend-dialog';
+import {
+  listingCardToneClasses,
+  resolveListingCardTone,
+  type ListingCardTone,
+} from '@/lib/listing-card-tone';
 import type { Listing } from '@/types';
 
 interface OfferCardProps {
   listing: Listing;
   className?: string;
   variant?: 'grid' | 'list' | 'featured';
+  tone?: ListingCardTone;
   showActions?: boolean;
   showAddToCart?: boolean;
   bestPrice?: number;
   userCoords?: { latitude: number; longitude: number } | null;
+  matchBadge?: { label: string; className: string };
+  matchSummary?: string;
 }
 
 export function OfferCard(props: OfferCardProps) {
@@ -39,10 +47,13 @@ function OfferCardContent({
   listing,
   className,
   variant = 'grid',
+  tone: toneProp,
   showActions = false,
   showAddToCart = false,
   bestPrice,
   userCoords,
+  matchBadge,
+  matchSummary,
 }: OfferCardProps & { listing: Listing }) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -67,10 +78,7 @@ function OfferCardContent({
     .filter(Boolean)
     .join(' · ');
 
-  const urgencyBorder =
-    expiryStatus === 'danger' ? 'border-danger'
-    : lowStock ? 'border-warning'
-    : 'border-border-subtle';
+  const tone = resolveListingCardTone(listing, toneProp);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -222,8 +230,14 @@ function OfferCardContent({
     <div className="flex-1 min-w-0 space-y-1">
       <div className="flex items-start gap-1">
         <h3 className={cn('font-semibold line-clamp-2', variant === 'grid' ? 'text-sm' : 'text-base')}>{listing.medicine.name}</h3>
+        {matchBadge && (
+          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full shrink-0', matchBadge.className)}>
+            {matchBadge.label}
+          </span>
+        )}
         {verified && <VerifiedBadge size="sm" className="shrink-0" />}
       </div>
+      {matchSummary && <p className="text-xs text-text-secondary line-clamp-2">{matchSummary}</p>}
       <p className="text-xs text-text-secondary">{listing.medicine.packSize} · {listing.medicine.company}</p>
       <p className="text-xs text-text-secondary">⭐ {listing.pharmacy.rating} · {listing.pharmacy.name} · {listing.pharmacy.city}</p>
       <div className="flex items-baseline gap-2 flex-wrap">
@@ -248,8 +262,8 @@ function OfferCardContent({
     <>
       <div
         className={cn(
-          'listing-card-interactive rounded-[var(--radius-md)] border bg-surface-base overflow-hidden shadow-elevation-1',
-          urgencyBorder,
+          'listing-card-interactive rounded-[var(--radius-md)] overflow-hidden shadow-elevation-1',
+          listingCardToneClasses(tone),
           className,
         )}
         data-testid={`offer-card-${listing.id}`}

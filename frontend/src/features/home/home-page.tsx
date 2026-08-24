@@ -275,6 +275,7 @@ export function HomePage() {
                       key={l.id}
                       listing={l}
                       variant="featured"
+                      tone="featured"
                       userCoords={coords}
                       showAddToCart
                       className="w-52 shrink-0"
@@ -293,7 +294,7 @@ export function HomePage() {
                 />
                 <div className="grid grid-cols-2 gap-2.5" data-testid="home-short-expiry-grid">
                   {shortExpiry.map((l) => (
-                    <ListingCard key={l.id} listing={l} showAddToCart className="min-w-0 w-full" />
+                    <ListingCard key={l.id} listing={l} tone="warning" showAddToCart className="min-w-0 w-full" />
                   ))}
                 </div>
               </section>

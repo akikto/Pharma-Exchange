@@ -1,44 +1,29 @@
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, Sparkles, ShoppingCart } from 'lucide-react';
+import { RefreshCw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ListingCard } from '@/components/listing-card';
 import { useAiMatches } from '@/hooks/use-ai-matches';
-import { useAddToCart } from '@/hooks/use-api';
-import { formatPrice, cn } from '@/lib/utils';
 import { formatMatchScore, matchScoreVariant } from '@/lib/ai-match-utils';
 import { isRenderableListing } from '@/lib/catalog-groups';
-import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
-import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface AiMatchSectionProps {
   role?: 'buyer' | 'seller';
 }
 
+function matchBadgeClasses(variant: ReturnType<typeof matchScoreVariant>): string {
+  if (variant === 'success') return 'bg-success/10 text-success';
+  if (variant === 'warning') return 'bg-warning/10 text-warning';
+  return 'bg-surface-sunken text-text-secondary';
+}
+
 export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
   const { t } = useTranslation();
-  const { toast } = useToast();
   const { data, isLoading, isFetching, refetch } = useAiMatches(role);
-  const addToCart = useAddToCart();
 
   const matches = data?.data.filter((m) => isRenderableListing(m.listing)) ?? [];
 
   if (!isLoading && matches.length === 0) return null;
-
-  const handleAddToCart = (listingId: string | undefined, moq: number, listing: unknown) => {
-    debugListingAction('ai-match:add-to-cart', { listingId, moq, listing });
-    if (!listingId) {
-      warnInvalidListing('ai-match:add-to-cart', { listingId, moq, listing });
-      toast({ title: t('toast.error'), description: t('search.addToCartError'), variant: 'destructive' });
-      return;
-    }
-    addToCart.mutate(
-      { listingId, quantity: moq },
-      {
-        onSuccess: () => toast({ description: t('aiMatch.addedToCart') }),
-        onError: () => toast({ title: t('toast.error'), description: t('search.addToCartError'), variant: 'destructive' }),
-      },
-    );
-  };
 
   return (
     <section data-testid="ai-match-section" className="space-y-3">
@@ -77,46 +62,18 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
             if (!listing) return null;
             const scoreVariant = matchScoreVariant(match.score);
             return (
-              <div
-                key={match.id}
-                className="rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3 space-y-2"
-                data-testid="ai-match-card"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <Link to={`/medicine/${listing.id}`} className="font-medium text-sm hover:text-primary line-clamp-1">
-                      {listing.medicine.name}
-                    </Link>
-                    <p className="text-xs text-text-secondary">{listing.pharmacy.name}</p>
-                  </div>
-                  <span
-                    className={cn(
-                      'text-xs font-semibold px-2 py-0.5 rounded-full shrink-0',
-                      scoreVariant === 'success' && 'bg-success/10 text-success',
-                      scoreVariant === 'warning' && 'bg-warning/10 text-warning',
-                      scoreVariant === 'default' && 'bg-surface-sunken text-text-secondary',
-                    )}
-                  >
-                    {formatMatchScore(match.score)}
-                  </span>
-                </div>
-                <p className="text-xs text-text-secondary">{match.summary}</p>
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="font-semibold tabular-nums">{formatPrice(listing.finalPrice)}</p>
-                    {match.contextLabel && (
-                      <p className="text-[10px] text-text-disabled">{match.contextLabel}</p>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAddToCart(listing?.id, listing.moq, listing)}
-                    loading={addToCart.isAddingToCart(listing?.id)}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-1" />
-                    {t('aiMatch.addToCart')}
-                  </Button>
-                </div>
+              <div key={match.id} data-testid="ai-match-card">
+                <ListingCard
+                  listing={listing}
+                  variant="grid"
+                  tone="featured"
+                  showAddToCart
+                  matchBadge={{
+                    label: formatMatchScore(match.score),
+                    className: matchBadgeClasses(scoreVariant),
+                  }}
+                  matchSummary={match.summary}
+                />
               </div>
             );
           })}
