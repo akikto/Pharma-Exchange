@@ -125,7 +125,7 @@ export function LoginPage() {
   if (welcomeUser) {
     return (
       <div
-        className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto edge-to-edge px-6 justify-center"
+        className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto auth-shell-x justify-center"
         data-testid="login-page-root"
       >
         <AuthWelcomeCard
@@ -142,7 +142,7 @@ export function LoginPage() {
 
   return (
     <div
-      className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto edge-to-edge px-6"
+      className="flex min-h-screen w-full max-w-md min-w-0 flex-col box-border overflow-x-hidden py-6 mx-auto auth-shell-x"
       data-testid="login-page-root"
     >
       <div className="flex w-full min-w-0 flex-1 flex-col justify-center gap-6">
@@ -221,7 +221,7 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="identifier">{isEmail ? t('auth.email') : t('auth.phone')}</Label>
+              <Label className="block w-full" htmlFor="identifier">{isEmail ? t('auth.email') : t('auth.phone')}</Label>
               <Input
                 id="identifier"
                 type={isEmail ? 'email' : 'tel'}

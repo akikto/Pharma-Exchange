@@ -23,7 +23,7 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col p-6 edge-to-edge">
+    <div className="flex min-h-screen flex-col py-6 auth-shell-x">
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
         <Logo size="xl" className="justify-center" />
         <h1 className="text-2xl font-bold">{slides[step].title}</h1>

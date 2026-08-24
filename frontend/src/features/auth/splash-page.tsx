@@ -21,7 +21,7 @@ export function SplashPage() {
   }, [isAuthenticated, isLoading, hasSeenOnboarding, mode, user, navigate]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-[#0F4C6E] via-[#0F766E] to-[#166534] px-6 edge-to-edge">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-[#0F4C6E] via-[#0F766E] to-[#166534] auth-shell-x">
       <Logo size="hero" className="justify-center" />
       <p className="text-white/85 text-sm mt-6">{t('auth.splashTagline')}</p>
       {isLoading && <p className="text-xs mt-4 text-white/70">{t('auth.splashLoading')}</p>}
