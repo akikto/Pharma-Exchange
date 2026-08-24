@@ -75,35 +75,43 @@ export function SellerCartGroup({
           {items.map((item) => {
             if (!item.listing?.id) return null;
             return (
-            <div key={item.id} className="flex items-center gap-3 p-3 border-t border-border-subtle">
-              <div className="h-12 w-12 rounded bg-surface-sunken flex items-center justify-center text-lg shrink-0">
-                💊
+            <div key={item.id} className="border-t border-border-subtle p-3 space-y-2">
+              <div className="flex gap-3 min-w-0">
+                <div className="h-12 w-12 rounded bg-surface-sunken flex items-center justify-center text-lg shrink-0">
+                  💊
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium leading-snug break-words line-clamp-2">
+                    {item.listing.medicine?.name ?? '—'}
+                  </p>
+                  <p className="text-xs text-text-secondary tabular-nums mt-0.5">
+                    {formatPrice(Number(item.listing.finalPrice))} × {item.quantity} ={' '}
+                    {formatPrice(Number(item.listing.finalPrice) * item.quantity)}
+                  </p>
+                  {itemIssues[item.id] && (
+                    <p className="text-xs text-danger mt-0.5">{itemIssues[item.id]}</p>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.listing.medicine?.name ?? '—'}</p>
-                <p className="text-xs text-text-secondary tabular-nums">
-                  {formatPrice(Number(item.listing.finalPrice))} × {item.quantity} = {formatPrice(Number(item.listing.finalPrice) * item.quantity)}
-                </p>
-                {itemIssues[item.id] && (
-                  <p className="text-xs text-danger mt-0.5">{itemIssues[item.id]}</p>
-                )}
+              <div className="flex items-center justify-end gap-1 pl-[3.75rem]">
+                <QuantityStepper
+                  className="shrink-0"
+                  value={item.quantity}
+                  min={item.listing.moq}
+                  max={item.listing.availableQty}
+                  onChange={(qty) => onQuantityChange(item.id, qty)}
+                  disabled={updatingId === item.id}
+                  aria-label={t('cart.quantityFor', { name: item.listing.medicine?.name ?? '' })}
+                />
+                <button
+                  type="button"
+                  className="p-2 text-text-secondary hover:text-danger min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
+                  aria-label={t('cart.removeItem')}
+                  onClick={() => onRemove(item.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-              <QuantityStepper
-                value={item.quantity}
-                min={item.listing.moq}
-                max={item.listing.availableQty}
-                onChange={(qty) => onQuantityChange(item.id, qty)}
-                disabled={updatingId === item.id}
-                aria-label={t('cart.quantityFor', { name: item.listing.medicine?.name ?? '' })}
-              />
-              <button
-                type="button"
-                className="p-2 text-text-secondary hover:text-danger min-h-[44px] min-w-[44px] flex items-center justify-center"
-                aria-label={t('cart.removeItem')}
-                onClick={() => onRemove(item.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
             </div>
             );
           })}
