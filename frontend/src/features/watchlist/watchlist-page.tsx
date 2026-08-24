@@ -164,7 +164,7 @@ function WatchlistRow({ item }: { item: WatchlistEntry }) {
         <div className="flex gap-2 items-end pt-2 border-t border-border-subtle">
           <div className="flex-1">
             <label className="text-[10px] text-text-secondary">{t('watchlist.maxPrice')}</label>
-            <Input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="৳" />
+            <Input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="0" />
           </div>
           <Button size="sm" variant="secondary" onClick={handleSetAlert}><Bell className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="tertiary" onClick={handleSimulate} title={t('watchlist.simulate')}><Zap className="h-3.5 w-3.5" /></Button>

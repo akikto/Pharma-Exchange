@@ -33,7 +33,9 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
         </span>
         <span className="flex flex-col">
           <span>{primary}</span>
-          <span className="text-[10px] font-normal text-text-disabled">{subtitle}</span>
+          {subtitle ? (
+            <span className="text-[10px] font-normal text-text-disabled">{subtitle}</span>
+          ) : null}
         </span>
       </Link>
     );
@@ -61,9 +63,11 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
       <span className={cn('relative text-[10px] font-medium leading-tight text-center', active ? 'text-primary' : 'text-text-disabled')}>
         {primary}
       </span>
-      <span className={cn('relative text-[8px] leading-none', active ? 'text-primary/70' : 'text-text-disabled')}>
-        {subtitle}
-      </span>
+      {subtitle ? (
+        <span className={cn('relative text-[8px] leading-none', active ? 'text-primary/70' : 'text-text-disabled')}>
+          {subtitle}
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -103,7 +107,9 @@ export function AdminNavLinkItem({ item, variant = 'side' }: { item: AdminNavIte
       <Icon className={cn('h-5 w-5', active && 'text-primary')} />
       <span className="flex flex-col">
         <span>{primary}</span>
-        <span className="text-[10px] font-normal text-text-disabled">{subtitle}</span>
+        {subtitle ? (
+          <span className="text-[10px] font-normal text-text-disabled">{subtitle}</span>
+        ) : null}
       </span>
     </Link>
   );

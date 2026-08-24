@@ -1,8 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
-import { LOCALE_STORAGE_KEY } from '@/i18n';
 import { Settings, Moon, Sun, LogOut, Store, ShoppingBag, ChevronRight } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
@@ -13,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { normalizeNotificationPrefs } from '@/lib/notification-prefs';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
-import type { AppLocale } from '@/i18n';
 import type { NotificationPrefs } from '@/lib/notification-prefs';
 
 export function ProfilePage() {
@@ -111,19 +108,11 @@ export function ProfilePage() {
 }
 
 export function SettingsPage() {
-  const { t, i18n: i18nInstance } = useTranslation();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuthStore();
   const updateProfile = useUpdateProfile();
   const prefs = normalizeNotificationPrefs(user?.notificationPrefs);
-
-  const handleLanguageChange = (lng: AppLocale) => {
-    void i18nInstance.changeLanguage(lng);
-    localStorage.setItem(LOCALE_STORAGE_KEY, lng);
-    void updateProfile.mutateAsync({ language: lng }).then(() => {
-      toast({ description: t('toast.languageChanged') });
-    }).catch(() => undefined);
-  };
 
   const togglePref = (key: keyof NotificationPrefs) => {
     const next = { ...prefs, [key]: !prefs[key] };
@@ -136,18 +125,6 @@ export function SettingsPage() {
     <div>
       <TopBar title={t('profile.settings')} showBack />
       <div className="p-4 space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="language-select">{t('profile.language')}</label>
-          <select
-            id="language-select"
-            className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle px-3 text-sm bg-surface-base"
-            value={i18n.language.startsWith('bn') ? 'bn' : 'en'}
-            onChange={(e) => handleLanguageChange(e.target.value as AppLocale)}
-          >
-            <option value="bn">{t('profile.languageBn')}</option>
-            <option value="en">{t('profile.languageEn')}</option>
-          </select>
-        </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">{t('profile.notificationPrefs')}</label>
           <div className="space-y-2">

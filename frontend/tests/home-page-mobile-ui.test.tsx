@@ -221,7 +221,7 @@ describe('HomePage mobile UI', () => {
 
     renderHomePage();
 
-    const input = await screen.findByLabelText(/search|খুঁজুন/i);
+    const input = await screen.findByLabelText(/search/i);
     expect(input.className).toContain('bg-surface-raised');
     expect(input.className).not.toContain('bg-primary-subtle');
   });

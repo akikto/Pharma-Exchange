@@ -61,6 +61,6 @@ describe('LoginPage UI', () => {
     expect(screen.getByTestId('auth-legal-links')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Privacy Policy/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Terms/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /forgot password|পাসওয়ার্ড ভুলে/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /forgot password/i })).toBeInTheDocument();
   });
 });

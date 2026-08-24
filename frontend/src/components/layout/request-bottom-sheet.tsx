@@ -63,7 +63,9 @@ export function RequestBottomSheet() {
         <div className="shell-gutter-x pb-3 flex flex-col gap-2 border-t border-border-subtle pt-2">
           <p className="text-xs text-text-secondary">
             {t('shell.requestSheetTitle')}
-            <span className="block text-[10px] text-text-disabled">{t('shell.requestSheetSub')}</span>
+            {t('shell.requestSheetSub') ? (
+              <span className="block text-[10px] text-text-disabled">{t('shell.requestSheetSub')}</span>
+            ) : null}
           </p>
 
           {previewItems.length > 0 && (

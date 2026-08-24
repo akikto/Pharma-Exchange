@@ -85,7 +85,7 @@ export async function api<T>(
   } catch {
     throw new ApiError(
       0,
-      'সার্ভারে সংযোগ করা যায়নি। ইন্টারনেট চেক করুন অথবা পেজ রিফ্রেশ করুন।',
+      'Could not reach the server. Check your internet connection or refresh the page.',
       'NETWORK_ERROR',
     );
   }
@@ -99,7 +99,7 @@ export async function api<T>(
       } catch {
         throw new ApiError(
           0,
-          'সার্ভারে সংযোগ করা যায়নি। ইন্টারনেট চেক করুন অথবা পেজ রিফ্রেশ করুন।',
+          'Could not reach the server. Check your internet connection or refresh the page.',
           'NETWORK_ERROR',
         );
       }

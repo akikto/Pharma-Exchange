@@ -129,7 +129,9 @@ export function SellerCartGroup({
                 {t('cart.sendBuyRequest')} →
               </Button>
             </div>
-            <p className="text-[10px] text-text-disabled">{t('cart.sendBuyRequestSub')}</p>
+            {t('cart.sendBuyRequestSub') ? (
+              <p className="text-[10px] text-text-disabled">{t('cart.sendBuyRequestSub')}</p>
+            ) : null}
           </div>
         </>
       )}
