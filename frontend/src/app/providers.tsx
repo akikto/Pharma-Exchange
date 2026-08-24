@@ -34,13 +34,11 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
   }, [theme, setTheme]);
 
   useEffect(() => {
-    if (user?.language === 'bn' || user?.language === 'en') {
-      void i18n.changeLanguage(user.language);
-    }
+    void i18n.changeLanguage('en');
     if (user?.theme === 'light' || user?.theme === 'dark' || user?.theme === 'system') {
       useThemeStore.getState().setTheme(user.theme);
     }
-  }, [user?.language, user?.theme]);
+  }, [user?.theme]);
 
   useEffect(() => {
     if (isLoading || !isOnline) return;
