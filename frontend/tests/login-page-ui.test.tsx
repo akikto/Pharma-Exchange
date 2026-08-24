@@ -45,12 +45,13 @@ describe('LoginPage UI', () => {
     expect(screen.queryByText(/সঠিক সাইট/i)).not.toBeInTheDocument();
   });
 
-  it('applies horizontal gutter on the auth shell (safe-area-only edge-to-edge)', () => {
+  it('applies auth-shell-x horizontal gutter (not edge-to-edge + px-6 conflict)', () => {
     renderLoginPage();
 
     const root = screen.getByTestId('login-page-root');
-    expect(root.className).toContain('px-6');
-    expect(root.className).toContain('edge-to-edge');
+    expect(root.className).toContain('auth-shell-x');
+    expect(root.className).not.toContain('edge-to-edge');
+    expect(root.className).not.toMatch(/\bpx-6\b/);
   });
 
   it('keeps sign-in form and legal links', () => {

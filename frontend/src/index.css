@@ -109,6 +109,12 @@ html[dir="rtl"] .rtl-flip {
     padding-right: env(safe-area-inset-right, 0px);
   }
 
+  /** Auth screens: horizontal gutter + notch inset (do not combine edge-to-edge with px-* on the same node). */
+  .auth-shell-x {
+    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  }
+
   .shell-gutter-x {
     padding-left: max(var(--shell-gutter-x), env(safe-area-inset-left, 0px));
     padding-right: max(var(--shell-gutter-x), env(safe-area-inset-right, 0px));

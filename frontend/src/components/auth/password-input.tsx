@@ -17,7 +17,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
     return (
       <div className="space-y-2">
-        {label && <Label htmlFor={id}>{label}</Label>}
+        {label && <Label htmlFor={id} className="block w-full">{label}</Label>}
         <div className="relative">
           <Input
             ref={ref}
