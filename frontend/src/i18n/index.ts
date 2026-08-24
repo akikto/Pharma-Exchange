@@ -23,7 +23,8 @@ void i18n.use(initReactI18next).init({
     escapeValue: false,
   },
   pluralSeparator: '_',
-  returnEmptyString: false,
+  /** Empty *Sub keys must resolve to '' so nav subtitles stay hidden (English-only). */
+  returnEmptyString: true,
 });
 
 try {
