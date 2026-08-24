@@ -33,7 +33,7 @@ export function TopBar({
     <header
       className={cn(
         'sticky top-0 z-40 border-b border-border-subtle bg-surface-base/95 backdrop-blur supports-[backdrop-filter]:bg-surface-base/80',
-        large ? 'px-0 pt-4 pb-2' : 'px-0 h-14 flex items-center gap-3',
+        large ? 'px-4 pt-4 pb-2' : 'px-4 h-14 flex items-center gap-3',
       )}
     >
       {showBack && (
