@@ -45,7 +45,10 @@ describe('SellerCartGroup line item', () => {
 
     const name = screen.getByTestId('cart-item-medicine-name');
     expect(name).toHaveTextContent('LIMCEE 500 mg Tablet');
-    expect(name.className).not.toContain('truncate');
-    expect(name.className).not.toContain('line-clamp');
+    expect(name.className).toContain('truncate');
+
+    const priceMobile = screen.getByTestId('cart-item-price-line-mobile');
+    expect(priceMobile.className).toContain('whitespace-nowrap');
+    expect(priceMobile.className).toContain('truncate');
   });
 });
