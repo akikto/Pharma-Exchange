@@ -12,6 +12,7 @@ import { MedicineNameAutocomplete } from '@/components/medicine/medicine-name-au
 import { MedicineImageUpload } from '@/components/medicine/medicine-image-upload';
 import { apiClient } from '@/lib/api';
 import { getErrorMessage } from '@/lib/api-errors';
+import { useInventoryStats } from '@/hooks/use-api';
 import {
   clearListingDraft,
   isListingDraftEmpty,
@@ -116,6 +117,11 @@ export function ListingFormPage() {
       if (saveDraftTimer.current) clearTimeout(saveDraftTimer.current);
     };
   }, [form, medicineQuery, isEdit, draftLoaded]);
+
+  const { data: inventoryStats } = useInventoryStats();
+  const maxActiveListings = inventoryStats?.maxActiveListings ?? 50;
+  const atActiveCap =
+    !isEdit && (inventoryStats?.active ?? 0) >= maxActiveListings;
 
   const save = useMutation({
     mutationFn: async () => {
@@ -238,8 +244,14 @@ export function ListingFormPage() {
         <div><Label>MOQ</Label><Input type="number" value={form.moq} onChange={(e) => setForm({ ...form, moq: e.target.value })} required /></div>
         <div><Label>Low Stock Threshold (optional)</Label><Input type="number" value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })} placeholder="Default: max(MOQ×2, 20)" /></div>
 
+        {atActiveCap && (
+          <p className="text-sm text-warning" data-testid="listing-active-cap-warning">
+            {t('listing.activeCapReached', { max: maxActiveListings })}
+          </p>
+        )}
+
         {error && <p className="text-sm text-danger" data-testid="listing-form-error">{error}</p>}
-        <Button type="submit" className="w-full" loading={save.isPending}>
+        <Button type="submit" className="w-full" loading={save.isPending} disabled={atActiveCap}>
           {isEdit ? 'Update Listing' : 'Create Listing'}
         </Button>
       </form>

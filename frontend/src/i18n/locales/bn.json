@@ -317,7 +317,8 @@
     "draftRestored": "খসড়া পুনরুদ্ধার হয়েছে — যেখানে ছেড়েছিলেন সেখান থেকে চালিয়ে যান",
     "clearDraft": "খসড়া মুছুন",
     "medicineRequired": "অনুগ্রহ করে search result থেকে একটি medicine নির্বাচন করুন।",
-    "medicineDetails": "ওষুধের তথ্য"
+    "medicineDetails": "ওষুধের তথ্য",
+    "activeCapReached": "You have reached the maximum of {{max}} active listings. Pause or remove a listing before adding another."
   },
   "offer": {
     "lowStock": "কম স্টক",
@@ -643,7 +644,8 @@
       "ACTIVE": "সক্রিয়",
       "PAUSED": "বিরতি",
       "SOLD_OUT": "শেষ",
-      "LOW_STOCK": "কম স্টক"
+      "LOW_STOCK": "কম স্টক",
+      "activeOfMax": "{{active}} / {{max}}"
     },
     "tab": {
       "ACTIVE": "সক্রিয়",

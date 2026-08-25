@@ -319,7 +319,8 @@
     "draftRestored": "Draft restored — continue where you left off",
     "clearDraft": "Clear draft",
     "medicineRequired": "Please select a medicine from the search results.",
-    "medicineDetails": "Medicine information"
+    "medicineDetails": "Medicine information",
+    "activeCapReached": "You have reached the maximum of {{max}} active listings. Pause or remove a listing before adding another."
   },
   "offer": {
     "lowStock": "Low stock",
@@ -647,7 +648,8 @@
       "ACTIVE": "Active",
       "PAUSED": "Paused",
       "SOLD_OUT": "Sold out",
-      "LOW_STOCK": "Low stock"
+      "LOW_STOCK": "Low stock",
+      "activeOfMax": "{{active}} / {{max}}"
     },
     "tab": {
       "ACTIVE": "Active",

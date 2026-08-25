@@ -132,7 +132,11 @@ export function SellerInventoryPage() {
               data-testid={`inventory-stat-${key}`}
             >
               <p className="text-[10px] text-text-secondary">{t(`inventory.stat.${key}`)}</p>
-              <p className="text-lg font-bold tabular-nums">{count}</p>
+              <p className="text-lg font-bold tabular-nums">
+                {key === 'ACTIVE' && stats?.maxActiveListings != null
+                  ? t('inventory.stat.activeOfMax', { active: count, max: stats.maxActiveListings })
+                  : count}
+              </p>
             </button>
           ))}
         </div>
