@@ -779,6 +779,7 @@
   },
   "admin": {
     "dashboard": "Admin Dashboard",
+    "backToMarketplace": "Back to Marketplace",
     "dashboardSub": "",
     "users": "Users",
     "pharmacies": "Pharmacies",
