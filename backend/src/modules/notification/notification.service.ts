@@ -1,5 +1,6 @@
 import { NotificationType } from '@prisma/client';
 import prisma from '../../config/database';
+import { AppError } from '../../shared/errors/AppError';
 import { getFirebaseMessaging } from '../../config/firebase';
 import { logger } from '../../shared/utils/logger';
 import {
@@ -195,6 +196,24 @@ export class NotificationService {
   async markAllRead(userId: string) {
     await prisma.notification.updateMany({ where: { userId, isRead: false }, data: { isRead: true } });
     return { message: 'All notifications marked as read' };
+  }
+
+  async deleteOne(userId: string, id: string) {
+    const result = await prisma.notification.deleteMany({ where: { id, userId } });
+    if (result.count === 0) throw AppError.notFound('Notification not found');
+    return { message: 'Notification deleted' };
+  }
+
+  async deleteMany(userId: string, ids: string[]) {
+    const result = await prisma.notification.deleteMany({
+      where: { userId, id: { in: ids } },
+    });
+    return { deleted: result.count };
+  }
+
+  async deleteAll(userId: string) {
+    const result = await prisma.notification.deleteMany({ where: { userId } });
+    return { deleted: result.count };
   }
 }
 
