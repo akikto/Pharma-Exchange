@@ -38,3 +38,36 @@ export function markAllNotificationsReadInCache(queryClient: QueryClient): void 
     };
   });
 }
+
+function unreadDeltaForRemoved(
+  removed: Notification[],
+): number {
+  return removed.filter((notification) => !notification.isRead).length;
+}
+
+export function removeNotificationsFromCache(
+  queryClient: QueryClient,
+  ids: string[],
+): void {
+  if (ids.length === 0) return;
+  const idSet = new Set(ids);
+
+  queryClient.setQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY, (prev) => {
+    if (!prev) return prev;
+
+    const removed = prev.data.filter((notification) => idSet.has(notification.id));
+    if (removed.length === 0) return prev;
+
+    return {
+      unreadCount: Math.max(0, prev.unreadCount - unreadDeltaForRemoved(removed)),
+      data: prev.data.filter((notification) => !idSet.has(notification.id)),
+    };
+  });
+}
+
+export function clearNotificationsCache(queryClient: QueryClient): void {
+  queryClient.setQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY, (prev) => {
+    if (!prev) return prev;
+    return { unreadCount: 0, data: [] };
+  });
+}

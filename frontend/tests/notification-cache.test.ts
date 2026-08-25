@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 import {
+  clearNotificationsCache,
   markAllNotificationsReadInCache,
   markNotificationReadInCache,
   NOTIFICATIONS_QUERY_KEY,
+  removeNotificationsFromCache,
   type NotificationsData,
 } from '@/lib/notification-cache';
 import type { Notification } from '@/types';
@@ -71,5 +73,27 @@ describe('notification-cache', () => {
 
     const next = queryClient.getQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY);
     expect(next?.unreadCount).toBe(2);
+  });
+
+  it('removes notifications and adjusts unread count', () => {
+    const queryClient = new QueryClient();
+    seedNotifications(queryClient, { data: sampleNotifications, unreadCount: 2 });
+
+    removeNotificationsFromCache(queryClient, ['n1', 'n3']);
+
+    const next = queryClient.getQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY);
+    expect(next?.data.map((n) => n.id)).toEqual(['n2']);
+    expect(next?.unreadCount).toBe(1);
+  });
+
+  it('clears all notifications from cache', () => {
+    const queryClient = new QueryClient();
+    seedNotifications(queryClient, { data: sampleNotifications, unreadCount: 2 });
+
+    clearNotificationsCache(queryClient);
+
+    const next = queryClient.getQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY);
+    expect(next?.data).toEqual([]);
+    expect(next?.unreadCount).toBe(0);
   });
 });
