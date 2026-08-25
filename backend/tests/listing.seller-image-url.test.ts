@@ -52,7 +52,8 @@ import { listingService } from '../src/modules/listing/listing.service';
 describe('seller listing imageUrl restrictions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    queryRaw.mockResolvedValue([{ id: pharmacyId }]);
+    pharmacyFindUnique.mockResolvedValue({ id: pharmacyId });
+    executeRaw.mockResolvedValue(1);
     listingCreate.mockResolvedValue({
       id: 'listing-1',
       status: ListingStatus.DRAFT,
