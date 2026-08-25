@@ -5,6 +5,7 @@ import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
 import { haversineKm } from '../../shared/utils/geo';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { priceAlertService } from '../watchlist/priceAlert.service';
+import { ACTIVE_LISTING_CAP_MESSAGE, MAX_ACTIVE_LISTINGS_PER_PHARMACY } from './listing.constants';
 
 type SearchQuery = Record<string, unknown>;
 
@@ -17,6 +18,19 @@ export function resolveLowStockThreshold(listing: { availableQty: number; moq: n
 
 export function isListingLowStock(listing: { availableQty: number; moq: number; lowStockThreshold?: number | null; status: ListingStatus }): boolean {
   return listing.status === ListingStatus.ACTIVE && listing.availableQty <= resolveLowStockThreshold(listing);
+}
+
+async function assertActiveListingCap(pharmacyId: string, excludeListingId?: string): Promise<void> {
+  const count = await prisma.listing.count({
+    where: {
+      pharmacyId,
+      status: ListingStatus.ACTIVE,
+      ...(excludeListingId ? { id: { not: excludeListingId } } : {}),
+    },
+  });
+  if (count >= MAX_ACTIVE_LISTINGS_PER_PHARMACY) {
+    throw AppError.conflict(ACTIVE_LISTING_CAP_MESSAGE);
+  }
 }
 
 export class ListingService {
@@ -264,6 +278,10 @@ export class ListingService {
 
   async create(userId: string, data: Record<string, unknown>) {
     const pharmacy = await getPharmacyForUser(userId);
+    const status = (data.status as ListingStatus) ?? ListingStatus.DRAFT;
+    if (status === ListingStatus.ACTIVE) {
+      await assertActiveListingCap(pharmacy.id);
+    }
     const finalPrice = computeFinalPrice(Number(data.sellingPrice), Number(data.discountPercent ?? 0));
 
     const listing = await prisma.listing.create({
@@ -282,7 +300,7 @@ export class ListingService {
         unit: (data.unit as string) ?? 'strip',
         lowStockThreshold: data.lowStockThreshold != null ? Number(data.lowStockThreshold) : undefined,
         imageUrl: data.imageUrl as string | undefined,
-        status: (data.status as ListingStatus) ?? ListingStatus.DRAFT,
+        status,
       },
       include: { medicine: true },
     });
@@ -310,6 +328,11 @@ export class ListingService {
     if (data.mfgDate) updateData.mfgDate = new Date(data.mfgDate as string);
     if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
     if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
+
+    const nextStatus = (data.status as ListingStatus | undefined) ?? existing.status;
+    if (nextStatus === ListingStatus.ACTIVE && existing.status !== ListingStatus.ACTIVE) {
+      await assertActiveListingCap(pharmacy.id, id);
+    }
 
     const updated = await prisma.listing.update({
       where: { id },
@@ -347,11 +370,24 @@ export class ListingService {
     const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
     if (!existing) throw AppError.notFound('Listing not found');
 
+    const reactivatingFromSoldOut =
+      existing.status === ListingStatus.SOLD_OUT && availableQty > 0;
+    if (reactivatingFromSoldOut) {
+      await assertActiveListingCap(pharmacy.id, id);
+    }
+
+    const nextStatus =
+      availableQty === 0
+        ? ListingStatus.SOLD_OUT
+        : reactivatingFromSoldOut
+          ? ListingStatus.ACTIVE
+          : existing.status;
+
     return prisma.listing.update({
       where: { id },
       data: {
         availableQty,
-        status: availableQty === 0 ? ListingStatus.SOLD_OUT : existing.status === ListingStatus.SOLD_OUT ? ListingStatus.ACTIVE : existing.status,
+        status: nextStatus,
       },
     });
   }
@@ -369,6 +405,10 @@ export class ListingService {
     const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
     if (!existing) throw AppError.notFound('Listing not found');
 
+    if (existing.status !== ListingStatus.ACTIVE) {
+      await assertActiveListingCap(pharmacy.id, id);
+    }
+
     return prisma.listing.update({ where: { id }, data: { status: ListingStatus.ACTIVE } });
   }
 
@@ -381,12 +421,17 @@ export class ListingService {
     const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
     if (!existing) throw AppError.notFound('Listing not found');
 
+    const willActivate = existing.status === ListingStatus.SOLD_OUT;
+    if (willActivate) {
+      await assertActiveListingCap(pharmacy.id, id);
+    }
+
     const availableQty = existing.availableQty + amount;
     return prisma.listing.update({
       where: { id },
       data: {
         availableQty,
-        status: existing.status === ListingStatus.SOLD_OUT ? ListingStatus.ACTIVE : existing.status,
+        status: willActivate ? ListingStatus.ACTIVE : existing.status,
       },
       include: { medicine: true },
     });
@@ -422,7 +467,7 @@ export class ListingService {
       if (isListingLowStock({ ...listing, status: listing.status })) lowStock += 1;
     }
 
-    return { active, paused, soldOut, lowStock, total: listings.length };
+    return { active, paused, soldOut, lowStock, total: listings.length, maxActiveListings: MAX_ACTIVE_LISTINGS_PER_PHARMACY };
   }
 
   async exportInventoryCsv(userId: string): Promise<string> {

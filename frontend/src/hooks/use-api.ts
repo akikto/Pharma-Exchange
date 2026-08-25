@@ -179,7 +179,7 @@ export function useSellerInventory(tab?: string, search?: string) {
 export function useInventoryStats() {
   return useQuery({
     queryKey: ['inventory-stats'],
-    queryFn: () => apiClient.get<{ active: number; paused: number; soldOut: number; lowStock: number; total: number }>('/listings/inventory/stats'),
+    queryFn: () => apiClient.get<{ active: number; paused: number; soldOut: number; lowStock: number; total: number; maxActiveListings: number }>('/listings/inventory/stats'),
   });
 }
 
