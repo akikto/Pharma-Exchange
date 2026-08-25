@@ -118,7 +118,7 @@ export function SellerDashboardPage() {
           <Link to="/seller/listing/new"><Button className="w-full" size="lg"><Plus className="h-4 w-4" /> {t('seller.addListing')}</Button></Link>
           <Link to="/seller/inventory"><Button variant="secondary" className="w-full" size="lg"><Package className="h-4 w-4" /> {t('seller.inventory')}</Button></Link>
           <Link to="/seller/orders"><Button variant="secondary" className="w-full"><Inbox className="h-4 w-4" /> {t('seller.orders')}</Button></Link>
-          <Link to="/seller/requests" className="min-w-0">
+          <Link to="/seller/requests" className="min-w-0" data-testid="seller-dashboard-requests-link">
             <Button
               variant="secondary"
               className="w-full min-w-0 h-auto min-h-[44px] py-2.5 px-2 whitespace-normal text-center leading-snug gap-1.5 flex-wrap"
