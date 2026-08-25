@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users, ChevronRight } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
+import { marketplaceCardShellClasses } from '@/lib/listing-card-tone';
 import type { CatalogGroup } from '@/lib/catalog-groups';
-import { cn } from '@/lib/utils';
 
 interface CatalogGroupCardProps {
   group: CatalogGroup;
@@ -18,8 +18,8 @@ export function CatalogGroupCard({ group, className }: CatalogGroupCardProps) {
       to={`/medicine/${group.medicineId}/compare`}
       data-testid={`catalog-group-${group.medicineId}`}
       className={cn(
-        'block w-full text-left rounded-[var(--radius-md)] border border-border-subtle bg-surface-base p-3',
-        'transition-shadow hover:shadow-md active:scale-[0.99]',
+        'block w-full text-left p-3 active:scale-[0.99]',
+        marketplaceCardShellClasses('default', true),
         className,
       )}
     >

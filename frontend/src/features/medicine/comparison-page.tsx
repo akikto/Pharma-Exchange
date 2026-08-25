@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { OfferCard } from '@/components/offers/offer-card';
+import { ListingCard } from '@/components/listing-card';
 import { useListingCompare } from '@/hooks/use-listing-compare';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { useShellStore } from '@/stores/shell-store';
@@ -156,7 +156,7 @@ export function ComparisonPage() {
           <div className="pt-4 space-y-3">
             <h2 className="font-semibold text-sm">{t('compare.detailedOffers')}</h2>
             {listings.map((listing) => (
-              <OfferCard key={listing.id} listing={listing} variant="list" showActions bestPrice={bestPrice} />
+              <ListingCard key={listing.id} listing={listing} variant="list" showActions bestPrice={bestPrice} />
             ))}
           </div>
         </div>
