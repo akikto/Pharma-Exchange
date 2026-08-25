@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, Moon, Sun, LogOut, Store, ShoppingBag, ChevronRight } from 'lucide-react';
+import { Settings, Moon, Sun, LogOut, Store, ShoppingBag, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth-store';
@@ -12,6 +12,7 @@ import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { normalizeNotificationPrefs } from '@/lib/notification-prefs';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import type { NotificationPrefs } from '@/lib/notification-prefs';
+import { isAdminUser } from '@/lib/auth-utils';
 
 export function ProfilePage() {
   const { t } = useTranslation();
@@ -67,6 +68,19 @@ export function ProfilePage() {
         )}
 
         <div className="space-y-1">
+          {isAdminUser(user) && (
+            <Link
+              to="/admin"
+              data-testid="profile-admin-dashboard"
+              className="flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised border border-primary/25 bg-primary-subtle/50"
+            >
+              <span className="flex items-center gap-2 font-medium text-primary">
+                <LayoutDashboard className="h-4 w-4" aria-hidden />
+                {t('profile.adminDashboard')}
+              </span>
+              <ChevronRight className="h-4 w-4 text-text-secondary" />
+            </Link>
+          )}
           <button
             type="button"
             className="w-full flex items-center justify-between p-3 rounded-[var(--radius-md)] hover:bg-surface-raised"
