@@ -6,13 +6,15 @@ const userId = 'user-1';
 const medicineId = '550e8400-e29b-41d4-a716-446655440000';
 
 const listingCreate = vi.fn();
+const listingFindFirst = vi.fn();
+const listingUpdate = vi.fn();
 
 vi.mock('../src/config/database', () => ({
   default: {
     listing: {
       create: (...args: unknown[]) => listingCreate(...args),
-      findFirst: vi.fn(),
-      update: vi.fn(),
+      findFirst: (...args: unknown[]) => listingFindFirst(...args),
+      update: (...args: unknown[]) => listingUpdate(...args),
       count: vi.fn(),
     },
   },

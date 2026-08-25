@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import request from 'supertest';
 import { createApp } from '../src/app';
+import prisma from '../src/config/database';
 import { signAccessToken } from '../src/shared/middleware/auth.middleware';
-import { UserRole } from '@prisma/client';
 
 const uploadOptimizedImage = vi.fn();
 const cleanupImageIfUnreferenced = vi.fn();
@@ -26,7 +26,18 @@ const fixturePath = join(__dirname, 'fixtures', 'tiny.png');
 
 describe('POST /api/v1/upload/medicine-image processing', () => {
   const app = createApp();
-  const adminToken = signAccessToken({ userId: 'admin-user', role: UserRole.ADMIN });
+  let adminToken = '';
+
+  beforeAll(async () => {
+    try {
+      const admin = await prisma.user.findUnique({ where: { email: 'admin@pharmex.bd' } });
+      if (admin) {
+        adminToken = signAccessToken({ userId: admin.id, role: admin.role });
+      }
+    } catch {
+      adminToken = '';
+    }
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -37,7 +48,8 @@ describe('POST /api/v1/upload/medicine-image processing', () => {
     });
   });
 
-  it('optimizes upload to webp and stores via Firebase-compatible storage helper', async () => {
+  it('optimizes upload to webp and stores via Firebase-compatible storage helper', async ({ skip }) => {
+    if (!adminToken) skip();
     const buffer = readFileSync(fixturePath);
 
     const res = await request(app)

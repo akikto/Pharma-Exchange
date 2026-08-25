@@ -305,16 +305,18 @@ export class ListingService {
     const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
     if (!existing) throw AppError.notFound('Listing not found');
 
-    const finalPrice = data.sellingPrice !== undefined || data.discountPercent !== undefined
+    const sellerData = stripSellerImageUrlOverride(data);
+
+    const finalPrice = sellerData.sellingPrice !== undefined || sellerData.discountPercent !== undefined
       ? computeFinalPrice(
-          Number(data.sellingPrice ?? existing.sellingPrice),
-          Number(data.discountPercent ?? existing.discountPercent)
+          Number(sellerData.sellingPrice ?? existing.sellingPrice),
+          Number(sellerData.discountPercent ?? existing.discountPercent)
         )
       : undefined;
 
-    const updateData: Record<string, unknown> = stripSellerImageUrlOverride({ ...data });
-    if (data.mfgDate) updateData.mfgDate = new Date(data.mfgDate as string);
-    if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
+    const updateData: Record<string, unknown> = { ...sellerData };
+    if (sellerData.mfgDate) updateData.mfgDate = new Date(sellerData.mfgDate as string);
+    if (sellerData.expiryDate) updateData.expiryDate = new Date(sellerData.expiryDate as string);
     if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
 
     const updated = await prisma.listing.update({

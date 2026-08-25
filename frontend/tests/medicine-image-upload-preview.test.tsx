@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MedicineImageUpload } from '@/components/medicine/medicine-image-upload';
+
+vi.mock('@/hooks/use-medicine-image-upload', () => ({
+  useMedicineImageUpload: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    error: null,
+  }),
+}));
 
 describe('MedicineImageUpload preview-only mode', () => {
   it('does not render file input or upload controls when allowUpload is false', () => {
