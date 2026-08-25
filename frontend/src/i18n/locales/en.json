@@ -29,6 +29,8 @@
     "medicinesSub": "",
     "banners": "Banners",
     "bannersSub": "",
+    "sellers": "Sellers",
+    "sellersSub": "",
     "desktopNavigation": "Desktop navigation",
     "mobileNavigation": "Mobile navigation"
   },
@@ -774,6 +776,55 @@
     "broadcastSent": "Broadcast sent",
     "broadcastSentDesc": "Delivered to {{count}} users",
     "broadcastFailed": "Broadcast failed",
+    "sellers": {
+      "nav": "Seller management",
+      "title": "Seller management",
+      "description": "Search pharmacies, review verification documents, approve or reject sellers, and suspend accounts.",
+      "searchPlaceholder": "Search by pharmacy name, license, city, email, or phone…",
+      "filterAll": "All statuses",
+      "empty": "No sellers match your filters.",
+      "loadError": "Failed to load sellers.",
+      "manage": "Manage",
+      "detailTitle": "Seller details",
+      "documents": "Uploaded documents",
+      "approved": "Seller approved",
+      "rejected": "Seller rejected",
+      "suspended": "Seller suspended",
+      "reactivated": "Seller reactivated",
+      "suspend": "Suspend account",
+      "reactivate": "Reactivate account",
+      "accountActive": "Active",
+      "accountSuspended": "Suspended",
+      "actionFailed": "Action failed",
+      "rejectReasonPrompt": "Rejection reason (optional)",
+      "listingCounts": "{{active}} active / {{total}} total listings",
+      "activeFilter": {
+        "all": "All accounts",
+        "active": "Active only",
+        "inactive": "Suspended only"
+      },
+      "columns": {
+        "pharmacy": "Pharmacy",
+        "owner": "Owner",
+        "verification": "Verification",
+        "listings": "Listings",
+        "account": "Account",
+        "actions": "Actions"
+      },
+      "fields": {
+        "license": "License",
+        "address": "Address",
+        "owner": "Owner contact",
+        "listings": "Listings",
+        "orders": "Orders fulfilled"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "UNDER_REVIEW": "Under review",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      }
+    },
     "payments": "Payments",
     "paymentsDesc": "Reconcile Razorpay payment attempts and refunds across orders.",
     "paymentsEmpty": "No payment records yet",

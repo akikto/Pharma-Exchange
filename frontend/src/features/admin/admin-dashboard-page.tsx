@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -55,6 +55,7 @@ export function AdminDashboardPage() {
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">Active Listings</p><p className="text-xl font-bold">{data?.activeListings ?? 0}</p></CardContent></Card>
         </div>
         <div className="flex gap-3 flex-wrap">
+          <Link to="/admin/sellers"><Button variant="secondary">{t('admin.sellers.nav')}</Button></Link>
           <Link to="/admin/verifications"><Button>Verification Queue</Button></Link>
           <Link to="/admin/medicines"><Button variant="secondary">{t('admin.medicines.nav')}</Button></Link>
           <Link to="/admin/banners" data-testid="admin-dash-banners">
@@ -96,39 +97,7 @@ export function AdminDashboardPage() {
 }
 
 export function AdminVerificationsPage() {
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'verifications'],
-    queryFn: () => apiClient.get<{ data: { id: string; name: string; city: string; verificationStatus: string }[] }>('/admin/verifications'),
-  });
-
-  const verify = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: 'approve' | 'reject' }) =>
-      apiClient.post(`/admin/verifications/${id}`, { action }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'verifications'] }),
-  });
-
-  return (
-    <div className="min-h-screen bg-surface-raised">
-      <TopBar title="Verifications" showBack />
-      <div className="p-4 space-y-3 max-w-3xl mx-auto">
-        {isLoading ? <ListSkeleton /> : data?.data.map((p) => (
-          <div key={p.id} className="p-3 border border-border-subtle rounded-[var(--radius-md)] flex justify-between items-center">
-            <div>
-              <p className="font-medium">{p.name}</p>
-              <p className="text-sm text-text-secondary">{p.city} · {p.verificationStatus}</p>
-            </div>
-            {p.verificationStatus === 'PENDING' && (
-              <div className="flex gap-2">
-                <Button size="sm" variant="destructive" onClick={() => verify.mutate({ id: p.id, action: 'reject' })}>Reject</Button>
-                <Button size="sm" onClick={() => verify.mutate({ id: p.id, action: 'approve' })}>Approve</Button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <Navigate to="/admin/sellers?verificationStatus=PENDING" replace />;
 }
 
 export function AdminReportsPage() {
