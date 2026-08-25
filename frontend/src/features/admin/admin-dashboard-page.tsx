@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { apiClient } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { AdminSellersPage } from '@/features/admin/admin-sellers-page';
 
 export function AdminDashboardPage() {
   const { t } = useTranslation();
@@ -97,7 +98,7 @@ export function AdminDashboardPage() {
 }
 
 export function AdminVerificationsPage() {
-  return <Navigate to="/admin/sellers?verificationStatus=PENDING" replace />;
+  return <AdminSellersPage mode="verification-queue" />;
 }
 
 export function AdminReportsPage() {
@@ -114,7 +115,7 @@ export function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-surface-raised">
-      <TopBar title="Reports" showBack />
+      <TopBar title="Reports" showBack backTo="/admin" />
       <div className="p-4 space-y-3 max-w-3xl mx-auto">
         {isLoading ? <ListSkeleton /> : data?.data.length === 0 ? (
           <p className="text-center text-text-secondary py-12">No open reports</p>

@@ -17,7 +17,13 @@ import { getNotificationRoute } from '@/lib/notification-routes';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Notification } from '@/types';
 
-export function NotificationsPage() {
+export function NotificationsPage({
+  backTo,
+  embeddedInAdminShell = false,
+}: {
+  backTo?: string;
+  embeddedInAdminShell?: boolean;
+}) {
   const { t } = useTranslation();
   const { data, isLoading } = useNotifications();
   const queryClient = useQueryClient();
@@ -149,10 +155,11 @@ export function NotificationsPage() {
   );
 
   return (
-    <div className="pb-24">
+    <div className={embeddedInAdminShell ? 'pb-4' : 'pb-24'}>
       <TopBar
         title={t('notifications.title')}
         showBack
+        backTo={backTo}
         showNotifications={false}
         actions={topActions}
       />
