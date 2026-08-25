@@ -28,7 +28,7 @@ function stripSellerImageUrlOverride(data: Record<string, unknown>): Record<stri
 
 async function lockPharmacyRow(tx: Prisma.TransactionClient, pharmacyId: string): Promise<void> {
   const rows = await tx.$queryRaw<{ id: string }[]>`
-    SELECT id FROM "Pharmacy" WHERE id = ${pharmacyId}::uuid FOR UPDATE
+    SELECT id FROM "Pharmacy" WHERE id = ${pharmacyId} FOR UPDATE
   `;
   if (!rows.length) throw AppError.notFound('Pharmacy not found');
 }
@@ -339,19 +339,21 @@ export class ListingService {
       const existing = await tx.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
       if (!existing) throw AppError.notFound('Listing not found');
 
-      const finalPrice = data.sellingPrice !== undefined || data.discountPercent !== undefined
+      const sellerData = stripSellerImageUrlOverride(data);
+
+      const finalPrice = sellerData.sellingPrice !== undefined || sellerData.discountPercent !== undefined
         ? computeFinalPrice(
-            Number(data.sellingPrice ?? existing.sellingPrice),
-            Number(data.discountPercent ?? existing.discountPercent)
+            Number(sellerData.sellingPrice ?? existing.sellingPrice),
+            Number(sellerData.discountPercent ?? existing.discountPercent)
           )
         : undefined;
 
-      const updateData: Record<string, unknown> = { ...data };
-      if (data.mfgDate) updateData.mfgDate = new Date(data.mfgDate as string);
-      if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
+      const updateData: Record<string, unknown> = { ...sellerData };
+      if (sellerData.mfgDate) updateData.mfgDate = new Date(sellerData.mfgDate as string);
+      if (sellerData.expiryDate) updateData.expiryDate = new Date(sellerData.expiryDate as string);
       if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
 
-      const nextStatus = (data.status as ListingStatus | undefined) ?? existing.status;
+      const nextStatus = (sellerData.status as ListingStatus | undefined) ?? existing.status;
       if (nextStatus === ListingStatus.ACTIVE && existing.status !== ListingStatus.ACTIVE) {
         await assertActiveListingCapInTx(tx, pharmacy.id, id);
       }

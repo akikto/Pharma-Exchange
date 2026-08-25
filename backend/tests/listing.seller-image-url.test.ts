@@ -8,6 +8,20 @@ const medicineId = '550e8400-e29b-41d4-a716-446655440000';
 const listingCreate = vi.fn();
 const listingFindFirst = vi.fn();
 const listingUpdate = vi.fn();
+const listingCount = vi.fn();
+const queryRaw = vi.fn();
+
+function createTxClient() {
+  return {
+    listing: {
+      create: (...args: unknown[]) => listingCreate(...args),
+      findFirst: (...args: unknown[]) => listingFindFirst(...args),
+      update: (...args: unknown[]) => listingUpdate(...args),
+      count: (...args: unknown[]) => listingCount(...args),
+    },
+    $queryRaw: (...args: unknown[]) => queryRaw(...args),
+  };
+}
 
 vi.mock('../src/config/database', () => ({
   default: {
@@ -15,8 +29,9 @@ vi.mock('../src/config/database', () => ({
       create: (...args: unknown[]) => listingCreate(...args),
       findFirst: (...args: unknown[]) => listingFindFirst(...args),
       update: (...args: unknown[]) => listingUpdate(...args),
-      count: vi.fn(),
+      count: (...args: unknown[]) => listingCount(...args),
     },
+    $transaction: vi.fn(async (fn: (tx: ReturnType<typeof createTxClient>) => Promise<unknown>) => fn(createTxClient())),
   },
 }));
 
@@ -25,7 +40,7 @@ vi.mock('../src/shared/middleware/pharmacy.middleware', () => ({
 }));
 
 vi.mock('../src/modules/watchlist/priceAlert.service', () => ({
-  priceAlertService: { evaluateListing: vi.fn() },
+  priceAlertService: { evaluateListing: vi.fn(() => Promise.resolve()) },
 }));
 
 import { listingService } from '../src/modules/listing/listing.service';
@@ -33,6 +48,7 @@ import { listingService } from '../src/modules/listing/listing.service';
 describe('seller listing imageUrl restrictions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    queryRaw.mockResolvedValue([{ id: pharmacyId }]);
     listingCreate.mockResolvedValue({
       id: 'listing-1',
       status: ListingStatus.DRAFT,
@@ -63,5 +79,29 @@ describe('seller listing imageUrl restrictions', () => {
     );
     const createArg = listingCreate.mock.calls[0][0] as { data: Record<string, unknown> };
     expect(createArg.data.imageUrl).toBeUndefined();
+  });
+
+  it('ignores seller-provided imageUrl on update', async () => {
+    listingFindFirst.mockResolvedValue({
+      id: 'listing-1',
+      pharmacyId,
+      sellingPrice: 12,
+      discountPercent: 0,
+      status: ListingStatus.ACTIVE,
+    });
+    listingUpdate.mockResolvedValue({ id: 'listing-1', status: ListingStatus.ACTIVE, medicine: {} });
+
+    await listingService.update(userId, 'listing-1', {
+      imageUrl: 'https://evil.example.com/custom.jpg',
+      sellingPrice: 15,
+    });
+
+    expect(listingUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({
+          imageUrl: 'https://evil.example.com/custom.jpg',
+        }),
+      }),
+    );
   });
 });

@@ -40,7 +40,7 @@ vi.mock('../src/shared/middleware/pharmacy.middleware', () => ({
 }));
 
 vi.mock('../src/modules/watchlist/priceAlert.service', () => ({
-  priceAlertService: { evaluateListing: vi.fn() },
+  priceAlertService: { evaluateListing: vi.fn(() => Promise.resolve()) },
 }));
 
 import { listingService } from '../src/modules/listing/listing.service';
@@ -163,6 +163,22 @@ describe('active listing cap', () => {
         }),
       }),
     );
+  });
+
+  it('rejects update transition to ACTIVE when pharmacy is at cap', async () => {
+    listingFindFirst.mockResolvedValue({
+      id: 'listing-paused',
+      pharmacyId,
+      status: ListingStatus.PAUSED,
+      sellingPrice: 10,
+      discountPercent: 0,
+    });
+    listingCount.mockResolvedValue(MAX_ACTIVE_LISTINGS_PER_PHARMACY);
+
+    await expect(
+      listingService.update(userId, 'listing-paused', { status: ListingStatus.ACTIVE }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+    expect(listingUpdate).not.toHaveBeenCalled();
   });
 
   it('skips cap check for draft creates', async () => {

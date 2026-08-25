@@ -34,6 +34,7 @@ describe('Seller Inventory API', () => {
       soldOut: expect.any(Number),
       lowStock: expect.any(Number),
       total: expect.any(Number),
+      maxActiveListings: 50,
     });
   });
 
