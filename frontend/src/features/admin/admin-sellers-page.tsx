@@ -79,9 +79,11 @@ export function AdminSellersPage() {
       <div className="p-4 space-y-4 max-w-6xl mx-auto">
         <p className="text-sm text-text-secondary">{t('admin.sellers.description')}</p>
 
-        <p className="text-sm font-medium tabular-nums" data-testid="admin-sellers-total-count">
-          {t('admin.sellers.totalCount', { count: totalSellers })}
-        </p>
+        {!isLoading && !isError && (
+          <p className="text-sm font-medium tabular-nums" data-testid="admin-sellers-total-count">
+            {t('admin.sellers.totalCount', { count: totalSellers })}
+          </p>
+        )}
 
         <Input
           value={filters.q}

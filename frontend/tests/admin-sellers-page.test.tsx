@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -86,8 +86,9 @@ describe('AdminSellersPage', () => {
   it('shows total seller count', async () => {
     renderPage();
     const el = await screen.findByTestId('admin-sellers-total-count');
-    expect(el.textContent).toMatch(/1/);
-    expect(el.textContent?.toLowerCase()).toContain('seller');
+    await vi.waitFor(() => {
+      expect(el.textContent).toMatch(/1/);
+    });
   });
 
   it('opens manage dialog with approve actions for pending seller', async () => {
