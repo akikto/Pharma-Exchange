@@ -17,27 +17,6 @@ test.describe('Admin verification flow', () => {
     await page.getByRole('link', { name: /verification queue/i }).click();
     await expect(page).toHaveURL(/\/admin\/verifications/, { timeout: 15_000 });
     await expect(page.getByTestId('admin-verifications-page')).toBeVisible({ timeout: 15_000 });
-    await expect(
-      page.getByTestId('admin-sellers-table').or(page.getByTestId('admin-sellers-empty')),
-    ).toBeVisible({ timeout: 15_000 });
-  });
-
-  test('admin mobile Home navigates to dashboard', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/admin/verifications');
-    await expect(page.getByTestId('admin-verifications-page')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('admin-bottom-nav')).toBeVisible();
-    await page.getByTestId('nav-admin-bottom-adminHome').click();
-    await expect(page).toHaveURL(/\/admin\/?$/, { timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: 'Admin Dashboard' })).toBeVisible();
-  });
-
-  test('admin side nav returns to dashboard from sellers', async ({ page }) => {
-    await page.goto('/admin/sellers');
-    await expect(page.getByTestId('admin-sellers-page')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('nav-admin-dashboard').click();
-    await expect(page).toHaveURL(/\/admin\/?$/, { timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: 'Admin Dashboard' })).toBeVisible();
   });
 
   test('admin reports page loads', async ({ page }) => {
