@@ -148,37 +148,3 @@ export function AdminBottomNavLinkItem({ item }: { item: AdminBottomNavItem }) {
     </Link>
   );
 }
-
-export function AdminBottomNavLinkItem({ item }: { item: AdminBottomNavItem }) {
-  const { pathname } = useLocation();
-  const { to, icon: Icon, labelKey } = item;
-  const { primary } = useNavLabel(labelKey);
-  const active = isAdminBottomNavItemActive(pathname, item);
-
-  return (
-    <Link
-      to={to}
-      data-testid={`nav-admin-bottom-${labelKey}`}
-      className={cn(
-        'relative flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-2 py-1 transition-colors',
-        active ? 'text-primary' : 'text-text-disabled',
-      )}
-    >
-      {active && (
-        <span
-          className="pointer-events-none absolute inset-x-1 top-1 bottom-1 rounded-[var(--radius-md)] bg-primary-subtle"
-          aria-hidden
-        />
-      )}
-      <Icon className={cn('relative h-5 w-5', active ? 'text-primary fill-primary/20' : 'text-text-disabled')} />
-      <span
-        className={cn(
-          'relative text-center text-[10px] font-medium leading-tight',
-          active ? 'text-primary' : 'text-text-disabled',
-        )}
-      >
-        {primary}
-      </span>
-    </Link>
-  );
-}
