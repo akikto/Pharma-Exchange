@@ -1,5 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Inbox, Package, CreditCard, Pill, Image, Store } from 'lucide-react';
+import {
+  Home, ShoppingCart, Package, MessageCircle, User, LayoutDashboard, Inbox, Heart, CreditCard, Pill, Image, Store,
+} from 'lucide-react';
 import type { AppMode } from '@/types';
 
 export type NavBadgeKey = 'cart' | 'chat' | 'requests' | 'watchlist';
