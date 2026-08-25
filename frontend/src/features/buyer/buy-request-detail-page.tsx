@@ -9,9 +9,16 @@ import { StatusStepper } from '@/components/orders/status-stepper';
 import { useBuyRequest, useStartConversation } from '@/hooks/use-api';
 import { useRespondBuyRequest } from '@/hooks/use-chat-api';
 import { usePageRole } from '@/hooks/use-page-role';
+import {
+  canBuyerResendBuyRequest,
+  canSellerRespondToBuyRequest,
+  effectiveBuyRequestStatus,
+} from '@/lib/buy-request-utils';
 import { formatPrice } from '@/lib/utils';
-import { useState } from 'react';
+import { apiClient } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 const BUY_REQUEST_STEPS = ['PENDING', 'ACCEPTED'] as const;
 
@@ -23,10 +30,12 @@ export function BuyRequestDetailPage() {
   const startChat = useStartConversation();
   const respondRequest = useRespondBuyRequest();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [error, setError] = useState('');
 
   const pendingAction = respondRequest.isPending ? respondRequest.variables?.action ?? null : null;
+  const [resending, setResending] = useState(false);
 
   const stepLabels = {
     PENDING: t('buyRequest.steps.pending'),
@@ -66,21 +75,45 @@ export function BuyRequestDetailPage() {
     }
   };
 
+  const handleResend = async () => {
+    if (!id || resending) return;
+    setResending(true);
+    setError('');
+    try {
+      const created = await apiClient.post<{ id: string }>(`/buy-requests/${id}/resend`);
+      void queryClient.invalidateQueries({ queryKey: ['buy-requests'] });
+      toast({ description: t('buyRequest.resent') });
+      navigate(`/buy-requests/${created.id}`);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (isLoading) return <div className="p-4"><ListSkeleton /></div>;
   if (isError || !request) return <div className="p-4 text-center text-danger">{t('buyRequest.notFound')}</div>;
 
+  const displayStatus = effectiveBuyRequestStatus(request);
+  const sellerCanRespond = canSellerRespondToBuyRequest(request);
+  const buyerCanResend = canBuyerResendBuyRequest(request);
+
   const terminal =
-    request.status === 'REJECTED' ? 'REJECTED' : request.status === 'EXPIRED' ? 'EXPIRED' : undefined;
+    displayStatus === 'REJECTED' ? 'REJECTED' : displayStatus === 'EXPIRED' ? 'EXPIRED' : undefined;
+
+  const statusChipVariant =
+    displayStatus === 'ACCEPTED'
+      ? 'success'
+      : displayStatus === 'REJECTED' || displayStatus === 'EXPIRED'
+        ? 'danger'
+        : 'warning';
 
   return (
     <div>
       <TopBar title={request.requestNumber} showBack />
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <StatusChip
-            label={request.status}
-            variant={request.status === 'ACCEPTED' ? 'success' : request.status === 'REJECTED' ? 'danger' : 'warning'}
-          />
+          <StatusChip label={displayStatus} variant={statusChipVariant} />
           <span className="font-bold tabular-nums">{formatPrice(request.totalAmount)}</span>
         </div>
 
@@ -92,10 +125,22 @@ export function BuyRequestDetailPage() {
 
         <StatusStepper
           steps={BUY_REQUEST_STEPS}
-          currentStatus={request.status === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING'}
+          currentStatus={displayStatus === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING'}
           labels={stepLabels}
           terminalStatus={terminal}
         />
+
+        {displayStatus === 'PENDING' && request.expiresAt && (
+          <p className="text-sm text-text-secondary" data-testid="buy-request-expires-at">
+            {t('buyRequest.expiresAt', { date: new Date(request.expiresAt).toLocaleString() })}
+          </p>
+        )}
+
+        {displayStatus === 'EXPIRED' && (
+          <p className="rounded-[var(--radius-md)] border border-border-subtle bg-surface-raised p-3 text-sm text-text-secondary" data-testid="buy-request-expired-banner">
+            {t('buyRequest.expiredBanner')}
+          </p>
+        )}
 
         <div className="space-y-2">
           {request.items.map((item) => (
@@ -134,7 +179,7 @@ export function BuyRequestDetailPage() {
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
-        {role === 'seller' && request.status === 'PENDING' && (
+        {role === 'seller' && sellerCanRespond && (
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="destructive"
@@ -154,6 +199,18 @@ export function BuyRequestDetailPage() {
               {t('buyRequest.accept')}
             </Button>
           </div>
+        )}
+
+        {role === 'buyer' && buyerCanResend && (
+          <Button
+            className="w-full"
+            loading={resending}
+            disabled={resending}
+            data-testid="buy-request-resend-button"
+            onClick={() => void handleResend()}
+          >
+            {t('buyRequest.resend')}
+          </Button>
         )}
       </div>
     </div>

@@ -7,6 +7,11 @@ import { notificationService } from '../notification';
 import { chatSystemService } from '../chat/chatSystem.service';
 import { validateCartQuantity } from '../cart/cart.validation';
 import { logger } from '../../shared/utils/logger';
+import { BUY_REQUEST_SELLER_RESPONSE_MS } from './buyRequest.constants';
+import {
+  isBuyRequestPastExpiry,
+  sellerCanRespondToBuyRequest,
+} from './buyRequest.expiry';
 
 type BuyRequestWithItems = Prisma.BuyRequestGetPayload<{
   include: { items: { include: { listing: { include: { medicine: true } } } } };
@@ -17,6 +22,35 @@ function listingMedicineName(item: BuyRequestWithItems['items'][number]): string
 }
 
 export class BuyRequestService {
+  private async markExpiredIfNeeded(
+    request: { id: string; status: BuyRequestStatus; expiresAt: Date | null },
+  ): Promise<BuyRequestStatus> {
+    if (request.status !== BuyRequestStatus.PENDING || !isBuyRequestPastExpiry(request)) {
+      return request.status;
+    }
+    await prisma.buyRequest.update({
+      where: { id: request.id },
+      data: { status: BuyRequestStatus.EXPIRED },
+    });
+    return BuyRequestStatus.EXPIRED;
+  }
+
+  private async markExpiredBatch(
+    requests: { id: string; status: BuyRequestStatus; expiresAt: Date | null }[],
+  ): Promise<void> {
+    const ids = requests
+      .filter((request) => request.status === BuyRequestStatus.PENDING && isBuyRequestPastExpiry(request))
+      .map((request) => request.id);
+    if (!ids.length) return;
+    await prisma.buyRequest.updateMany({
+      where: { id: { in: ids } },
+      data: { status: BuyRequestStatus.EXPIRED },
+    });
+    for (const request of requests) {
+      if (ids.includes(request.id)) request.status = BuyRequestStatus.EXPIRED;
+    }
+  }
+
   async list(userId: string, role: string, status?: BuyRequestStatus, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
     const pharmacy = role === 'seller' ? await prisma.pharmacy.findUnique({ where: { userId } }) : null;
@@ -41,6 +75,8 @@ export class BuyRequestService {
       prisma.buyRequest.count({ where }),
     ]);
 
+    await this.markExpiredBatch(data);
+
     return { data, total, page, limit };
   }
 
@@ -60,6 +96,8 @@ export class BuyRequestService {
     const isBuyer = request.buyerId === userId;
     const isSeller = pharmacy && request.sellerId === pharmacy.id;
     if (!isBuyer && !isSeller) throw AppError.forbidden('Access denied');
+
+    request.status = await this.markExpiredIfNeeded(request);
 
     return request;
   }
@@ -100,7 +138,7 @@ export class BuyRequestService {
         data: {
           requestNumber: generateRequestNumber(),
           buyerId, sellerId, totalAmount, note,
-          expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + BUY_REQUEST_SELLER_RESPONSE_MS),
           items: { create: lineItems.map(({ listingId, quantity, unitPrice, subtotal }) => ({ listingId, quantity, unitPrice, subtotal })) },
         },
         include: { items: { include: { listing: { include: { medicine: true } } } }, seller: true },
@@ -135,6 +173,16 @@ export class BuyRequestService {
     });
 
     if (!buyRequest) throw AppError.notFound('Buy request not found or already responded');
+
+    if (!sellerCanRespondToBuyRequest(buyRequest)) {
+      if (buyRequest.status === BuyRequestStatus.PENDING) {
+        await prisma.buyRequest.update({
+          where: { id: requestId },
+          data: { status: BuyRequestStatus.EXPIRED },
+        });
+      }
+      throw AppError.badRequest('Buy request has expired');
+    }
 
     if (action === 'reject') {
       const updated = await prisma.buyRequest.update({
@@ -209,6 +257,26 @@ export class BuyRequestService {
     await this.runAcceptSideEffects(buyRequest, requestId, sellerUserId, order);
 
     return { buyRequest: request, order };
+  }
+
+  async resend(buyerId: string, requestId: string) {
+    const existing = await prisma.buyRequest.findFirst({
+      where: { id: requestId, buyerId },
+      include: { items: true },
+    });
+    if (!existing) throw AppError.notFound('Buy request not found');
+
+    const status = await this.markExpiredIfNeeded(existing);
+    if (status !== BuyRequestStatus.EXPIRED) {
+      throw AppError.badRequest('Only expired buy requests can be resent');
+    }
+
+    return this.create(
+      buyerId,
+      existing.sellerId,
+      existing.items.map((item) => ({ listingId: item.listingId, quantity: item.quantity })),
+      existing.note ?? undefined,
+    );
   }
 
   private async revertAcceptedBuyRequest(

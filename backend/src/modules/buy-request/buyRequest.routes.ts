@@ -48,6 +48,13 @@ class BuyRequestController {
       res.json(await buyRequestService.respond(req.user!.userId, req.params.id as string, action, sellerNote));
     } catch (err) { next(err); }
   }
+
+  async resend(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await buyRequestService.resend(req.user!.userId, req.params.id as string);
+      res.status(201).json(result);
+    } catch (err) { next(err); }
+  }
 }
 
 const ctrl = new BuyRequestController();
@@ -57,5 +64,6 @@ router.get('/', authenticate, ctrl.list.bind(ctrl));
 router.get('/:id', authenticate, ctrl.getById.bind(ctrl));
 router.post('/', authenticate, validate(createSchema), ctrl.create.bind(ctrl));
 router.post('/:id/respond', authenticate, validate(respondSchema), ctrl.respond.bind(ctrl));
+router.post('/:id/resend', authenticate, ctrl.resend.bind(ctrl));
 
 export default router;

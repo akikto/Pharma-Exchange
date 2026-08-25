@@ -22,8 +22,16 @@ export function getSellerOrderAction(orderStatus: string): SellerChatAction | nu
   return { key: next.status, labelKey: next.labelKey, status: next.status };
 }
 
-export function getSellerBuyRequestActions(requestStatus: string): SellerChatAction[] {
-  if (requestStatus !== 'PENDING') return [];
+import { effectiveBuyRequestStatus } from '@/lib/buy-request-utils';
+
+export function getSellerBuyRequestActions(
+  requestStatus: string,
+  expiresAt?: string | null,
+): SellerChatAction[] {
+  const status = expiresAt
+    ? effectiveBuyRequestStatus({ status: requestStatus, expiresAt })
+    : requestStatus;
+  if (status !== 'PENDING') return [];
   return [
     { key: 'accept', labelKey: 'chat.acceptRequest', action: 'accept' },
     { key: 'reject', labelKey: 'chat.rejectRequest', action: 'reject' },

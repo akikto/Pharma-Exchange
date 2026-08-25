@@ -425,6 +425,10 @@
     "searchPlaceholder": "Search requests…",
     "accepted": "Request accepted",
     "rejected": "Request rejected",
+    "resend": "Resend request",
+    "resent": "Buy request sent again",
+    "expiresAt": "Seller must respond by {{date}}",
+    "expiredBanner": "This request expired before the seller responded. You can resend it to try again.",
     "filter": {
       "all": "All",
       "pending": "Pending",

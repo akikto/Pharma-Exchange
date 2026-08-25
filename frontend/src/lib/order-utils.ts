@@ -1,4 +1,5 @@
 import type { BuyRequest, Order } from '@/types';
+import { effectiveBuyRequestStatus } from '@/lib/buy-request-utils';
 
 export const ORDER_FLOW_STEPS = ['CREATED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED'] as const;
 
@@ -50,7 +51,8 @@ export function filterOrders(orders: Order[], filter: OrderFilter, query: string
 export function filterBuyRequests(requests: BuyRequest[], filter: BuyRequestFilter, query: string): BuyRequest[] {
   const q = query.trim().toLowerCase();
   return requests.filter((req) => {
-    if (filter !== 'ALL' && req.status !== filter) return false;
+    const status = effectiveBuyRequestStatus(req);
+    if (filter !== 'ALL' && status !== filter) return false;
     if (!q) return true;
     const haystack = [
       req.requestNumber,

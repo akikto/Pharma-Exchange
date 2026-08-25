@@ -61,8 +61,15 @@ describe('order-utils', () => {
     const requests = [
       baseRequest({ status: 'PENDING' }),
       baseRequest({ id: '2', status: 'REJECTED', requestNumber: 'BR-002' }),
+      baseRequest({
+        id: '3',
+        status: 'PENDING',
+        requestNumber: 'BR-003',
+        expiresAt: '2020-01-01T00:00:00.000Z',
+      }),
     ];
     expect(filterBuyRequests(requests, 'PENDING', '').length).toBe(1);
+    expect(filterBuyRequests(requests, 'EXPIRED', '').length).toBe(1);
   });
 
   it('can track packed/shipped orders', () => {
