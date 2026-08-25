@@ -13,6 +13,8 @@ interface TopBarProps {
   large?: boolean;
   showLogo?: boolean;
   showNotifications?: boolean;
+  /** Mobile only: trailing control navigates to marketplace Home (`/`) instead of notifications. */
+  mobileBackToMarketplace?: boolean;
   actions?: React.ReactNode;
 }
 
@@ -23,6 +25,7 @@ export function TopBar({
   large,
   showLogo,
   showNotifications = true,
+  mobileBackToMarketplace = false,
   actions,
 }: TopBarProps) {
   const { t } = useTranslation();
@@ -54,11 +57,25 @@ export function TopBar({
       )}
       <div className="flex items-center gap-1 ml-auto">
         {actions}
+        {mobileBackToMarketplace && (
+          <button
+            type="button"
+            data-testid="admin-dashboard-back-marketplace"
+            aria-label={t('admin.backToMarketplace')}
+            className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-surface-raised md:hidden"
+            onClick={() => navigate('/')}
+          >
+            <ArrowLeft className="h-5 w-5" aria-hidden />
+          </button>
+        )}
         {showNotifications && (
           <button
             type="button"
             aria-label={badges.notifications ? t('shell.notificationsUnread', { count: badges.notifications }) : t('shell.notifications')}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised"
+            className={cn(
+              'relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised',
+              mobileBackToMarketplace && 'hidden md:flex',
+            )}
             onClick={() => navigate(notificationsPath)}
           >
             <Bell className="h-5 w-5" />

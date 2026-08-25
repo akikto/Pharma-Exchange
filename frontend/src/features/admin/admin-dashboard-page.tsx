@@ -43,7 +43,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="bg-surface-raised">
-      <TopBar title="Admin Dashboard" />
+      <TopBar title="Admin Dashboard" mobileBackToMarketplace />
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="p-4"><p className="text-xs text-text-secondary">GMV (30d)</p><p className="text-xl font-bold tabular-nums">{formatPrice(data?.gmv ?? 0)}</p></CardContent></Card>
