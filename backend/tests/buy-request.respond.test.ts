@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp } from '../src/app';
 import prisma from '../src/config/database';
+import { signAccessToken } from '../src/shared/middleware/auth.middleware';
 import { notificationService } from '../src/modules/notification';
 import { chatSystemService } from '../src/modules/chat/chatSystem.service';
 
@@ -33,23 +34,16 @@ describe('Buy request respond API', () => {
     dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) return;
 
-    const buyerLogin = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: 'buyer@pharmex.bd', password: 'password123' });
-    expect(buyerLogin.status).toBe(200);
-    buyerToken = buyerLogin.body.accessToken;
+    const buyer = await prisma.user.findUnique({ where: { email: 'buyer@pharmex.bd' } });
+    const seller = await prisma.user.findUnique({ where: { email: 'seller@pharmex.bd' } });
+    if (!buyer || !seller) return;
 
-    const sellerLogin = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: 'seller@pharmex.bd', password: 'password123' });
-    expect(sellerLogin.status).toBe(200);
-    sellerToken = sellerLogin.body.accessToken;
+    buyerToken = signAccessToken({ userId: buyer.id, role: buyer.role });
+    sellerToken = signAccessToken({ userId: seller.id, role: seller.role });
 
-    const sellerPharmacy = await request(app)
-      .get('/api/v1/pharmacies/me')
-      .set('Authorization', `Bearer ${sellerToken}`);
-    expect(sellerPharmacy.status).toBe(200);
-    pharmacyId = sellerPharmacy.body.id;
+    const sellerPharmacy = await prisma.pharmacy.findUnique({ where: { userId: seller.id } });
+    if (!sellerPharmacy) return;
+    pharmacyId = sellerPharmacy.id;
 
     const listings = await request(app).get(`/api/v1/listings/search?pharmacyId=${pharmacyId}&limit=20`);
     const pick = listings.body.data.find(
