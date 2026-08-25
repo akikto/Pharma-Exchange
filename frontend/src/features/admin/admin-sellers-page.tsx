@@ -98,7 +98,9 @@ export function AdminSellersPage({ mode = 'sellers' }: AdminSellersPageProps) {
 
   const isVerificationQueue = mode === 'verification-queue';
   const pageTestId = isVerificationQueue ? 'admin-verifications-page' : 'admin-sellers-page';
-  const verificationFilters = isVerificationQueue ? VERIFICATION_QUEUE_FILTERS : VERIFICATION_FILTERS;
+  const verificationFilters: Array<PharmacyVerificationStatus | 'ALL'> = isVerificationQueue
+    ? VERIFICATION_QUEUE_FILTERS
+    : VERIFICATION_FILTERS;
 
   return (
     <div className="min-h-screen bg-surface-raised" data-testid={pageTestId}>
