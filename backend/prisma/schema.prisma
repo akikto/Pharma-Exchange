@@ -351,6 +351,8 @@ model Listing {
   status          ListingStatus @default(DRAFT)
   lowStockThreshold Int?
   imageUrl        String?
+  lastSellerActivityAt DateTime      @default(now())
+  staleListingReminderSentAt DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -367,6 +369,7 @@ model Listing {
   @@index([status])
   @@index([expiryDate])
   @@index([finalPrice])
+  @@index([status, lastSellerActivityAt])
   @@index([status, expiryDate])
   @@index([status, finalPrice])
 }

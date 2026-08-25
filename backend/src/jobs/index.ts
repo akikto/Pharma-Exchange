@@ -5,6 +5,7 @@ import { logger } from '../shared/utils/logger';
 import { notificationService } from '../modules/notification';
 import { isListingLowStock } from '../modules/listing/listing.service';
 import { runNotificationRetentionCleanup } from '../modules/notification/notification.retention.service';
+import { runStaleListingMaintenance } from '../modules/listing/listing.stale.service';
 
 export function startBackgroundJobs() {
   // Short expiry alerts — daily at 8 AM
@@ -125,6 +126,19 @@ export function startBackgroundJobs() {
       if (deleted > 0) logger.info(`Deleted ${deleted} expired notifications`);
     } catch (err) {
       logger.error('Notification retention cleanup failed', { error: (err as Error).message });
+    }
+  });
+
+  // Stale seller listings — daily at 7 AM
+  cron.schedule('0 7 * * *', async () => {
+    logger.info('Running stale listing maintenance job');
+    try {
+      const result = await runStaleListingMaintenance();
+      if (result.remindersSent > 0 || result.expired > 0) {
+        logger.info('Stale listing maintenance complete', result);
+      }
+    } catch (err) {
+      logger.error('Stale listing maintenance job failed', { error: (err as Error).message });
     }
   });
 
