@@ -130,7 +130,6 @@ export function ListingFormPage() {
         availableQty: Number(form.availableQty),
         moq: Number(form.moq),
         ...(form.lowStockThreshold ? { lowStockThreshold: Number(form.lowStockThreshold) } : {}),
-        ...(form.imageUrl ? { imageUrl: form.imageUrl } : {}),
         status: 'ACTIVE',
       };
       if (isEdit) return apiClient.patch(`/listings/${id}`, body);
@@ -218,6 +217,7 @@ export function ListingFormPage() {
         <MedicineImageUpload
           label="Listing image (optional)"
           value={form.imageUrl ?? ''}
+          allowUpload={false}
           onChange={(imageUrl) => setForm((f) => ({ ...f, imageUrl }))}
           testId="listing-image-upload"
         />

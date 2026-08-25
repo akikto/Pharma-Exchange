@@ -29,4 +29,11 @@ describe('image optimization service', () => {
     expect(optimized.buffer.length).toBeGreaterThan(0);
     expect(optimized.buffer.byteLength).toBeLessThan(200 * 1024);
   });
+
+  it('re-encodes to webp (metadata stripped by sharp pipeline)', async () => {
+    const source = loadTinyPng();
+    const optimized = await optimizeMedicineImage(source);
+    expect(optimized.buffer.subarray(0, 4).toString()).toBe('RIFF');
+    expect(optimized.buffer.subarray(8, 12).toString()).toBe('WEBP');
+  });
 });
