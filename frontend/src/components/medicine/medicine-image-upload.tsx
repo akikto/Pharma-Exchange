@@ -12,6 +12,8 @@ type MedicineImageUploadProps = {
   value: string;
   error?: string;
   disabled?: boolean;
+  /** When false, shows preview only (no file upload). Defaults to true. */
+  allowUpload?: boolean;
   onChange: (imageUrl: string) => void;
   testId?: string;
 };
@@ -21,6 +23,7 @@ export function MedicineImageUpload({
   value,
   error,
   disabled = false,
+  allowUpload = true,
   onChange,
   testId = 'medicine-image-upload',
 }: MedicineImageUploadProps) {
@@ -36,10 +39,20 @@ export function MedicineImageUpload({
   };
 
   return (
-    <div className="min-w-0 space-y-2" data-testid={testId}>
-      <Label>{label}</Label>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <div className="h-28 w-28 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken">
+    <div className={cn('min-w-0', allowUpload ? 'space-y-2' : 'space-y-1')} data-testid={testId}>
+      <Label className={allowUpload ? undefined : 'text-sm'}>{label}</Label>
+      <div
+        className={cn(
+          'flex min-w-0',
+          allowUpload ? 'flex-col gap-3 sm:flex-row sm:items-start' : 'items-center gap-3',
+        )}
+      >
+        <div
+          className={cn(
+            'shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken',
+            allowUpload ? 'h-28 w-28' : 'h-16 w-16',
+          )}
+        >
           {value && !previewError ? (
             <img
               src={value}
@@ -53,49 +66,57 @@ export function MedicineImageUpload({
           )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <input
-            ref={inputRef}
-            type="file"
-            accept={ACCEPTED_TYPES}
-            className="hidden"
-            disabled={disabled || upload.isPending}
-            data-testid={`${testId}-input`}
-            onChange={(event) => {
-              const file = event.target.files?.[0] ?? null;
-              void handleFile(file);
-              event.target.value = '';
-            }}
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full sm:w-auto"
-            disabled={disabled || upload.isPending}
-            onClick={() => inputRef.current?.click()}
-          >
-            {upload.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-            {value ? 'Replace image' : 'Upload image'}
-          </Button>
-          {value && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className={cn('w-full sm:w-auto justify-start')}
-              disabled={disabled || upload.isPending}
-              onClick={() => {
-                onChange('');
-                setPreviewError(false);
-              }}
-            >
-              <X className="h-4 w-4" />
-              Remove image
-            </Button>
+          {allowUpload ? (
+            <>
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPTED_TYPES}
+                className="hidden"
+                disabled={disabled || upload.isPending}
+                data-testid={`${testId}-input`}
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  void handleFile(file);
+                  event.target.value = '';
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full sm:w-auto"
+                disabled={disabled || upload.isPending}
+                onClick={() => inputRef.current?.click()}
+              >
+                {upload.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                {value ? 'Replace image' : 'Upload image'}
+              </Button>
+              {value && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn('w-full sm:w-auto justify-start')}
+                  disabled={disabled || upload.isPending}
+                  onClick={() => {
+                    onChange('');
+                    setPreviewError(false);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                  Remove image
+                </Button>
+              )}
+              <p className="text-xs text-text-secondary break-words">
+                JPG, PNG, or WebP up to 5MB. Images are optimized to WebP before storage.
+              </p>
+              {upload.error && <p className="text-xs text-danger break-words">{upload.error.message}</p>}
+            </>
+          ) : (
+            <p className="text-xs text-text-secondary break-words">
+              Product images are managed by admins. Listings use the catalog image when one is available.
+            </p>
           )}
-          <p className="text-xs text-text-secondary break-words">
-            JPG, PNG, or WebP up to 5MB. Images are optimized to WebP before storage.
-          </p>
-          {upload.error && <p className="text-xs text-danger break-words">{upload.error.message}</p>}
           {error && <p className="text-xs text-danger break-words">{error}</p>}
         </div>
       </div>
