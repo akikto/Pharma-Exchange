@@ -39,10 +39,20 @@ export function MedicineImageUpload({
   };
 
   return (
-    <div className="min-w-0 space-y-2" data-testid={testId}>
-      <Label>{label}</Label>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <div className="h-28 w-28 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken">
+    <div className={cn('min-w-0', allowUpload ? 'space-y-2' : 'space-y-1')} data-testid={testId}>
+      <Label className={allowUpload ? undefined : 'text-sm'}>{label}</Label>
+      <div
+        className={cn(
+          'flex min-w-0',
+          allowUpload ? 'flex-col gap-3 sm:flex-row sm:items-start' : 'items-center gap-3',
+        )}
+      >
+        <div
+          className={cn(
+            'shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken',
+            allowUpload ? 'h-28 w-28' : 'h-16 w-16',
+          )}
+        >
           {value && !previewError ? (
             <img
               src={value}

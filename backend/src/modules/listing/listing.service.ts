@@ -19,6 +19,12 @@ export function isListingLowStock(listing: { availableQty: number; moq: number; 
   return listing.status === ListingStatus.ACTIVE && listing.availableQty <= resolveLowStockThreshold(listing);
 }
 
+/** Sellers cannot upload or override listing images; catalog images come from Medicine. */
+function stripSellerImageUrlOverride(data: Record<string, unknown>): Record<string, unknown> {
+  const { imageUrl: _ignored, ...rest } = data;
+  return rest;
+}
+
 export class ListingService {
   async search(query: SearchQuery) {
     const { page, limit, skip } = parsePagination(query);
@@ -264,25 +270,25 @@ export class ListingService {
 
   async create(userId: string, data: Record<string, unknown>) {
     const pharmacy = await getPharmacyForUser(userId);
-    const finalPrice = computeFinalPrice(Number(data.sellingPrice), Number(data.discountPercent ?? 0));
+    const sellerData = stripSellerImageUrlOverride(data);
+    const finalPrice = computeFinalPrice(Number(sellerData.sellingPrice), Number(sellerData.discountPercent ?? 0));
 
     const listing = await prisma.listing.create({
       data: {
         pharmacyId: pharmacy.id,
-        medicineId: data.medicineId as string,
-        batchNumber: data.batchNumber as string,
-        mfgDate: new Date(data.mfgDate as string),
-        expiryDate: new Date(data.expiryDate as string),
-        purchasePrice: data.purchasePrice as number,
-        sellingPrice: data.sellingPrice as number,
-        discountPercent: Number(data.discountPercent ?? 0),
+        medicineId: sellerData.medicineId as string,
+        batchNumber: sellerData.batchNumber as string,
+        mfgDate: new Date(sellerData.mfgDate as string),
+        expiryDate: new Date(sellerData.expiryDate as string),
+        purchasePrice: sellerData.purchasePrice as number,
+        sellingPrice: sellerData.sellingPrice as number,
+        discountPercent: Number(sellerData.discountPercent ?? 0),
         finalPrice,
-        availableQty: data.availableQty as number,
-        moq: Number(data.moq ?? 1),
-        unit: (data.unit as string) ?? 'strip',
-        lowStockThreshold: data.lowStockThreshold != null ? Number(data.lowStockThreshold) : undefined,
-        imageUrl: data.imageUrl as string | undefined,
-        status: (data.status as ListingStatus) ?? ListingStatus.DRAFT,
+        availableQty: sellerData.availableQty as number,
+        moq: Number(sellerData.moq ?? 1),
+        unit: (sellerData.unit as string) ?? 'strip',
+        lowStockThreshold: sellerData.lowStockThreshold != null ? Number(sellerData.lowStockThreshold) : undefined,
+        status: (sellerData.status as ListingStatus) ?? ListingStatus.DRAFT,
       },
       include: { medicine: true },
     });
@@ -306,7 +312,7 @@ export class ListingService {
         )
       : undefined;
 
-    const updateData: Record<string, unknown> = { ...data };
+    const updateData: Record<string, unknown> = stripSellerImageUrlOverride({ ...data });
     if (data.mfgDate) updateData.mfgDate = new Date(data.mfgDate as string);
     if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
     if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
