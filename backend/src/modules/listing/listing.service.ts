@@ -6,6 +6,7 @@ import { haversineKm } from '../../shared/utils/geo';
 import { getPharmacyForUser } from '../../shared/middleware/pharmacy.middleware';
 import { priceAlertService } from '../watchlist/priceAlert.service';
 import { ACTIVE_LISTING_CAP_MESSAGE, MAX_ACTIVE_LISTINGS_PER_PHARMACY } from './listing.constants';
+import { sellerActivityTouchFields } from './listing.stale.service';
 
 type SearchQuery = Record<string, unknown>;
 
@@ -319,6 +320,7 @@ export class ListingService {
           unit: (sellerData.unit as string) ?? 'strip',
           lowStockThreshold: sellerData.lowStockThreshold != null ? Number(sellerData.lowStockThreshold) : undefined,
           status,
+          ...sellerActivityTouchFields(),
         },
         include: { medicine: true },
       });
@@ -359,7 +361,7 @@ export class ListingService {
 
       return tx.listing.update({
         where: { id },
-        data: updateData as never,
+        data: { ...updateData, ...sellerActivityTouchFields() } as never,
         include: { medicine: true },
       });
     });
@@ -385,6 +387,7 @@ export class ListingService {
         ...(sellingPrice !== undefined && { sellingPrice }),
         ...(discountPercent !== undefined && { discountPercent }),
         finalPrice: computeFinalPrice(newSelling, newDiscount),
+        ...sellerActivityTouchFields(),
       },
     });
   }
@@ -414,6 +417,7 @@ export class ListingService {
         data: {
           availableQty,
           status: nextStatus,
+          ...sellerActivityTouchFields(),
         },
       });
     });
@@ -424,7 +428,10 @@ export class ListingService {
     const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
     if (!existing) throw AppError.notFound('Listing not found');
 
-    return prisma.listing.update({ where: { id }, data: { status: ListingStatus.PAUSED } });
+    return prisma.listing.update({
+      where: { id },
+      data: { status: ListingStatus.PAUSED, ...sellerActivityTouchFields() },
+    });
   }
 
   async activate(userId: string, id: string) {
@@ -438,7 +445,10 @@ export class ListingService {
         await assertActiveListingCapInTx(tx, pharmacy.id, id);
       }
 
-      return tx.listing.update({ where: { id }, data: { status: ListingStatus.ACTIVE } });
+      return tx.listing.update({
+        where: { id },
+        data: { status: ListingStatus.ACTIVE, ...sellerActivityTouchFields() },
+      });
     });
   }
 
@@ -464,6 +474,7 @@ export class ListingService {
         data: {
           availableQty,
           status: willActivate ? ListingStatus.ACTIVE : existing.status,
+          ...sellerActivityTouchFields(),
         },
         include: { medicine: true },
       });
@@ -477,7 +488,7 @@ export class ListingService {
 
     return prisma.listing.update({
       where: { id },
-      data: { status: ListingStatus.SOLD_OUT, availableQty: 0 },
+      data: { status: ListingStatus.SOLD_OUT, availableQty: 0, ...sellerActivityTouchFields() },
       include: { medicine: true },
     });
   }
