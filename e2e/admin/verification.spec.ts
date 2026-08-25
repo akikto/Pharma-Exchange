@@ -21,6 +21,7 @@ test.describe('Admin verification flow', () => {
   });
 
   test('admin bottom nav Home returns to dashboard from sellers', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/admin/sellers');
     await expect(page.getByTestId('admin-sellers-page')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('nav-admin-bottom-adminHome').click();
