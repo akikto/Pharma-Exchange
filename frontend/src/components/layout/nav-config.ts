@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Home, ShoppingCart, Package, MessageCircle, User, LayoutDashboard, Inbox, Heart, CreditCard, Pill, Image } from 'lucide-react';
+import { LayoutDashboard, Inbox, Package, CreditCard, Pill, Image, Store } from 'lucide-react';
 import type { AppMode } from '@/types';
 
 export type NavBadgeKey = 'cart' | 'chat' | 'requests' | 'watchlist';
@@ -36,7 +36,7 @@ export function getNavItems(mode: AppMode): NavItem[] {
   return mode === 'seller' ? sellerNav : buyerNav;
 }
 
-export type AdminLabelKey = 'dashboard' | 'verifications' | 'reports' | 'payments' | 'medicines' | 'banners';
+export type AdminLabelKey = 'dashboard' | 'sellers' | 'verifications' | 'reports' | 'payments' | 'medicines' | 'banners';
 
 export interface AdminNavItem {
   to: string;
@@ -46,6 +46,7 @@ export interface AdminNavItem {
 
 export const adminNav: AdminNavItem[] = [
   { to: '/admin', icon: LayoutDashboard, labelKey: 'dashboard' },
+  { to: '/admin/sellers', icon: Store, labelKey: 'sellers' },
   { to: '/admin/verifications', icon: Inbox, labelKey: 'verifications' },
   { to: '/admin/medicines', icon: Pill, labelKey: 'medicines' },
   { to: '/admin/banners', icon: Image, labelKey: 'banners' },

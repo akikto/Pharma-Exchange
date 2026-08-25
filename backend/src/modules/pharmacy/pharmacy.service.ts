@@ -1,4 +1,4 @@
-import { OrderStatus, VerificationStatus } from '@prisma/client';
+import { OrderStatus, VerificationStatus, ListingStatus } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { notificationService } from '../notification';
@@ -124,6 +124,151 @@ export class PharmacyService {
       prisma.pharmacy.count({ where }),
     ]);
     return { data, total };
+  }
+
+  async listForAdmin(params: {
+    q?: string;
+    verificationStatus?: VerificationStatus;
+    isActive?: boolean;
+    page: number;
+    limit: number;
+    skip: number;
+  }) {
+    const { q, verificationStatus, isActive, page, limit, skip } = params;
+    const where: {
+      verificationStatus?: VerificationStatus;
+      isActive?: boolean;
+      OR?: Array<Record<string, unknown>>;
+    } = {};
+    if (verificationStatus) where.verificationStatus = verificationStatus;
+    if (typeof isActive === 'boolean') where.isActive = isActive;
+    if (q?.trim()) {
+      const term = q.trim();
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { city: { contains: term, mode: 'insensitive' } },
+        { licenseNumber: { contains: term, mode: 'insensitive' } },
+        { user: { email: { contains: term, mode: 'insensitive' } } },
+        { user: { phone: { contains: term } } },
+      ];
+    }
+
+    const [rows, total] = await Promise.all([
+      prisma.pharmacy.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          city: true,
+          district: true,
+          licenseNumber: true,
+          verificationStatus: true,
+          isActive: true,
+          rating: true,
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          _count: { select: { listings: true } },
+        },
+      }),
+      prisma.pharmacy.count({ where }),
+    ]);
+
+    const data = rows.map(({ _count, user, ...pharmacy }) => ({
+      ...pharmacy,
+      listingCount: _count.listings,
+      owner: user
+        ? {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            name: `${user.firstName} ${user.lastName}`.trim(),
+          }
+        : null,
+    }));
+
+    return { data, total, page, limit };
+  }
+
+  async getForAdmin(pharmacyId: string) {
+    const pharmacy = await prisma.pharmacy.findUnique({
+      where: { id: pharmacyId },
+      include: {
+        documents: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            createdAt: true,
+          },
+        },
+        _count: { select: { listings: true, ordersAsSeller: true } },
+      },
+    });
+    if (!pharmacy) throw AppError.notFound('Pharmacy not found');
+
+    const activeListings = await prisma.listing.count({
+      where: { pharmacyId, status: ListingStatus.ACTIVE },
+    });
+
+    const { _count, user, ...rest } = pharmacy;
+    return {
+      ...rest,
+      owner: user
+        ? {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            name: `${user.firstName} ${user.lastName}`.trim(),
+            isActive: user.isActive,
+            createdAt: user.createdAt,
+          }
+        : null,
+      listingCount: _count.listings,
+      activeListingCount: activeListings,
+      orderCount: _count.ordersAsSeller,
+    };
+  }
+
+  async adminUpdate(pharmacyId: string, data: { isActive?: boolean }) {
+    const pharmacy = await prisma.pharmacy.findUnique({ where: { id: pharmacyId } });
+    if (!pharmacy) throw AppError.notFound('Pharmacy not found');
+
+    if (typeof data.isActive !== 'boolean') {
+      throw AppError.badRequest('No valid fields to update');
+    }
+
+    const updated = await prisma.pharmacy.update({
+      where: { id: pharmacyId },
+      data: { isActive: data.isActive },
+    });
+
+    if (data.isActive === false) {
+      await notificationService.create({
+        userId: pharmacy.userId,
+        type: 'VERIFICATION',
+        title: 'Pharmacy account suspended',
+        body: 'Your pharmacy has been deactivated by an administrator. Contact support if you believe this is an error.',
+        data: { pharmacyId },
+        forcePush: true,
+      });
+    }
+
+    return updated;
   }
 }
 

@@ -41,6 +41,7 @@ const AdminReportsPage = lazy(() => loadAdmin().then(m => ({ default: m.AdminRep
 const AdminPaymentsPage = lazy(() => import('@/features/admin/admin-payments-page').then(m => ({ default: m.AdminPaymentsPage })));
 const AdminMedicinesPage = lazy(() => import('@/features/admin/admin-medicines-page').then(m => ({ default: m.AdminMedicinesPage })));
 const AdminBannersPage = lazy(() => import('@/features/admin/admin-banners-page').then(m => ({ default: m.AdminBannersPage })));
+const AdminSellersPage = lazy(() => import('@/features/admin/admin-sellers-page').then(m => ({ default: m.AdminSellersPage })));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/privacy-policy-page').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsAndConditionsPage = lazy(() => import('@/features/legal/terms-and-conditions-page').then(m => ({ default: m.TermsAndConditionsPage })));
 
@@ -123,6 +124,7 @@ export function AppRouter() {
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="verifications" element={<AdminVerificationsPage />} />
+            <Route path="sellers" element={<AdminSellersPage />} />
             <Route path="medicines" element={<AdminMedicinesPage />} />
             <Route path="banners" element={<AdminBannersPage />} />
             <Route path="reports" element={<AdminReportsPage />} />

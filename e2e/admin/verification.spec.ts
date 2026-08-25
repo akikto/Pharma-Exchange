@@ -15,7 +15,8 @@ test.describe('Admin verification flow', () => {
 
   test('verification queue page loads', async ({ page }) => {
     await page.getByRole('link', { name: /verification queue/i }).click();
-    await expect(page).toHaveURL('/admin/verifications', { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/admin\/sellers/, { timeout: 15_000 });
+    await expect(page.getByTestId('admin-sellers-page')).toBeVisible();
   });
 
   test('admin reports page loads', async ({ page }) => {

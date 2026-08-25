@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { Router } from 'express';
 import { z } from 'zod';
-import { ReportStatus, PaymentAttemptStatus } from '@prisma/client';
+import { ReportStatus, PaymentAttemptStatus, VerificationStatus } from '@prisma/client';
 import { AuthRequest } from '../../shared/middleware/auth.middleware';
 import { authenticate, requireAdmin } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
@@ -23,6 +23,18 @@ const verifySchema = z.object({
 const resolveSchema = z.object({
   status: z.enum(['RESOLVED', 'DISMISSED']),
   resolution: z.string().optional(),
+});
+
+const pharmacyListSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  q: z.string().optional(),
+  verificationStatus: z.nativeEnum(VerificationStatus).optional(),
+  isActive: z.enum(['true', 'false']).optional(),
+});
+
+const pharmacyUpdateSchema = z.object({
+  isActive: z.boolean(),
 });
 
 class AnalyticsController {
@@ -52,6 +64,35 @@ class AdminController {
     try {
       const { action, rejectionReason } = req.body;
       res.json(await pharmacyService.adminVerify(req.params.id as string, action, rejectionReason));
+    } catch (err) { next(err); }
+  }
+
+  async listPharmacies(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const parsed = pharmacyListSchema.parse(req.query);
+      const skip = (parsed.page - 1) * parsed.limit;
+      const result = await pharmacyService.listForAdmin({
+        q: parsed.q,
+        verificationStatus: parsed.verificationStatus,
+        isActive: parsed.isActive === 'true' ? true : parsed.isActive === 'false' ? false : undefined,
+        page: parsed.page,
+        limit: parsed.limit,
+        skip,
+      });
+      res.json({ data: result.data, pagination: paginationMeta(parsed.page, parsed.limit, result.total) });
+    } catch (err) { next(err); }
+  }
+
+  async getPharmacy(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      res.json(await pharmacyService.getForAdmin(req.params.id as string));
+    } catch (err) { next(err); }
+  }
+
+  async updatePharmacy(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { isActive } = req.body;
+      res.json(await pharmacyService.adminUpdate(req.params.id as string, { isActive }));
     } catch (err) { next(err); }
   }
 
@@ -131,6 +172,9 @@ adminRouter.use(authenticate, requireAdmin);
 adminRouter.get('/dashboard', adminCtrl.dashboard.bind(adminCtrl));
 adminRouter.get('/verifications', adminCtrl.verifications.bind(adminCtrl));
 adminRouter.post('/verifications/:id', validate(verifySchema), adminCtrl.verifyPharmacy.bind(adminCtrl));
+adminRouter.get('/pharmacies', adminCtrl.listPharmacies.bind(adminCtrl));
+adminRouter.get('/pharmacies/:id', adminCtrl.getPharmacy.bind(adminCtrl));
+adminRouter.patch('/pharmacies/:id', validate(pharmacyUpdateSchema), adminCtrl.updatePharmacy.bind(adminCtrl));
 adminRouter.get('/reports', adminCtrl.reports.bind(adminCtrl));
 adminRouter.post('/reports/:id/resolve', validate(resolveSchema), adminCtrl.resolveReport.bind(adminCtrl));
 adminRouter.get('/users', adminCtrl.users.bind(adminCtrl));
