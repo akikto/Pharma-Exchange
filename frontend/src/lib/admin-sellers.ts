@@ -29,6 +29,7 @@ export interface AdminSellerDocument {
 
 export interface AdminSellerDetail extends Omit<AdminSellerListItem, 'listingCount'> {
   address: string;
+  postalCode: string | null;
   rejectionReason: string | null;
   description: string | null;
   documents: AdminSellerDocument[];

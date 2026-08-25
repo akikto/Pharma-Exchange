@@ -79,15 +79,3 @@ export function useDeletePharmacy() {
     },
   });
 }
-
-/** @deprecated Use useUpdatePharmacy */
-export function useUpdatePharmacyActive() {
-  const update = useUpdatePharmacy();
-  return {
-    ...update,
-    mutate: (vars: { id: string; isActive: boolean }, options?: Parameters<typeof update.mutate>[1]) =>
-      update.mutate({ id: vars.id, payload: { isActive: vars.isActive } }, options),
-    mutateAsync: (vars: { id: string; isActive: boolean }) =>
-      update.mutateAsync({ id: vars.id, payload: { isActive: vars.isActive } }),
-  };
-}

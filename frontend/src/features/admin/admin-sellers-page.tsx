@@ -252,7 +252,7 @@ function SellerDetailDialog({
     });
     setConfirmName('');
     setDeleteOpen(false);
-  }, [seller?.id, seller?.name, seller?.licenseNumber, seller?.address, seller?.city, seller?.district, seller?.postalCode, seller?.description]);
+  }, [seller]);
 
   const canVerify =
     seller?.verificationStatus === 'PENDING' || seller?.verificationStatus === 'UNDER_REVIEW';
