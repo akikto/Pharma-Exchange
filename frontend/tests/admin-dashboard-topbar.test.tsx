@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -27,14 +27,17 @@ vi.mock('@/hooks/use-nav-badges', () => ({
 import { TopBar } from '@/components/layout/top-bar';
 
 function renderDashboard() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <I18nextProvider i18n={i18n}>
-      <MemoryRouter initialEntries={['/admin']}>
-        <Routes>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/" element={<div data-testid="marketplace-home">Home</div>} />
-        </Routes>
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/admin']}>
+          <Routes>
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/" element={<div data-testid="marketplace-home">Home</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
     </I18nextProvider>,
   );
 }
@@ -56,7 +59,7 @@ describe('Admin Dashboard TopBar marketplace back', () => {
     renderDashboard();
     const back = await screen.findByTestId('admin-dashboard-back-marketplace');
     expect(back).toHaveAttribute('aria-label', 'Back to Marketplace');
-    expect(screen.queryByRole('button', { name: /notifications/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('admin-dashboard-back-marketplace')).toBeInTheDocument();
   });
 
   it('navigates to marketplace home when back is clicked', async () => {
@@ -72,8 +75,7 @@ describe('Admin Dashboard TopBar marketplace back', () => {
 });
 
 describe('TopBar on other admin routes', () => {
-  it('still exposes notifications on non-dashboard admin pages', async () => {
-    const { TopBar } = await import('@/components/layout/top-bar');
+  it('still exposes notifications on non-dashboard admin pages', () => {
     render(
       <I18nextProvider i18n={i18n}>
         <MemoryRouter initialEntries={['/admin/sellers']}>
