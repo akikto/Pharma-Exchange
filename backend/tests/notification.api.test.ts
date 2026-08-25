@@ -82,6 +82,41 @@ describe('Notifications API (BL-07)', () => {
     await prisma.notification.delete({ where: { id: created.id } });
   });
 
+  it('deletes single, bulk, and all notifications for the user', async ({ skip }) => {
+    if (!dbAvailable || !buyerToken) skip();
+
+    const n1 = await prisma.notification.create({
+      data: { userId: buyerId, type: 'SYSTEM', title: 'A', body: 'a' },
+    });
+    const n2 = await prisma.notification.create({
+      data: { userId: buyerId, type: 'SYSTEM', title: 'B', body: 'b' },
+    });
+
+    const delOne = await request(app)
+      .delete(`/api/v1/notifications/${n1.id}`)
+      .set('Authorization', `Bearer ${buyerToken}`);
+    expect(delOne.status).toBe(200);
+
+    const delBulk = await request(app)
+      .post('/api/v1/notifications/delete-bulk')
+      .set('Authorization', `Bearer ${buyerToken}`)
+      .send({ ids: [n2.id] });
+    expect(delBulk.status).toBe(200);
+    expect(delBulk.body.deleted).toBe(1);
+
+    const n3 = await prisma.notification.create({
+      data: { userId: buyerId, type: 'SYSTEM', title: 'C', body: 'c' },
+    });
+
+    const delAll = await request(app)
+      .post('/api/v1/notifications/delete-all')
+      .set('Authorization', `Bearer ${buyerToken}`);
+    expect(delAll.status).toBe(200);
+    expect(delAll.body.deleted).toBeGreaterThanOrEqual(1);
+
+    await prisma.notification.deleteMany({ where: { id: n3.id } }).catch(() => undefined);
+  });
+
   it('allows admin broadcast and blocks non-admin', async ({ skip }) => {
     if (!dbAvailable || !buyerToken || !adminToken) skip();
 

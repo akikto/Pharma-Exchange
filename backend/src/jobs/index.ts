@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { logger } from '../shared/utils/logger';
 import { notificationService } from '../modules/notification';
 import { isListingLowStock } from '../modules/listing/listing.service';
+import { runNotificationRetentionCleanup } from '../modules/notification/notification.retention.service';
 
 export function startBackgroundJobs() {
   // Short expiry alerts — daily at 8 AM
@@ -113,6 +114,17 @@ export function startBackgroundJobs() {
       if (result.count > 0) logger.info(`Marked ${result.count} listings as expired`);
     } catch (err) {
       logger.error('Listing cleanup job failed', { error: (err as Error).message });
+    }
+  });
+
+  // Notification retention — daily at 3 AM
+  cron.schedule('0 3 * * *', async () => {
+    logger.info('Running notification retention cleanup job');
+    try {
+      const deleted = await runNotificationRetentionCleanup();
+      if (deleted > 0) logger.info(`Deleted ${deleted} expired notifications`);
+    } catch (err) {
+      logger.error('Notification retention cleanup failed', { error: (err as Error).message });
     }
   });
 

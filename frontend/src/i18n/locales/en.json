@@ -573,7 +573,16 @@
     "titleSub": "",
     "empty": "No notifications",
     "markAllRead": "Mark all read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "select": "Select",
+    "delete": "Delete",
+    "cancelSelect": "Cancel",
+    "selectAll": "Select all",
+    "deleteSelected": "Delete selected",
+    "deleteAll": "Delete all",
+    "deleteOneConfirm": "Delete this notification?",
+    "deleteSelectedConfirm": "Delete {{count}} selected notifications?",
+    "deleteAllConfirm": "Delete all notifications? This cannot be undone."
   },
   "push": {
     "promptTitle": "Stay updated on orders",

@@ -9,6 +9,7 @@ import type { Notification } from '@/types';
 
 const post = vi.fn();
 const patch = vi.fn();
+const del = vi.fn();
 const get = vi.fn();
 
 vi.mock('@/hooks/use-nav-badges', () => ({
@@ -29,7 +30,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
       get: (...args: unknown[]) => get(...args),
       post: (...args: unknown[]) => post(...args),
       patch: (...args: unknown[]) => patch(...args),
-      delete: vi.fn(),
+      delete: (...args: unknown[]) => del(...args),
       getText: vi.fn(),
       upload: vi.fn(),
     },
@@ -82,6 +83,7 @@ describe('NotificationsPage', () => {
     });
     post.mockResolvedValue({});
     patch.mockResolvedValue({});
+    del.mockResolvedValue({});
   });
 
   it('shows mark all read disabled when there are no unread notifications', async () => {
@@ -128,6 +130,20 @@ describe('NotificationsPage', () => {
       expect(screen.queryByTestId('notification-unread-dot')).not.toBeInTheDocument();
     });
     expect(patch).toHaveBeenCalledWith('/notifications/n1/read');
+  });
+
+  it('deletes a single notification after confirm', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderPage();
+
+    await screen.findByText('Unread order update');
+    fireEvent.click(screen.getByTestId('notification-delete-n1'));
+
+    await waitFor(() => {
+      expect(del).toHaveBeenCalledWith('/notifications/n1');
+    });
+    expect(screen.queryByText('Unread order update')).not.toBeInTheDocument();
+    confirmSpy.mockRestore();
   });
 
   it('resyncs notification cache when mark all read API fails', async () => {
