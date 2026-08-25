@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -62,6 +62,21 @@ describe('AdminVerificationsPage', () => {
           pagination: { page: 1, limit: 50, total: 1, totalPages: 1 },
         });
       }
+      if (path === '/admin/pharmacies/pharm-1') {
+        return Promise.resolve({
+          ...sampleSeller,
+          address: '123 Main St',
+          postalCode: '1200',
+          rejectionReason: null,
+          description: null,
+          documents: [],
+          activeListingCount: 2,
+          orderCount: 0,
+          buyRequestCount: 0,
+          reviewCount: 0,
+          canPermanentlyDelete: true,
+        });
+      }
       return Promise.resolve({ data: [] });
     });
   });
@@ -70,7 +85,7 @@ describe('AdminVerificationsPage', () => {
     renderPage();
     expect(await screen.findByTestId('admin-verifications-page')).toBeInTheDocument();
     expect(screen.getByText('Verification queue')).toBeInTheDocument();
-    expect(screen.getByTestId('admin-sellers-table')).toBeInTheDocument();
+    expect(await screen.findByTestId('admin-sellers-table')).toBeInTheDocument();
     expect(screen.getByTestId('top-bar')).toHaveAttribute('data-back-to', '/admin');
   });
 
@@ -86,7 +101,9 @@ describe('AdminVerificationsPage', () => {
     renderPage();
     fireEvent.click(await screen.findByTestId('admin-seller-manage-pharm-1'));
     expect(await screen.findByTestId('admin-seller-detail-dialog')).toBeInTheDocument();
-    expect(screen.getByTestId('admin-seller-approve')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('admin-seller-approve')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('admin-seller-reject')).toBeInTheDocument();
   });
 });
