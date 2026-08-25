@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Bell, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,9 @@ export function TopBar({
 }: TopBarProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const badges = useNavBadges();
+  const notificationsPath = pathname.startsWith('/admin') ? '/admin/notifications' : '/notifications';
 
   return (
     <header
@@ -57,7 +59,7 @@ export function TopBar({
             type="button"
             aria-label={badges.notifications ? t('shell.notificationsUnread', { count: badges.notifications }) : t('shell.notifications')}
             className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-raised"
-            onClick={() => navigate('/notifications')}
+            onClick={() => navigate(notificationsPath)}
           >
             <Bell className="h-5 w-5" />
             <NavBadge count={badges.notifications} />

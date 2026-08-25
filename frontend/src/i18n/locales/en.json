@@ -31,8 +31,14 @@
     "bannersSub": "",
     "sellers": "Sellers",
     "sellersSub": "",
+    "adminHome": "Home",
+    "adminHomeSub": "",
+    "notifications": "Alerts",
+    "notificationsSub": "",
+    "marketplace": "Marketplace",
     "desktopNavigation": "Desktop navigation",
-    "mobileNavigation": "Mobile navigation"
+    "mobileNavigation": "Mobile navigation",
+    "adminMobileNavigation": "Admin mobile navigation"
   },
   "a11y": {
     "skipToContent": "Skip to main content"
@@ -782,6 +788,8 @@
     "approve": "Approve",
     "reject": "Reject",
     "noPending": "No pending verifications",
+    "verificationsQueueTitle": "Verification queue",
+    "verificationsQueueDescription": "Review pending pharmacy applications, open seller details, and approve or reject verification.",
     "noReports": "No open reports",
     "broadcastTitle": "Broadcast notification",
     "broadcastDesc": "Send a push notification to all users who opted in to promotions.",

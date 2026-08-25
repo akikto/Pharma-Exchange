@@ -15,8 +15,17 @@ test.describe('Admin verification flow', () => {
 
   test('verification queue page loads', async ({ page }) => {
     await page.getByRole('link', { name: /verification queue/i }).click();
-    await expect(page).toHaveURL(/\/admin\/sellers/, { timeout: 15_000 });
-    await expect(page.getByTestId('admin-sellers-page')).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/verifications/, { timeout: 15_000 });
+    await expect(page.getByTestId('admin-verifications-page')).toBeVisible();
+    await expect(page.getByTestId('admin-sellers-table')).toBeVisible();
+  });
+
+  test('admin bottom nav Home returns to dashboard from sellers', async ({ page }) => {
+    await page.goto('/admin/sellers');
+    await expect(page.getByTestId('admin-sellers-page')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('nav-admin-bottom-adminHome').click();
+    await expect(page).toHaveURL(/\/admin\/?$/, { timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: 'Admin Dashboard' })).toBeVisible();
   });
 
   test('admin reports page loads', async ({ page }) => {

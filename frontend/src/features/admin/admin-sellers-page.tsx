@@ -37,14 +37,31 @@ const VERIFICATION_FILTERS: Array<PharmacyVerificationStatus | 'ALL'> = [
   'REJECTED',
 ];
 
-function parseVerificationParam(value: string | null): PharmacyVerificationStatus | 'ALL' {
+const VERIFICATION_QUEUE_FILTERS: Array<PharmacyVerificationStatus> = ['PENDING', 'UNDER_REVIEW'];
+
+export type AdminSellersPageMode = 'sellers' | 'verification-queue';
+
+export type AdminSellersPageProps = {
+  mode?: AdminSellersPageMode;
+};
+
+function parseVerificationParam(
+  value: string | null,
+  mode: AdminSellersPageMode,
+): PharmacyVerificationStatus | 'ALL' {
+  if (mode === 'verification-queue') {
+    if (value && VERIFICATION_QUEUE_FILTERS.includes(value as PharmacyVerificationStatus)) {
+      return value as PharmacyVerificationStatus;
+    }
+    return 'PENDING';
+  }
   if (value && VERIFICATION_FILTERS.includes(value as PharmacyVerificationStatus)) {
     return value as PharmacyVerificationStatus;
   }
   return 'ALL';
 }
 
-export function AdminSellersPage() {
+export function AdminSellersPage({ mode = 'sellers' }: AdminSellersPageProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,7 +73,7 @@ export function AdminSellersPage() {
       activeParam === 'active' || activeParam === 'inactive' ? activeParam : 'all';
     return {
       q: searchParams.get('q') ?? '',
-      verificationStatus: parseVerificationParam(searchParams.get('verificationStatus')),
+      verificationStatus: parseVerificationParam(searchParams.get('verificationStatus'), mode),
       isActive,
     };
   });
@@ -64,20 +81,36 @@ export function AdminSellersPage() {
   useEffect(() => {
     const next = new URLSearchParams();
     if (filters.q.trim()) next.set('q', filters.q.trim());
-    if (filters.verificationStatus !== 'ALL') next.set('verificationStatus', filters.verificationStatus);
+    if (mode === 'verification-queue') {
+      if (filters.verificationStatus !== 'PENDING') {
+        next.set('verificationStatus', filters.verificationStatus);
+      }
+    } else if (filters.verificationStatus !== 'ALL') {
+      next.set('verificationStatus', filters.verificationStatus);
+    }
     if (filters.isActive !== 'all') next.set('isActive', filters.isActive);
     setSearchParams(next, { replace: true });
-  }, [filters, setSearchParams]);
+  }, [filters, mode, setSearchParams]);
 
   const { data, isLoading, isError } = useAdminSellers(filters);
   const sellers = useMemo(() => data?.data ?? [], [data?.data]);
   const totalSellers = data?.pagination?.total ?? 0;
 
+  const isVerificationQueue = mode === 'verification-queue';
+  const pageTestId = isVerificationQueue ? 'admin-verifications-page' : 'admin-sellers-page';
+  const verificationFilters = isVerificationQueue ? VERIFICATION_QUEUE_FILTERS : VERIFICATION_FILTERS;
+
   return (
-    <div className="min-h-screen bg-surface-raised" data-testid="admin-sellers-page">
-      <TopBar title={t('admin.sellers.title')} showBack />
+    <div className="min-h-screen bg-surface-raised" data-testid={pageTestId}>
+      <TopBar
+        title={isVerificationQueue ? t('admin.verificationsQueueTitle') : t('admin.sellers.title')}
+        showBack
+        backTo="/admin"
+      />
       <div className="p-4 space-y-4 max-w-6xl mx-auto">
-        <p className="text-sm text-text-secondary">{t('admin.sellers.description')}</p>
+        <p className="text-sm text-text-secondary">
+          {isVerificationQueue ? t('admin.verificationsQueueDescription') : t('admin.sellers.description')}
+        </p>
 
         {!isLoading && !isError && (
           <p className="text-sm font-medium tabular-nums" data-testid="admin-sellers-total-count">
@@ -93,7 +126,7 @@ export function AdminSellersPage() {
         />
 
         <div className="flex flex-wrap gap-2" data-testid="admin-sellers-verification-filters">
-          {VERIFICATION_FILTERS.map((status) => (
+          {verificationFilters.map((status) => (
             <button
               key={status}
               type="button"
@@ -110,6 +143,7 @@ export function AdminSellersPage() {
           ))}
         </div>
 
+        {!isVerificationQueue && (
         <div className="flex flex-wrap gap-2">
           {(['all', 'active', 'inactive'] as const).map((key) => (
             <button
@@ -127,6 +161,7 @@ export function AdminSellersPage() {
             </button>
           ))}
         </div>
+        )}
 
         {isLoading ? (
           <ListSkeleton />
@@ -134,7 +169,7 @@ export function AdminSellersPage() {
           <p className="text-center text-danger py-12">{t('admin.sellers.loadError')}</p>
         ) : sellers.length === 0 ? (
           <p className="text-center text-text-secondary py-12" data-testid="admin-sellers-empty">
-            {t('admin.sellers.empty')}
+            {isVerificationQueue ? t('admin.noPending') : t('admin.sellers.empty')}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-[var(--radius-md)] border border-border-subtle bg-surface-base">

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import type { NavLabelKey, AdminLabelKey } from '@/components/layout/nav-config';
+import type { NavLabelKey, AdminLabelKey, AdminBottomLabelKey } from '@/components/layout/nav-config';
 
-export function useNavLabel(labelKey: NavLabelKey | AdminLabelKey, ns: 'nav' = 'nav') {
+export function useNavLabel(labelKey: NavLabelKey | AdminLabelKey | AdminBottomLabelKey, ns: 'nav' = 'nav') {
   const { t } = useTranslation();
   return {
     primary: t(`${ns}.${labelKey}`),

@@ -49,7 +49,7 @@ export function AdminMedicinesPage() {
 
   return (
     <div className="min-h-screen bg-surface-raised" data-testid="admin-medicines-page">
-      <TopBar title={t('admin.medicines.title')} showBack />
+      <TopBar title={t('admin.medicines.title')} showBack backTo="/admin" />
       <div className="p-4 space-y-4 max-w-6xl mx-auto">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-text-secondary">{t('admin.medicines.description')}</p>

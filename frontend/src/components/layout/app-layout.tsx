@@ -11,7 +11,7 @@ export function AppLayout() {
   const { t } = useTranslation();
 
   return (
-    <div className="fixed inset-0 z-0 flex min-h-0 w-full max-w-full overflow-hidden bg-surface-base edge-to-edge">
+    <div className="fixed inset-0 z-0 flex h-[100dvh] max-h-[100dvh] min-h-0 w-full max-w-full overflow-hidden bg-surface-base edge-to-edge">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[var(--radius-md)] focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"

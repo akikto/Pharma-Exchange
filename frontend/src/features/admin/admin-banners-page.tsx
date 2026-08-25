@@ -76,7 +76,7 @@ export function AdminBannersPage() {
 
   return (
     <div className="min-h-screen bg-surface-raised" data-testid="admin-banners-page">
-      <TopBar title={t('admin.banners.title')} showBack />
+      <TopBar title={t('admin.banners.title')} showBack backTo="/admin" />
       <div className="p-4 space-y-4 max-w-6xl mx-auto">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-text-secondary">{t('admin.banners.description')}</p>

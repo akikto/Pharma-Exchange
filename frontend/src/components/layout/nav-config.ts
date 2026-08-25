@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  Home, ShoppingCart, Package, MessageCircle, User, LayoutDashboard, Inbox, Heart, CreditCard, Pill, Image, Store,
+  Home, ShoppingCart, Package, MessageCircle, User, LayoutDashboard, Inbox, Heart, CreditCard, Pill, Image, Store, Bell,
 } from 'lucide-react';
 import type { AppMode } from '@/types';
 
@@ -55,6 +55,35 @@ export const adminNav: AdminNavItem[] = [
   { to: '/admin/reports', icon: Package, labelKey: 'reports' },
   { to: '/admin/payments', icon: CreditCard, labelKey: 'payments' },
 ];
+
+export type AdminBottomLabelKey = 'adminHome' | 'sellers' | 'verifications' | 'medicines' | 'notifications';
+
+export interface AdminBottomNavItem {
+  to: string;
+  icon: LucideIcon;
+  labelKey: AdminBottomLabelKey;
+  /** When true, only an exact pathname match counts as active (e.g. Admin Dashboard). */
+  end?: boolean;
+}
+
+/** Primary admin destinations for mobile bottom navigation (Home = Admin Dashboard). */
+export const adminBottomNav: AdminBottomNavItem[] = [
+  { to: '/admin', icon: Home, labelKey: 'adminHome', end: true },
+  { to: '/admin/sellers', icon: Store, labelKey: 'sellers' },
+  { to: '/admin/verifications', icon: Inbox, labelKey: 'verifications' },
+  { to: '/admin/medicines', icon: Pill, labelKey: 'medicines' },
+  { to: '/admin/notifications', icon: Bell, labelKey: 'notifications' },
+];
+
+export function isAdminNavItemActive(pathname: string, item: Pick<AdminNavItem, 'to'>): boolean {
+  if (item.to === '/admin') return pathname === '/admin';
+  return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
+
+export function isAdminBottomNavItemActive(pathname: string, item: AdminBottomNavItem): boolean {
+  if (item.end) return pathname === item.to;
+  return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
 
 export function isNavItemActive(pathname: string, item: NavItem): boolean {
   if (item.to === '/') return pathname === '/';
