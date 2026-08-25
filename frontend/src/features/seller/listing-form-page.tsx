@@ -218,6 +218,7 @@ export function ListingFormPage() {
         <MedicineImageUpload
           label="Listing image (optional)"
           value={form.imageUrl ?? ''}
+          allowUpload={false}
           onChange={(imageUrl) => setForm((f) => ({ ...f, imageUrl }))}
           testId="listing-image-upload"
         />
