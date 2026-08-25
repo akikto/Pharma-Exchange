@@ -27,10 +27,9 @@ function stripSellerImageUrlOverride(data: Record<string, unknown>): Record<stri
 }
 
 async function lockPharmacyRow(tx: Prisma.TransactionClient, pharmacyId: string): Promise<void> {
-  const rows = await tx.$queryRaw<{ id: string }[]>`
-    SELECT id FROM "Pharmacy" WHERE id = ${pharmacyId} FOR UPDATE
-  `;
-  if (!rows.length) throw AppError.notFound('Pharmacy not found');
+  const pharmacy = await tx.pharmacy.findUnique({ where: { id: pharmacyId }, select: { id: true } });
+  if (!pharmacy) throw AppError.notFound('Pharmacy not found');
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${pharmacyId}))`;
 }
 
 async function assertActiveListingCapInTx(

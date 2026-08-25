@@ -35,6 +35,7 @@ test.describe('Real-time chat', () => {
     const listings = (await (await page.request.get(`${API}/listings/search?limit=1`)).json()) as {
       data: { id: string }[];
     };
+    expect(listings.data.length).toBeGreaterThan(0);
 
     const conversation = (await (
       await page.request.post(`${API}/chat/conversations`, {

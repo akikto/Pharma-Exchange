@@ -28,7 +28,7 @@ test.describe('Seller inventory flow', () => {
   });
 
   test('seller requests page loads', async ({ page }) => {
-    await page.getByRole('link', { name: /pending buy requests|ক্রয় অনুরোধ/i }).click();
+    await page.getByTestId('seller-dashboard-requests-link').click();
     await expect(page).toHaveURL('/seller/requests', { timeout: 15_000 });
   });
 });

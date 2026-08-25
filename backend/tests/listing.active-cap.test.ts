@@ -9,7 +9,8 @@ const listingFindFirst = vi.fn();
 const listingCount = vi.fn();
 const listingUpdate = vi.fn();
 const listingCreate = vi.fn();
-const queryRaw = vi.fn();
+const pharmacyFindUnique = vi.fn();
+const executeRaw = vi.fn();
 
 function createTxClient() {
   return {
@@ -19,7 +20,10 @@ function createTxClient() {
       update: (...args: unknown[]) => listingUpdate(...args),
       create: (...args: unknown[]) => listingCreate(...args),
     },
-    $queryRaw: (...args: unknown[]) => queryRaw(...args),
+    pharmacy: {
+      findUnique: (...args: unknown[]) => pharmacyFindUnique(...args),
+    },
+    $executeRaw: (...args: unknown[]) => executeRaw(...args),
   };
 }
 
@@ -49,7 +53,8 @@ import prisma from '../src/config/database';
 describe('active listing cap', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    queryRaw.mockResolvedValue([{ id: pharmacyId }]);
+    pharmacyFindUnique.mockResolvedValue({ id: pharmacyId });
+    executeRaw.mockResolvedValue(1);
     listingUpdate.mockResolvedValue({ id: 'listing-1', status: ListingStatus.ACTIVE });
     listingCreate.mockResolvedValue({ id: 'new', status: ListingStatus.ACTIVE, medicine: {} });
   });

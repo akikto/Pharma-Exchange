@@ -9,7 +9,8 @@ const listingCreate = vi.fn();
 const listingFindFirst = vi.fn();
 const listingUpdate = vi.fn();
 const listingCount = vi.fn();
-const queryRaw = vi.fn();
+const pharmacyFindUnique = vi.fn();
+const executeRaw = vi.fn();
 
 function createTxClient() {
   return {
@@ -19,7 +20,10 @@ function createTxClient() {
       update: (...args: unknown[]) => listingUpdate(...args),
       count: (...args: unknown[]) => listingCount(...args),
     },
-    $queryRaw: (...args: unknown[]) => queryRaw(...args),
+    pharmacy: {
+      findUnique: (...args: unknown[]) => pharmacyFindUnique(...args),
+    },
+    $executeRaw: (...args: unknown[]) => executeRaw(...args),
   };
 }
 
