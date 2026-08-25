@@ -1,4 +1,4 @@
-import { ListingStatus, VerificationStatus } from '@prisma/client';
+import { ListingStatus, VerificationStatus, Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
@@ -20,8 +20,20 @@ export function isListingLowStock(listing: { availableQty: number; moq: number; 
   return listing.status === ListingStatus.ACTIVE && listing.availableQty <= resolveLowStockThreshold(listing);
 }
 
-async function assertActiveListingCap(pharmacyId: string, excludeListingId?: string): Promise<void> {
-  const count = await prisma.listing.count({
+async function lockPharmacyRow(tx: Prisma.TransactionClient, pharmacyId: string): Promise<void> {
+  const rows = await tx.$queryRaw<{ id: string }[]>`
+    SELECT id FROM "Pharmacy" WHERE id = ${pharmacyId}::uuid FOR UPDATE
+  `;
+  if (!rows.length) throw AppError.notFound('Pharmacy not found');
+}
+
+async function assertActiveListingCapInTx(
+  tx: Prisma.TransactionClient,
+  pharmacyId: string,
+  excludeListingId?: string,
+): Promise<void> {
+  await lockPharmacyRow(tx, pharmacyId);
+  const count = await tx.listing.count({
     where: {
       pharmacyId,
       status: ListingStatus.ACTIVE,
@@ -279,30 +291,32 @@ export class ListingService {
   async create(userId: string, data: Record<string, unknown>) {
     const pharmacy = await getPharmacyForUser(userId);
     const status = (data.status as ListingStatus) ?? ListingStatus.DRAFT;
-    if (status === ListingStatus.ACTIVE) {
-      await assertActiveListingCap(pharmacy.id);
-    }
     const finalPrice = computeFinalPrice(Number(data.sellingPrice), Number(data.discountPercent ?? 0));
 
-    const listing = await prisma.listing.create({
-      data: {
-        pharmacyId: pharmacy.id,
-        medicineId: data.medicineId as string,
-        batchNumber: data.batchNumber as string,
-        mfgDate: new Date(data.mfgDate as string),
-        expiryDate: new Date(data.expiryDate as string),
-        purchasePrice: data.purchasePrice as number,
-        sellingPrice: data.sellingPrice as number,
-        discountPercent: Number(data.discountPercent ?? 0),
-        finalPrice,
-        availableQty: data.availableQty as number,
-        moq: Number(data.moq ?? 1),
-        unit: (data.unit as string) ?? 'strip',
-        lowStockThreshold: data.lowStockThreshold != null ? Number(data.lowStockThreshold) : undefined,
-        imageUrl: data.imageUrl as string | undefined,
-        status,
-      },
-      include: { medicine: true },
+    const listing = await prisma.$transaction(async (tx) => {
+      if (status === ListingStatus.ACTIVE) {
+        await assertActiveListingCapInTx(tx, pharmacy.id);
+      }
+      return tx.listing.create({
+        data: {
+          pharmacyId: pharmacy.id,
+          medicineId: data.medicineId as string,
+          batchNumber: data.batchNumber as string,
+          mfgDate: new Date(data.mfgDate as string),
+          expiryDate: new Date(data.expiryDate as string),
+          purchasePrice: data.purchasePrice as number,
+          sellingPrice: data.sellingPrice as number,
+          discountPercent: Number(data.discountPercent ?? 0),
+          finalPrice,
+          availableQty: data.availableQty as number,
+          moq: Number(data.moq ?? 1),
+          unit: (data.unit as string) ?? 'strip',
+          lowStockThreshold: data.lowStockThreshold != null ? Number(data.lowStockThreshold) : undefined,
+          imageUrl: data.imageUrl as string | undefined,
+          status,
+        },
+        include: { medicine: true },
+      });
     });
 
     if (listing.status === ListingStatus.ACTIVE) {
@@ -314,30 +328,33 @@ export class ListingService {
 
   async update(userId: string, id: string, data: Record<string, unknown>) {
     const pharmacy = await getPharmacyForUser(userId);
-    const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
-    if (!existing) throw AppError.notFound('Listing not found');
 
-    const finalPrice = data.sellingPrice !== undefined || data.discountPercent !== undefined
-      ? computeFinalPrice(
-          Number(data.sellingPrice ?? existing.sellingPrice),
-          Number(data.discountPercent ?? existing.discountPercent)
-        )
-      : undefined;
+    const updated = await prisma.$transaction(async (tx) => {
+      const existing = await tx.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
+      if (!existing) throw AppError.notFound('Listing not found');
 
-    const updateData: Record<string, unknown> = { ...data };
-    if (data.mfgDate) updateData.mfgDate = new Date(data.mfgDate as string);
-    if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
-    if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
+      const finalPrice = data.sellingPrice !== undefined || data.discountPercent !== undefined
+        ? computeFinalPrice(
+            Number(data.sellingPrice ?? existing.sellingPrice),
+            Number(data.discountPercent ?? existing.discountPercent)
+          )
+        : undefined;
 
-    const nextStatus = (data.status as ListingStatus | undefined) ?? existing.status;
-    if (nextStatus === ListingStatus.ACTIVE && existing.status !== ListingStatus.ACTIVE) {
-      await assertActiveListingCap(pharmacy.id, id);
-    }
+      const updateData: Record<string, unknown> = { ...data };
+      if (data.mfgDate) updateData.mfgDate = new Date(data.mfgDate as string);
+      if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate as string);
+      if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
 
-    const updated = await prisma.listing.update({
-      where: { id },
-      data: updateData as never,
-      include: { medicine: true },
+      const nextStatus = (data.status as ListingStatus | undefined) ?? existing.status;
+      if (nextStatus === ListingStatus.ACTIVE && existing.status !== ListingStatus.ACTIVE) {
+        await assertActiveListingCapInTx(tx, pharmacy.id, id);
+      }
+
+      return tx.listing.update({
+        where: { id },
+        data: updateData as never,
+        include: { medicine: true },
+      });
     });
 
     if (updated.status === ListingStatus.ACTIVE) {
@@ -367,28 +384,31 @@ export class ListingService {
 
   async updateQuantity(userId: string, id: string, availableQty: number) {
     const pharmacy = await getPharmacyForUser(userId);
-    const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
-    if (!existing) throw AppError.notFound('Listing not found');
 
-    const reactivatingFromSoldOut =
-      existing.status === ListingStatus.SOLD_OUT && availableQty > 0;
-    if (reactivatingFromSoldOut) {
-      await assertActiveListingCap(pharmacy.id, id);
-    }
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
+      if (!existing) throw AppError.notFound('Listing not found');
 
-    const nextStatus =
-      availableQty === 0
-        ? ListingStatus.SOLD_OUT
-        : reactivatingFromSoldOut
-          ? ListingStatus.ACTIVE
-          : existing.status;
+      const reactivatingFromSoldOut =
+        existing.status === ListingStatus.SOLD_OUT && availableQty > 0;
+      if (reactivatingFromSoldOut) {
+        await assertActiveListingCapInTx(tx, pharmacy.id, id);
+      }
 
-    return prisma.listing.update({
-      where: { id },
-      data: {
-        availableQty,
-        status: nextStatus,
-      },
+      const nextStatus =
+        availableQty === 0
+          ? ListingStatus.SOLD_OUT
+          : reactivatingFromSoldOut
+            ? ListingStatus.ACTIVE
+            : existing.status;
+
+      return tx.listing.update({
+        where: { id },
+        data: {
+          availableQty,
+          status: nextStatus,
+        },
+      });
     });
   }
 
@@ -402,14 +422,17 @@ export class ListingService {
 
   async activate(userId: string, id: string) {
     const pharmacy = await getPharmacyForUser(userId);
-    const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
-    if (!existing) throw AppError.notFound('Listing not found');
 
-    if (existing.status !== ListingStatus.ACTIVE) {
-      await assertActiveListingCap(pharmacy.id, id);
-    }
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
+      if (!existing) throw AppError.notFound('Listing not found');
 
-    return prisma.listing.update({ where: { id }, data: { status: ListingStatus.ACTIVE } });
+      if (existing.status !== ListingStatus.ACTIVE) {
+        await assertActiveListingCapInTx(tx, pharmacy.id, id);
+      }
+
+      return tx.listing.update({ where: { id }, data: { status: ListingStatus.ACTIVE } });
+    });
   }
 
   async delete(userId: string, id: string) {
@@ -418,22 +441,25 @@ export class ListingService {
 
   async restock(userId: string, id: string, amount = 50) {
     const pharmacy = await getPharmacyForUser(userId);
-    const existing = await prisma.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
-    if (!existing) throw AppError.notFound('Listing not found');
 
-    const willActivate = existing.status === ListingStatus.SOLD_OUT;
-    if (willActivate) {
-      await assertActiveListingCap(pharmacy.id, id);
-    }
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.listing.findFirst({ where: { id, pharmacyId: pharmacy.id } });
+      if (!existing) throw AppError.notFound('Listing not found');
 
-    const availableQty = existing.availableQty + amount;
-    return prisma.listing.update({
-      where: { id },
-      data: {
-        availableQty,
-        status: willActivate ? ListingStatus.ACTIVE : existing.status,
-      },
-      include: { medicine: true },
+      const willActivate = existing.status === ListingStatus.SOLD_OUT;
+      if (willActivate) {
+        await assertActiveListingCapInTx(tx, pharmacy.id, id);
+      }
+
+      const availableQty = existing.availableQty + amount;
+      return tx.listing.update({
+        where: { id },
+        data: {
+          availableQty,
+          status: willActivate ? ListingStatus.ACTIVE : existing.status,
+        },
+        include: { medicine: true },
+      });
     });
   }
 
