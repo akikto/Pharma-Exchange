@@ -25,6 +25,7 @@ export interface ChatConversationDetail extends Conversation {
     requestNumber: string;
     status: string;
     totalAmount: string | number;
+    expiresAt?: string | null;
     seller?: { userId: string };
   } | null;
   counterparty?: { id: string; firstName: string; lastName: string; phone?: string | null } | null;

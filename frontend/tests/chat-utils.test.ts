@@ -10,6 +10,7 @@ describe('chat-utils', () => {
   it('returns buy request actions when pending', () => {
     expect(getSellerBuyRequestActions('PENDING')).toHaveLength(2);
     expect(getSellerBuyRequestActions('ACCEPTED')).toHaveLength(0);
+    expect(getSellerBuyRequestActions('PENDING', '2020-01-01T00:00:00.000Z')).toHaveLength(0);
   });
 
   it('buildConversationQuery encodes filter', () => {

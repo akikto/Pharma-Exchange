@@ -44,7 +44,10 @@ export function ChatHeader({ conversation, onRefreshMessages }: ChatHeaderProps)
     ? getSellerOrderAction(conversation.order.status)
     : null;
   const requestActions = isSellerOnRequest && conversation.buyRequest
-    ? getSellerBuyRequestActions(conversation.buyRequest.status)
+    ? getSellerBuyRequestActions(
+        conversation.buyRequest.status,
+        conversation.buyRequest.expiresAt,
+      )
     : [];
 
   const handleOrderStatus = async (status: string) => {

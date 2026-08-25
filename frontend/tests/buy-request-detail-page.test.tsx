@@ -14,8 +14,10 @@ vi.mock('@/components/layout/top-bar', () => ({
   TopBar: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 
+const usePageRole = vi.fn(() => 'seller');
+
 vi.mock('@/hooks/use-page-role', () => ({
-  usePageRole: () => 'seller',
+  usePageRole: () => usePageRole(),
 }));
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -83,6 +85,7 @@ describe('BuyRequestDetailPage respond loading state', () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    usePageRole.mockReturnValue('seller');
     get.mockResolvedValue(sampleBuyRequest);
   });
 
@@ -150,5 +153,27 @@ describe('BuyRequestDetailPage respond loading state', () => {
       expect(buttonShowsLoading(acceptButton)).toBe(false);
       expect(buttonShowsLoading(rejectButton)).toBe(false);
     });
+  });
+});
+
+describe('BuyRequestDetailPage expiry UI', () => {
+  beforeEach(() => {
+    get.mockReset();
+    post.mockReset();
+    usePageRole.mockReturnValue('buyer');
+  });
+
+  it('hides seller actions and shows resend when expired', async () => {
+    get.mockResolvedValue({
+      ...sampleBuyRequest,
+      status: 'EXPIRED',
+      expiresAt: '2020-01-01T00:00:00.000Z',
+    });
+
+    renderBuyRequestDetailPage();
+
+    await screen.findByTestId('buy-request-expired-banner');
+    expect(screen.queryByTestId('buy-request-accept-button')).not.toBeInTheDocument();
+    expect(screen.getByTestId('buy-request-resend-button')).toBeInTheDocument();
   });
 });

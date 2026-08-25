@@ -113,6 +113,7 @@ export interface BuyRequest {
   note?: string;
   sellerNote?: string;
   createdAt: string;
+  expiresAt?: string | null;
   items: { id: string; quantity: number; unitPrice: string; subtotal: string; listing: Listing }[];
   buyer?: { id: string; firstName: string; lastName: string };
   seller?: Pharmacy;
