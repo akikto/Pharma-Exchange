@@ -35,6 +35,20 @@ export interface AdminSellerDetail extends Omit<AdminSellerListItem, 'listingCou
   listingCount: number;
   activeListingCount: number;
   orderCount: number;
+  buyRequestCount: number;
+  reviewCount: number;
+  canPermanentlyDelete: boolean;
+}
+
+export interface AdminPharmacyUpdatePayload {
+  isActive?: boolean;
+  name?: string;
+  licenseNumber?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  postalCode?: string | null;
+  description?: string | null;
 }
 
 export function verificationStatusVariant(

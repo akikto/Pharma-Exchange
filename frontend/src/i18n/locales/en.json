@@ -780,6 +780,7 @@
       "nav": "Seller management",
       "title": "Seller management",
       "description": "Search pharmacies, review verification documents, approve or reject sellers, and suspend accounts.",
+      "totalCount": "{{count}} sellers total",
       "searchPlaceholder": "Search by pharmacy name, license, city, email, or phone…",
       "filterAll": "All statuses",
       "empty": "No sellers match your filters.",
@@ -796,6 +797,15 @@
       "accountActive": "Active",
       "accountSuspended": "Suspended",
       "actionFailed": "Action failed",
+      "deletePermanent": "Delete permanently",
+      "deleteConfirmTitle": "Permanently delete seller?",
+      "deleteConfirmBody": "This removes the pharmacy record and cascaded listings/documents. It cannot be undone. Type \"{{name}}\" to confirm.",
+      "deleteConfirmPlaceholder": "Pharmacy name",
+      "deleteBlockedHint": "Permanent deletion is disabled while this seller has orders, buy requests, or reviews. Use Suspend to block marketplace access without erasing history.",
+      "deleted": "Seller permanently deleted",
+      "editProfile": "Edit profile",
+      "saveProfile": "Save changes",
+      "profileSaved": "Seller profile updated",
       "rejectReasonPrompt": "Rejection reason (optional)",
       "listingCounts": "{{active}} active / {{total}} total listings",
       "activeFilter": {
@@ -812,11 +822,17 @@
         "actions": "Actions"
       },
       "fields": {
+        "name": "Pharmacy name",
         "license": "License",
         "address": "Address",
+        "city": "City",
+        "district": "District",
+        "postalCode": "Postal code",
+        "description": "Description",
         "owner": "Owner contact",
         "listings": "Listings",
-        "orders": "Orders fulfilled"
+        "orders": "Orders fulfilled",
+        "buyRequests": "Buy requests"
       },
       "status": {
         "PENDING": "Pending",

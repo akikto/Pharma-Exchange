@@ -221,9 +221,16 @@ export class PharmacyService {
     });
     if (!pharmacy) throw AppError.notFound('Pharmacy not found');
 
-    const activeListings = await prisma.listing.count({
-      where: { pharmacyId, status: ListingStatus.ACTIVE },
-    });
+    const [activeListings, orderCount, buyRequestCount, reviewCount] = await Promise.all([
+      prisma.listing.count({
+        where: { pharmacyId, status: ListingStatus.ACTIVE },
+      }),
+      prisma.order.count({ where: { sellerId: pharmacyId } }),
+      prisma.buyRequest.count({ where: { sellerId: pharmacyId } }),
+      prisma.review.count({ where: { pharmacyId } }),
+    ]);
+
+    const canPermanentlyDelete = orderCount === 0 && buyRequestCount === 0 && reviewCount === 0;
 
     const { _count, user, ...rest } = pharmacy;
     return {
@@ -240,21 +247,53 @@ export class PharmacyService {
         : null,
       listingCount: _count.listings,
       activeListingCount: activeListings,
-      orderCount: _count.ordersAsSeller,
+      orderCount,
+      buyRequestCount,
+      reviewCount,
+      canPermanentlyDelete,
     };
   }
 
-  async adminUpdate(pharmacyId: string, data: { isActive?: boolean }) {
+  async adminUpdate(
+    pharmacyId: string,
+    data: {
+      isActive?: boolean;
+      name?: string;
+      licenseNumber?: string;
+      address?: string;
+      city?: string;
+      district?: string;
+      postalCode?: string | null;
+      description?: string | null;
+    },
+  ) {
     const pharmacy = await prisma.pharmacy.findUnique({ where: { id: pharmacyId } });
     if (!pharmacy) throw AppError.notFound('Pharmacy not found');
 
-    if (typeof data.isActive !== 'boolean') {
+    const updates: Record<string, unknown> = {};
+    if (typeof data.isActive === 'boolean') updates.isActive = data.isActive;
+    if (data.name !== undefined) updates.name = data.name;
+    if (data.licenseNumber !== undefined) updates.licenseNumber = data.licenseNumber;
+    if (data.address !== undefined) updates.address = data.address;
+    if (data.city !== undefined) updates.city = data.city;
+    if (data.district !== undefined) updates.district = data.district;
+    if (data.postalCode !== undefined) updates.postalCode = data.postalCode;
+    if (data.description !== undefined) updates.description = data.description;
+
+    if (Object.keys(updates).length === 0) {
       throw AppError.badRequest('No valid fields to update');
+    }
+
+    if (data.licenseNumber !== undefined) {
+      const licenseTaken = await prisma.pharmacy.findFirst({
+        where: { licenseNumber: data.licenseNumber, NOT: { id: pharmacyId } },
+      });
+      if (licenseTaken) throw AppError.conflict('License number already registered');
     }
 
     const updated = await prisma.pharmacy.update({
       where: { id: pharmacyId },
-      data: { isActive: data.isActive },
+      data: updates,
     });
 
     if (data.isActive === false) {
@@ -269,6 +308,35 @@ export class PharmacyService {
     }
 
     return updated;
+  }
+
+  /**
+   * Hard-delete pharmacy only when no orders, buy requests, or reviews exist (financial/audit history preserved).
+   * Listings, documents, and bulk requests cascade via Prisma schema.
+   */
+  async adminDeletePermanent(pharmacyId: string, confirmName: string) {
+    const pharmacy = await prisma.pharmacy.findUnique({ where: { id: pharmacyId } });
+    if (!pharmacy) throw AppError.notFound('Pharmacy not found');
+
+    if (confirmName.trim() !== pharmacy.name) {
+      throw AppError.badRequest('Confirmation name does not match pharmacy name');
+    }
+
+    const [orderCount, buyRequestCount, reviewCount] = await Promise.all([
+      prisma.order.count({ where: { sellerId: pharmacyId } }),
+      prisma.buyRequest.count({ where: { sellerId: pharmacyId } }),
+      prisma.review.count({ where: { pharmacyId } }),
+    ]);
+
+    if (orderCount > 0 || buyRequestCount > 0 || reviewCount > 0) {
+      throw AppError.conflict(
+        'Cannot permanently delete a seller with order, buy-request, or review history. Suspend the account instead.',
+      );
+    }
+
+    await prisma.pharmacy.delete({ where: { id: pharmacyId } });
+
+    return { deleted: true, id: pharmacyId };
   }
 }
 

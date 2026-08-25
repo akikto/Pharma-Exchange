@@ -33,8 +33,23 @@ const pharmacyListSchema = z.object({
   isActive: z.enum(['true', 'false']).optional(),
 });
 
-const pharmacyUpdateSchema = z.object({
-  isActive: z.boolean(),
+const pharmacyUpdateSchema = z
+  .object({
+    isActive: z.boolean().optional(),
+    name: z.string().trim().min(1).max(200).optional(),
+    licenseNumber: z.string().trim().min(1).max(100).optional(),
+    address: z.string().trim().min(1).max(500).optional(),
+    city: z.string().trim().min(1).max(100).optional(),
+    district: z.string().trim().min(1).max(100).optional(),
+    postalCode: z.string().trim().max(20).nullable().optional(),
+    description: z.string().trim().max(2000).nullable().optional(),
+  })
+  .refine((data) => Object.values(data).some((v) => v !== undefined), {
+    message: 'At least one field is required',
+  });
+
+const pharmacyDeleteSchema = z.object({
+  confirmName: z.string().trim().min(1),
 });
 
 class AnalyticsController {
@@ -91,8 +106,15 @@ class AdminController {
 
   async updatePharmacy(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { isActive } = req.body;
-      res.json(await pharmacyService.adminUpdate(req.params.id as string, { isActive }));
+      res.json(await pharmacyService.adminUpdate(req.params.id as string, req.body));
+    } catch (err) { next(err); }
+  }
+
+  async deletePharmacy(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { confirmName } = req.body;
+      await pharmacyService.adminDeletePermanent(req.params.id as string, confirmName);
+      res.status(204).send();
     } catch (err) { next(err); }
   }
 
@@ -175,6 +197,7 @@ adminRouter.post('/verifications/:id', validate(verifySchema), adminCtrl.verifyP
 adminRouter.get('/pharmacies', adminCtrl.listPharmacies.bind(adminCtrl));
 adminRouter.get('/pharmacies/:id', adminCtrl.getPharmacy.bind(adminCtrl));
 adminRouter.patch('/pharmacies/:id', validate(pharmacyUpdateSchema), adminCtrl.updatePharmacy.bind(adminCtrl));
+adminRouter.delete('/pharmacies/:id', validate(pharmacyDeleteSchema), adminCtrl.deletePharmacy.bind(adminCtrl));
 adminRouter.get('/reports', adminCtrl.reports.bind(adminCtrl));
 adminRouter.post('/reports/:id/resolve', validate(resolveSchema), adminCtrl.resolveReport.bind(adminCtrl));
 adminRouter.get('/users', adminCtrl.users.bind(adminCtrl));
