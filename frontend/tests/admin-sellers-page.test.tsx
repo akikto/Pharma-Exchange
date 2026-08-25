@@ -76,15 +76,14 @@ describe('AdminSellersPage', () => {
     renderPage();
     expect(await screen.findByTestId('admin-sellers-table')).toBeInTheDocument();
     expect(screen.getByText('City Pharmacy')).toBeInTheDocument();
-    expect(screen.getByText('Pending')).toBeInTheDocument();
+    expect(screen.getByTestId('admin-seller-row-pharm-1')).toHaveTextContent('Pending');
   });
 
   it('opens manage dialog with approve actions for pending seller', async () => {
     renderPage();
-    const manage = await screen.findByTestId('admin-seller-manage-pharm-1');
-    fireEvent.click(manage);
+    fireEvent.click(await screen.findByTestId('admin-seller-manage-pharm-1'));
     expect(await screen.findByTestId('admin-seller-detail-dialog')).toBeInTheDocument();
-    expect(screen.getByTestId('admin-seller-approve')).toBeInTheDocument();
+    expect(await screen.findByTestId('admin-seller-approve')).toBeInTheDocument();
     expect(screen.getByTestId('admin-seller-reject')).toBeInTheDocument();
   });
 });
