@@ -42,7 +42,7 @@ export function AdminDashboardPage() {
   if (isError) return <div className="p-4 text-center text-danger">Failed to load dashboard</div>;
 
   return (
-    <div className="min-h-screen bg-surface-raised">
+    <div className="bg-surface-raised">
       <TopBar title="Admin Dashboard" />
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -114,7 +114,7 @@ export function AdminReportsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-surface-raised">
+    <div className="bg-surface-raised">
       <TopBar title="Reports" showBack backTo="/admin" />
       <div className="p-4 space-y-3 max-w-3xl mx-auto">
         {isLoading ? <ListSkeleton /> : data?.data.length === 0 ? (

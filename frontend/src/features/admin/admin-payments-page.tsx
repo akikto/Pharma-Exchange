@@ -37,7 +37,7 @@ export function AdminPaymentsPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'payments'] });
 
   return (
-    <div className="min-h-screen bg-surface-raised">
+    <div className="bg-surface-raised">
       <TopBar title={t('admin.payments')} showBack backTo="/admin" />
       <div className="p-4 space-y-3 max-w-4xl mx-auto">
         <p className="text-sm text-text-secondary">{t('admin.paymentsDesc')}</p>

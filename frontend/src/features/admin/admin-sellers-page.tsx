@@ -103,7 +103,7 @@ export function AdminSellersPage({ mode = 'sellers' }: AdminSellersPageProps) {
     : VERIFICATION_FILTERS;
 
   return (
-    <div className="min-h-screen bg-surface-raised" data-testid={pageTestId}>
+    <div className="bg-surface-raised" data-testid={pageTestId}>
       <TopBar
         title={isVerificationQueue ? t('admin.verificationsQueueTitle') : t('admin.sellers.title')}
         showBack

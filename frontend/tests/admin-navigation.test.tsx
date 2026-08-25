@@ -56,4 +56,12 @@ describe('Admin navigation', () => {
     const alerts = screen.getByTestId('nav-admin-bottom-notifications');
     expect(alerts).toHaveAttribute('href', '/admin/notifications');
   });
+
+  it('uses a bounded scroll region for admin page content', () => {
+    renderAdminShell('/admin');
+    const main = document.getElementById('admin-main-content');
+    expect(main).not.toBeNull();
+    expect(main).toHaveClass('app-scroll-region');
+    expect(main).toHaveClass('overflow-y-auto');
+  });
 });

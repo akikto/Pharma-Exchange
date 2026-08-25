@@ -9,7 +9,7 @@ export function AdminLayout() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-[100dvh] bg-surface-raised edge-to-edge">
+    <div className="fixed inset-0 z-0 flex h-[100dvh] max-h-[100dvh] min-h-0 w-full max-w-full overflow-hidden bg-surface-raised edge-to-edge">
       <a
         href="#admin-main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[var(--radius-md)] focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
@@ -31,14 +31,18 @@ export function AdminLayout() {
         </Link>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col pb-[var(--shell-bottom-nav-height)] md:pb-0">
-        <header className="md:hidden sticky top-0 z-40 border-b border-border-subtle bg-surface-base">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="md:hidden shrink-0 sticky top-0 z-40 border-b border-border-subtle bg-surface-base">
           <div className="px-4 h-14 flex items-center gap-3">
             <Logo size="sm" />
             <span className="font-semibold text-sm">{t('admin.dashboard')}</span>
           </div>
         </header>
-        <main id="admin-main-content" className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain" tabIndex={-1}>
+        <main
+          id="admin-main-content"
+          className="app-scroll-region flex-1 min-h-0 overflow-y-auto overscroll-y-contain pb-[var(--shell-bottom-nav-height)] md:pb-0"
+          tabIndex={-1}
+        >
           <Outlet />
         </main>
         <AdminBottomNav />
