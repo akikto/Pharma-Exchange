@@ -16,10 +16,12 @@ import { useToast } from '@/hooks/use-toast';
 import {
   useAdminSellerDetail,
   useAdminSellers,
-  useUpdatePharmacyActive,
+  useDeletePharmacy,
+  useUpdatePharmacy,
   useVerifyPharmacy,
   type AdminSellersFilters,
 } from '@/hooks/use-admin-sellers';
+import type { AdminPharmacyUpdatePayload } from '@/lib/admin-sellers';
 import {
   verificationStatusVariant,
   type AdminSellerListItem,
@@ -69,12 +71,19 @@ export function AdminSellersPage() {
 
   const { data, isLoading, isError } = useAdminSellers(filters);
   const sellers = useMemo(() => data?.data ?? [], [data?.data]);
+  const totalSellers = data?.pagination?.total ?? 0;
 
   return (
     <div className="min-h-screen bg-surface-raised" data-testid="admin-sellers-page">
       <TopBar title={t('admin.sellers.title')} showBack />
       <div className="p-4 space-y-4 max-w-6xl mx-auto">
         <p className="text-sm text-text-secondary">{t('admin.sellers.description')}</p>
+
+        {!isLoading && !isError && (
+          <p className="text-sm font-medium tabular-nums" data-testid="admin-sellers-total-count">
+            {t('admin.sellers.totalCount', { count: totalSellers })}
+          </p>
+        )}
 
         <Input
           value={filters.q}
@@ -158,6 +167,7 @@ export function AdminSellersPage() {
         }}
         onActionComplete={(message) => toast({ title: message })}
         onError={() => toast({ title: t('admin.sellers.actionFailed'), variant: 'destructive' })}
+        onDeleted={() => setSelectedId(null)}
       />
     </div>
   );
@@ -211,17 +221,40 @@ function SellerDetailDialog({
   onOpenChange,
   onActionComplete,
   onError,
+  onDeleted,
 }: {
   pharmacyId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onActionComplete: (message: string) => void;
   onError: () => void;
+  onDeleted: () => void;
 }) {
   const { t } = useTranslation();
   const { data: seller, isLoading } = useAdminSellerDetail(open ? pharmacyId : null);
   const verify = useVerifyPharmacy();
-  const updateActive = useUpdatePharmacyActive();
+  const updatePharmacy = useUpdatePharmacy();
+  const deletePharmacy = useDeletePharmacy();
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmName, setConfirmName] = useState('');
+  const [form, setForm] = useState<AdminPharmacyUpdatePayload>({});
+
+  useEffect(() => {
+    if (!seller) return;
+    setForm({
+      name: seller.name,
+      licenseNumber: seller.licenseNumber,
+      address: seller.address,
+      city: seller.city,
+      district: seller.district,
+      postalCode: seller.postalCode ?? '',
+      description: seller.description ?? '',
+    });
+    setConfirmName('');
+    setDeleteOpen(false);
+  }, [seller]);
 
   const canVerify =
     seller?.verificationStatus === 'PENDING' || seller?.verificationStatus === 'UNDER_REVIEW';
@@ -252,8 +285,8 @@ function SellerDetailDialog({
 
   const toggleActive = () => {
     if (!seller) return;
-    updateActive.mutate(
-      { id: seller.id, isActive: !seller.isActive },
+    updatePharmacy.mutate(
+      { id: seller.id, payload: { isActive: !seller.isActive } },
       {
         onSuccess: () =>
           onActionComplete(
@@ -264,102 +297,223 @@ function SellerDetailDialog({
     );
   };
 
+  const saveProfile = () => {
+    if (!seller) return;
+    updatePharmacy.mutate(
+      {
+        id: seller.id,
+        payload: {
+          name: form.name?.trim(),
+          licenseNumber: form.licenseNumber?.trim(),
+          address: form.address?.trim(),
+          city: form.city?.trim(),
+          district: form.district?.trim(),
+          postalCode: form.postalCode?.trim() || null,
+          description: form.description?.trim() || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          setEditOpen(false);
+          onActionComplete(t('admin.sellers.profileSaved'));
+        },
+        onError,
+      },
+    );
+  };
+
+  const handlePermanentDelete = () => {
+    if (!seller) return;
+    deletePharmacy.mutate(
+      { id: seller.id, confirmName },
+      {
+        onSuccess: () => {
+          setDeleteOpen(false);
+          onOpenChange(false);
+          onDeleted();
+          onActionComplete(t('admin.sellers.deleted'));
+        },
+        onError,
+      },
+    );
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" data-testid="admin-seller-detail-dialog">
-        <DialogHeader>
-          <DialogTitle>{seller?.name ?? t('admin.sellers.detailTitle')}</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" data-testid="admin-seller-detail-dialog">
+          <DialogHeader>
+            <DialogTitle>{seller?.name ?? t('admin.sellers.detailTitle')}</DialogTitle>
+          </DialogHeader>
 
-        {isLoading || !seller ? (
-          <ListSkeleton count={3} />
-        ) : (
-          <div className="space-y-4 text-sm">
-            <div className="flex flex-wrap gap-2">
-              <StatusChip
-                label={t(`admin.sellers.status.${seller.verificationStatus}`)}
-                variant={verificationStatusVariant(seller.verificationStatus)}
-              />
-              <StatusChip
-                label={seller.isActive ? t('admin.sellers.accountActive') : t('admin.sellers.accountSuspended')}
-                variant={seller.isActive ? 'success' : 'danger'}
-              />
-            </div>
-
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-              <dt className="text-text-secondary">{t('admin.sellers.fields.license')}</dt>
-              <dd>{seller.licenseNumber}</dd>
-              <dt className="text-text-secondary">{t('admin.sellers.fields.address')}</dt>
-              <dd>{seller.address}, {seller.city}</dd>
-              <dt className="text-text-secondary">{t('admin.sellers.fields.owner')}</dt>
-              <dd>{seller.owner?.name} · {seller.owner?.email} · {seller.owner?.phone ?? '—'}</dd>
-              <dt className="text-text-secondary">{t('admin.sellers.fields.listings')}</dt>
-              <dd>{t('admin.sellers.listingCounts', { active: seller.activeListingCount, total: seller.listingCount })}</dd>
-              <dt className="text-text-secondary">{t('admin.sellers.fields.orders')}</dt>
-              <dd>{seller.orderCount}</dd>
-            </dl>
-
-            {seller.rejectionReason && (
-              <p className="text-xs text-danger rounded-[var(--radius-md)] border border-danger/30 bg-danger/5 p-2">
-                {seller.rejectionReason}
-              </p>
-            )}
-
-            {seller.documents.length > 0 && (
-              <div className="space-y-2">
-                <p className="font-medium text-xs">{t('admin.sellers.documents')}</p>
-                <ul className="space-y-1">
-                  {seller.documents.map((doc) => (
-                    <li key={doc.id}>
-                      <a
-                        href={doc.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline text-xs"
-                      >
-                        {doc.fileName} ({doc.type})
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+          {isLoading || !seller ? (
+            <ListSkeleton count={3} />
+          ) : (
+            <div className="space-y-4 text-sm">
+              <div className="flex flex-wrap gap-2">
+                <StatusChip
+                  label={t(`admin.sellers.status.${seller.verificationStatus}`)}
+                  variant={verificationStatusVariant(seller.verificationStatus)}
+                />
+                <StatusChip
+                  label={seller.isActive ? t('admin.sellers.accountActive') : t('admin.sellers.accountSuspended')}
+                  variant={seller.isActive ? 'success' : 'danger'}
+                />
               </div>
-            )}
 
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-border-subtle">
-              {canVerify && (
-                <>
+              {editOpen ? (
+                <div className="space-y-3 border border-border-subtle rounded-[var(--radius-md)] p-3" data-testid="admin-seller-edit-form">
+                  <Input value={form.name ?? ''} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder={t('admin.sellers.fields.name')} />
+                  <Input value={form.licenseNumber ?? ''} onChange={(e) => setForm((f) => ({ ...f, licenseNumber: e.target.value }))} placeholder={t('admin.sellers.fields.license')} />
+                  <Input value={form.address ?? ''} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} placeholder={t('admin.sellers.fields.address')} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input value={form.city ?? ''} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder={t('admin.sellers.fields.city')} />
+                    <Input value={form.district ?? ''} onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))} placeholder={t('admin.sellers.fields.district')} />
+                  </div>
+                  <Input value={form.postalCode ?? ''} onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))} placeholder={t('admin.sellers.fields.postalCode')} />
+                  <textarea
+                    className="w-full min-h-[72px] rounded-[var(--radius-md)] border border-border-subtle px-3 py-2 text-sm bg-surface-base"
+                    value={form.description ?? ''}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                    placeholder={t('admin.sellers.fields.description')}
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveProfile} disabled={updatePharmacy.isPending} data-testid="admin-seller-save-profile">
+                      {t('admin.sellers.saveProfile')}
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setEditOpen(false)}>
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.license')}</dt>
+                  <dd>{seller.licenseNumber}</dd>
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.address')}</dt>
+                  <dd>{seller.address}, {seller.city}, {seller.district}</dd>
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.owner')}</dt>
+                  <dd>{seller.owner?.name} · {seller.owner?.email} · {seller.owner?.phone ?? '—'}</dd>
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.listings')}</dt>
+                  <dd>{t('admin.sellers.listingCounts', { active: seller.activeListingCount, total: seller.listingCount })}</dd>
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.orders')}</dt>
+                  <dd>{seller.orderCount}</dd>
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.buyRequests')}</dt>
+                  <dd>{seller.buyRequestCount}</dd>
+                </dl>
+              )}
+
+              {seller.rejectionReason && (
+                <p className="text-xs text-danger rounded-[var(--radius-md)] border border-danger/30 bg-danger/5 p-2">
+                  {seller.rejectionReason}
+                </p>
+              )}
+
+              {!seller.canPermanentlyDelete && (
+                <p className="text-xs text-text-secondary rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken p-2" data-testid="admin-seller-delete-blocked-hint">
+                  {t('admin.sellers.deleteBlockedHint')}
+                </p>
+              )}
+
+              {seller.documents.length > 0 && (
+                <div className="space-y-2">
+                  <p className="font-medium text-xs">{t('admin.sellers.documents')}</p>
+                  <ul className="space-y-1">
+                    {seller.documents.map((doc) => (
+                      <li key={doc.id}>
+                        <a
+                          href={doc.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline text-xs"
+                        >
+                          {doc.fileName} ({doc.type})
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-border-subtle">
+                {!editOpen && (
+                  <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)} data-testid="admin-seller-edit">
+                    {t('admin.sellers.editProfile')}
+                  </Button>
+                )}
+                {canVerify && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={verify.isPending}
+                      onClick={handleReject}
+                      data-testid="admin-seller-reject"
+                    >
+                      {t('admin.reject')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={verify.isPending}
+                      onClick={handleApprove}
+                      data-testid="admin-seller-approve"
+                    >
+                      {t('admin.approve')}
+                    </Button>
+                  </>
+                )}
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={updatePharmacy.isPending}
+                  onClick={toggleActive}
+                  data-testid="admin-seller-toggle-active"
+                >
+                  {seller.isActive ? t('admin.sellers.suspend') : t('admin.sellers.reactivate')}
+                </Button>
+                {seller.canPermanentlyDelete && (
                   <Button
                     size="sm"
                     variant="destructive"
-                    disabled={verify.isPending}
-                    onClick={handleReject}
-                    data-testid="admin-seller-reject"
+                    onClick={() => setDeleteOpen(true)}
+                    data-testid="admin-seller-delete-open"
                   >
-                    {t('admin.reject')}
+                    {t('admin.sellers.deletePermanent')}
                   </Button>
-                  <Button
-                    size="sm"
-                    disabled={verify.isPending}
-                    onClick={handleApprove}
-                    data-testid="admin-seller-approve"
-                  >
-                    {t('admin.approve')}
-                  </Button>
-                </>
-              )}
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={updateActive.isPending}
-                onClick={toggleActive}
-                data-testid="admin-seller-toggle-active"
-              >
-                {seller.isActive ? t('admin.sellers.suspend') : t('admin.sellers.reactivate')}
-              </Button>
+                )}
+              </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="max-w-md" data-testid="admin-seller-delete-dialog">
+          <DialogHeader>
+            <DialogTitle>{t('admin.sellers.deleteConfirmTitle')}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-text-secondary">{t('admin.sellers.deleteConfirmBody', { name: seller?.name ?? '' })}</p>
+          <Input
+            value={confirmName}
+            onChange={(e) => setConfirmName(e.target.value)}
+            placeholder={t('admin.sellers.deleteConfirmPlaceholder')}
+            data-testid="admin-seller-delete-confirm-input"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setDeleteOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!seller || confirmName.trim() !== seller.name || deletePharmacy.isPending}
+              onClick={handlePermanentDelete}
+              data-testid="admin-seller-delete-confirm"
+            >
+              {t('admin.sellers.deletePermanent')}
+            </Button>
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

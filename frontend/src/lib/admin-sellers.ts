@@ -29,12 +29,27 @@ export interface AdminSellerDocument {
 
 export interface AdminSellerDetail extends Omit<AdminSellerListItem, 'listingCount'> {
   address: string;
+  postalCode: string | null;
   rejectionReason: string | null;
   description: string | null;
   documents: AdminSellerDocument[];
   listingCount: number;
   activeListingCount: number;
   orderCount: number;
+  buyRequestCount: number;
+  reviewCount: number;
+  canPermanentlyDelete: boolean;
+}
+
+export interface AdminPharmacyUpdatePayload {
+  isActive?: boolean;
+  name?: string;
+  licenseNumber?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  postalCode?: string | null;
+  description?: string | null;
 }
 
 export function verificationStatusVariant(

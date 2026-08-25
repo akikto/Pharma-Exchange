@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -61,11 +61,15 @@ describe('AdminSellersPage', () => {
         return Promise.resolve({
           ...sampleSeller,
           address: '123 Main St',
+          postalCode: '1200',
           rejectionReason: null,
           description: null,
           documents: [],
           activeListingCount: 2,
-          orderCount: 5,
+          orderCount: 0,
+          buyRequestCount: 0,
+          reviewCount: 0,
+          canPermanentlyDelete: true,
         });
       }
       return Promise.resolve({ data: [] });
@@ -79,11 +83,20 @@ describe('AdminSellersPage', () => {
     expect(screen.getByTestId('admin-seller-row-pharm-1')).toHaveTextContent('Pending');
   });
 
+  it('shows total seller count', async () => {
+    renderPage();
+    const el = await screen.findByTestId('admin-sellers-total-count');
+    await vi.waitFor(() => {
+      expect(el.textContent).toMatch(/1/);
+    });
+  });
+
   it('opens manage dialog with approve actions for pending seller', async () => {
     renderPage();
     fireEvent.click(await screen.findByTestId('admin-seller-manage-pharm-1'));
     expect(await screen.findByTestId('admin-seller-detail-dialog')).toBeInTheDocument();
     expect(await screen.findByTestId('admin-seller-approve')).toBeInTheDocument();
     expect(screen.getByTestId('admin-seller-reject')).toBeInTheDocument();
+    expect(screen.getByTestId('admin-seller-delete-open')).toBeInTheDocument();
   });
 });

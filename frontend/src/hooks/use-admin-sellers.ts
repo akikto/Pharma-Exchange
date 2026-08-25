@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import type { PaginatedResponse } from '@/types';
-import type { AdminSellerDetail, AdminSellerListItem, PharmacyVerificationStatus } from '@/lib/admin-sellers';
+import type {
+  AdminPharmacyUpdatePayload,
+  AdminSellerDetail,
+  AdminSellerListItem,
+  PharmacyVerificationStatus,
+} from '@/lib/admin-sellers';
 
 export interface AdminSellersFilters {
   q: string;
@@ -50,14 +55,27 @@ export function useVerifyPharmacy() {
   });
 }
 
-export function useUpdatePharmacyActive() {
+export function useUpdatePharmacy() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      apiClient.patch(`/admin/pharmacies/${id}`, { isActive }),
+    mutationFn: ({ id, payload }: { id: string; payload: AdminPharmacyUpdatePayload }) =>
+      apiClient.patch(`/admin/pharmacies/${id}`, payload),
     onSuccess: (_data, variables) => {
       void qc.invalidateQueries({ queryKey: ['admin', 'pharmacies'] });
       void qc.invalidateQueries({ queryKey: ['admin', 'pharmacies', variables.id] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+export function useDeletePharmacy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, confirmName }: { id: string; confirmName: string }) =>
+      apiClient.delete(`/admin/pharmacies/${id}`, { confirmName }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'pharmacies'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     },
   });
 }
