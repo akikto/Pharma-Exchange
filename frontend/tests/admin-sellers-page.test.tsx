@@ -85,7 +85,9 @@ describe('AdminSellersPage', () => {
 
   it('shows total seller count', async () => {
     renderPage();
-    expect(await screen.findByTestId('admin-sellers-total-count')).toHaveTextContent('1');
+    const el = await screen.findByTestId('admin-sellers-total-count');
+    expect(el.textContent).toMatch(/1/);
+    expect(el.textContent?.toLowerCase()).toContain('seller');
   });
 
   it('opens manage dialog with approve actions for pending seller', async () => {
