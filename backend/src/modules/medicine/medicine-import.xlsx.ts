@@ -1,8 +1,6 @@
 import path from 'path';
 import { createRequire } from 'module';
 
-const moduleRequire = createRequire(__filename);
-
 export type XlsxWorkbook = {
   SheetNames: string[];
   Sheets: Record<string, unknown>;
@@ -22,6 +20,10 @@ export type XlsxModule = {
   write: (book: unknown, opts: { type: string; bookType: string }) => Buffer;
 };
 
-export const XLSX: XlsxModule = moduleRequire(
-  path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'),
-);
+export function getXlsx(): XlsxModule {
+  if (!cached) {
+    const moduleRequire = createRequire(__filename);
+    cached = moduleRequire(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'));
+  }
+  return cached;
+}

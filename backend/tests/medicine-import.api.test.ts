@@ -163,4 +163,14 @@ describe('Admin medicine import/export API', () => {
 
     await prisma.medicine.delete({ where: { id: created.id } });
   });
+
+  it('exports medicine catalog as csv', async ({ skip }) => {
+    if (!dbAvailable || !adminToken) skip();
+    const res = await request(app)
+      .get('/api/v1/admin/medicines/export?format=csv')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/csv/);
+    expect(res.text.length).toBeGreaterThan(0);
+  });
 });
