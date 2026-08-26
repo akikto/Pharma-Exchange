@@ -3,7 +3,7 @@ import { createRequire } from 'module';
 import { z } from 'zod';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
-import { logger } from '../../config/logger';
+import { logger } from '../../shared/utils/logger';
 import { createMedicineSchema } from './medicine.validation';
 import {
   DOSAGE_FORM_VALUES,
@@ -14,8 +14,8 @@ import {
   type MedicineImportColumn,
 } from './medicine-import.constants';
 
-const require = createRequire(__filename);
-const XLSX = require(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'));
+const moduleRequire = createRequire(__filename);
+const XLSX = moduleRequire(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'));
 
 export type MedicineImportMode = 'upsert' | 'createOnly' | 'updateOnly';
 

@@ -16,7 +16,6 @@ import {
   type MedicineImportMode,
   type MedicineImportPreviewResult,
   type MedicineImportResult,
-  MEDICINE_IMPORT_ACCEPT,
 } from '@/lib/medicine-import-types';
 import {
   downloadMedicineTemplate,
