@@ -1,5 +1,6 @@
 import { DosageForm } from '@prisma/client';
-import * as XLSX from 'xlsx';
+import path from 'path';
+import { createRequire } from 'module';
 import { z } from 'zod';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
@@ -13,6 +14,9 @@ import {
   TEMPLATE_EXAMPLE_ROW,
   type MedicineImportColumn,
 } from './medicine-import.constants';
+
+const require = createRequire(__filename);
+const XLSX = require(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'));
 
 export type MedicineImportMode = 'upsert' | 'createOnly' | 'updateOnly';
 
