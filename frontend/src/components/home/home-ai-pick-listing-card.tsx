@@ -94,8 +94,7 @@ export function HomeAiPickListingCard({
     });
   };
 
-  const stopNav = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const stopBubble = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
@@ -219,7 +218,7 @@ export function HomeAiPickListingCard({
               data-testid={`ai-pick-call-${listing.id}`}
               asChild
             >
-              <a href={phoneHref} onClick={stopNav}>
+              <a href={phoneHref} onClick={stopBubble}>
                 <Phone className="h-3.5 w-3.5" aria-hidden />
                 {t('aiMatch.call')}
               </a>
