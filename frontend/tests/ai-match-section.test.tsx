@@ -6,40 +6,56 @@ import i18n from '@/i18n';
 import { AiMatchSection } from '@/components/home/ai-match-section';
 import type { Listing } from '@/types';
 
+const aiPickListing = vi.hoisted(
+  () =>
+    ({
+      id: 'listing-ai-1',
+      batchNumber: 'B1',
+      mfgDate: '2025-01-01',
+      expiryDate: '2026-10-15T00:00:00Z',
+      sellingPrice: 100,
+      discountPercent: 25,
+      finalPrice: 75,
+      availableQty: 9,
+      moq: 1,
+      unit: 'strip',
+      status: 'ACTIVE',
+      medicine: {
+        id: 'med-1',
+        name: 'Xone',
+        company: 'Alkem',
+        dosageForm: 'TABLET',
+        strength: '1g',
+        packSize: '1',
+        category: 'Antibiotic',
+        genericName: 'Ceftriaxone',
+      },
+      pharmacy: {
+        id: 'pharm-1',
+        name: 'My medical',
+        city: 'Saktipur',
+        rating: 4.8,
+        verificationStatus: 'APPROVED',
+      },
+    }) as Listing,
+);
+
 vi.mock('@/hooks/use-geolocation', () => ({
   useGeolocation: () => ({ coords: null, error: null, requestLocation: vi.fn() }),
 }));
 
-const listing = {
-  id: 'listing-ai-1',
-  batchNumber: 'B1',
-  mfgDate: '2025-01-01',
-  expiryDate: '2026-10-15T00:00:00Z',
-  sellingPrice: 100,
-  discountPercent: 25,
-  finalPrice: 75,
-  availableQty: 9,
-  moq: 1,
-  unit: 'strip',
-  status: 'ACTIVE',
-  medicine: {
-    id: 'med-1',
-    name: 'Xone',
-    company: 'Alkem',
-    dosageForm: 'TABLET',
-    strength: '1g',
-    packSize: '1',
-    category: 'Antibiotic',
-    genericName: 'Ceftriaxone',
-  },
-  pharmacy: {
-    id: 'pharm-1',
-    name: 'My medical',
-    city: 'Saktipur',
-    rating: 4.8,
-    verificationStatus: 'APPROVED',
-  },
-} as Listing;
+vi.mock('@/hooks/use-api', () => ({
+  useAddToCart: () => ({ mutate: vi.fn(), isAddingToCart: () => false }),
+}));
+
+vi.mock('@/hooks/use-watchlist', () => ({
+  useToggleWatchlist: () => ({ mutate: vi.fn() }),
+  useIsWatched: () => false,
+}));
+
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({ toast: vi.fn() }),
+}));
 
 vi.mock('@/hooks/use-ai-matches', () => ({
   useAiMatches: () => ({
@@ -50,7 +66,7 @@ vi.mock('@/hooks/use-ai-matches', () => ({
           id: 'match-1',
           score: 0.8,
           summary: '25% discount · Healthy expiry window',
-          listing,
+          listing: aiPickListing,
         },
       ],
     },
