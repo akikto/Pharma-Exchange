@@ -94,6 +94,8 @@ describe('Admin medicine import/export API', () => {
       ...TEMPLATE_EXAMPLE_ROW,
       name: unique,
       brandName: unique,
+      company: `Company ${unique}`,
+      packSize: `Pack ${unique}`,
     };
     const buffer = buildXlsxBuffer([row]);
     const res = await request(app)
