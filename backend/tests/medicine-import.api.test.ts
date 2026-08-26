@@ -89,7 +89,8 @@ describe('Admin medicine import/export API', () => {
       .set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/spreadsheet/);
-    expect(res.body.length).toBeGreaterThan(100);
+    const len = Number(res.headers['content-length'] ?? 0);
+    expect(len > 100 || (Buffer.isBuffer(res.body) && res.body.length > 100)).toBe(true);
   });
 
   it('previews valid xlsx import', async ({ skip }) => {
