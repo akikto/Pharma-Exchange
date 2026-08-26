@@ -125,7 +125,7 @@ describe('Admin medicine import/export API', () => {
     expect(res.body.error).toMatch(/Missing required columns/i);
   });
 
-  it('rejects invalid headers', async ({ skip }) => {
+  it('createOnly rejects duplicate medicines', async ({ skip }) => {
     if (!dbAvailable || !adminToken) skip();
     const unique = `DupTest-${Date.now()}`;
     const created = await prisma.medicine.create({
