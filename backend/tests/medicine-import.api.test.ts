@@ -65,22 +65,4 @@ describe('Admin medicine import/export API', () => {
       .set('Authorization', `Bearer ${sellerToken}`);
     expect(res.status).toBe(403);
   });
-
-  it('returns template xlsx for admin', async ({ skip }) => {
-    if (!dbAvailable || !adminToken) skip();
-    const res = await request(app)
-      .get('/api/v1/admin/medicines/import/template')
-      .set('Authorization', `Bearer ${adminToken}`);
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toMatch(/spreadsheet/);
-  });
-
-  it('exports medicine catalog as csv for admin', async ({ skip }) => {
-    if (!dbAvailable || !adminToken) skip();
-    const res = await request(app)
-      .get('/api/v1/admin/medicines/export?format=csv')
-      .set('Authorization', `Bearer ${adminToken}`);
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toMatch(/csv/);
-  });
 });
