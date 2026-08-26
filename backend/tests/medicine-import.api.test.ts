@@ -20,8 +20,7 @@ function escapeCsvCell(value: string): string {
   return value;
 }
 
-function buildCsvBuffer(rows: Record<string, string>[]): Buffer {
-  const headers = [...MEDICINE_IMPORT_COLUMNS];
+function buildCsvBuffer(rows: Record<string, string>[], headers: string[] = [...MEDICINE_IMPORT_COLUMNS]): Buffer {
   const lines = [
     headers.join(','),
     ...rows.map((row) => headers.map((h) => escapeCsvCell(row[h] ?? '')).join(',')),
@@ -117,7 +116,7 @@ describe('Admin medicine import/export API', () => {
 
   it('rejects invalid headers', async ({ skip }) => {
     if (!dbAvailable || !adminToken) skip();
-    const buffer = buildCsvBuffer([{ wrongColumn: 'x' }]);
+    const buffer = buildCsvBuffer([{ wrongColumn: 'x' }], ['wrongColumn']);
     const res = await request(app)
       .post('/api/v1/admin/medicines/import/preview')
       .set('Authorization', `Bearer ${adminToken}`)
