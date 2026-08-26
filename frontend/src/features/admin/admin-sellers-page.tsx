@@ -228,7 +228,11 @@ function SellerRow({
       <td className="px-3 py-3 text-xs text-text-secondary">
         {seller.owner?.name ?? '—'}
         <br />
-        {seller.owner?.email}
+        {seller.owner?.email ?? '—'}
+        <br />
+        <span data-testid={`admin-seller-owner-phone-${seller.id}`}>
+          {seller.owner?.phone ?? '—'}
+        </span>
       </td>
       <td className="px-3 py-3">
         <StatusChip
@@ -277,6 +281,7 @@ function SellerDetailDialog({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [confirmName, setConfirmName] = useState('');
   const [form, setForm] = useState<AdminPharmacyUpdatePayload>({});
+  const [ownerPhone, setOwnerPhone] = useState('');
 
   useEffect(() => {
     if (!seller) return;
@@ -289,6 +294,7 @@ function SellerDetailDialog({
       postalCode: seller.postalCode ?? '',
       description: seller.description ?? '',
     });
+    setOwnerPhone(seller.owner?.phone ?? '');
     setConfirmName('');
     setDeleteOpen(false);
   }, [seller]);
@@ -347,6 +353,7 @@ function SellerDetailDialog({
           district: form.district?.trim(),
           postalCode: form.postalCode?.trim() || null,
           description: form.description?.trim() || null,
+          ownerPhone: ownerPhone.trim() || null,
         },
       },
       {
@@ -408,6 +415,14 @@ function SellerDetailDialog({
                     <Input value={form.district ?? ''} onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))} placeholder={t('admin.sellers.fields.district')} />
                   </div>
                   <Input value={form.postalCode ?? ''} onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))} placeholder={t('admin.sellers.fields.postalCode')} />
+                  <Input
+                    value={ownerPhone}
+                    onChange={(e) => setOwnerPhone(e.target.value)}
+                    placeholder={t('admin.sellers.fields.ownerPhone')}
+                    inputMode="tel"
+                    autoComplete="tel"
+                    data-testid="admin-seller-owner-phone-input"
+                  />
                   <textarea
                     className="w-full min-h-[72px] rounded-[var(--radius-md)] border border-border-subtle px-3 py-2 text-sm bg-surface-base"
                     value={form.description ?? ''}
@@ -430,7 +445,9 @@ function SellerDetailDialog({
                   <dt className="text-text-secondary">{t('admin.sellers.fields.address')}</dt>
                   <dd>{seller.address}, {seller.city}, {seller.district}</dd>
                   <dt className="text-text-secondary">{t('admin.sellers.fields.owner')}</dt>
-                  <dd>{seller.owner?.name} · {seller.owner?.email} · {seller.owner?.phone ?? '—'}</dd>
+                  <dd>{seller.owner?.name ?? '—'} · {seller.owner?.email ?? '—'}</dd>
+                  <dt className="text-text-secondary">{t('admin.sellers.fields.ownerPhone')}</dt>
+                  <dd data-testid="admin-seller-detail-owner-phone">{seller.owner?.phone ?? '—'}</dd>
                   <dt className="text-text-secondary">{t('admin.sellers.fields.listings')}</dt>
                   <dd>{t('admin.sellers.listingCounts', { active: seller.activeListingCount, total: seller.listingCount })}</dd>
                   <dt className="text-text-secondary">{t('admin.sellers.fields.orders')}</dt>

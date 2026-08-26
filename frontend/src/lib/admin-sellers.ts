@@ -50,6 +50,7 @@ export interface AdminPharmacyUpdatePayload {
   district?: string;
   postalCode?: string | null;
   description?: string | null;
+  ownerPhone?: string | null;
 }
 
 export function verificationStatusVariant(

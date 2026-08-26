@@ -102,6 +102,18 @@ describe('Admin pharmacies API', () => {
       .send({ city: 'Chattogram' });
     expect(res.status).toBe(200);
     expect(res.body.city).toBe('Chattogram');
+    expect(res.body.owner).toBeTruthy();
+  });
+
+  it('updates owner phone as admin', async ({ skip }) => {
+    if (!dbAvailable || !adminToken || !disposablePharmacyId) skip();
+    const phone = `017${String(Date.now()).slice(-8)}`;
+    const res = await request(app)
+      .patch(`/api/v1/admin/pharmacies/${disposablePharmacyId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ ownerPhone: phone });
+    expect(res.status).toBe(200);
+    expect(res.body.owner?.phone).toBe(phone);
   });
 
   it('rejects non-admin pharmacy delete', async ({ skip }) => {
