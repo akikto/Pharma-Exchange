@@ -29,9 +29,9 @@ export function showsAiPickAuthenticBadge(listing: Listing): boolean {
   return listing.pharmacy.verificationStatus === 'APPROVED' && listing.status === 'ACTIVE';
 }
 
-/** Fast delivery when we have a nearby distance reading (≤ 25 km). */
+/** Fast delivery when distance is known for the listing (shown with the km-away pill). */
 export function showsAiPickFastDeliveryBadge(distanceKm: number | null): boolean {
-  return distanceKm != null && distanceKm <= 25;
+  return distanceKm != null;
 }
 
 export function formatSellerLocation(listing: Listing): string {

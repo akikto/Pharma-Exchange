@@ -19,8 +19,9 @@ const aiPickListing = vi.hoisted(
       availableQty: 9,
       moq: 1,
       unit: 'strip',
-      status: 'ACTIVE',
-      medicine: {
+  status: 'ACTIVE',
+  distanceKm: 12,
+  medicine: {
         id: 'med-1',
         name: 'Xone',
         company: 'Alkem',
@@ -92,6 +93,8 @@ describe('AiMatchSection', () => {
     expect(screen.getByTestId('ai-pick-add-to-cart-listing-ai-1')).toBeInTheDocument();
     expect(screen.queryByTestId('offer-card-listing-ai-1')).not.toBeInTheDocument();
     expect(screen.queryByTestId('listing-card-listing-ai-1')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Healthy expiry window/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('80%')).not.toBeInTheDocument();
     expect(card.querySelector('img')).toBeNull();
     expect(card.querySelector('.aspect-square')).toBeNull();
   });

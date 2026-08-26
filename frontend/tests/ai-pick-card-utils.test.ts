@@ -57,9 +57,9 @@ describe('ai-pick-card-utils', () => {
     expect(showsAiPickAuthenticBadge({ ...baseListing, status: 'PAUSED' })).toBe(false);
   });
 
-  it('shows fast delivery when distance is within threshold', () => {
+  it('shows fast delivery when distance is known', () => {
     expect(showsAiPickFastDeliveryBadge(12)).toBe(true);
-    expect(showsAiPickFastDeliveryBadge(30)).toBe(false);
+    expect(showsAiPickFastDeliveryBadge(30)).toBe(true);
     expect(showsAiPickFastDeliveryBadge(null)).toBe(false);
   });
 });

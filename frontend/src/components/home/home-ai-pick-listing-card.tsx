@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -35,16 +36,16 @@ import type { Listing } from '@/types';
 export interface HomeAiPickListingCardProps {
   listing: Listing;
   userCoords?: { latitude: number; longitude: number } | null;
-  matchBadge?: { label: string; className: string };
-  matchSummary?: string;
   className?: string;
+}
+
+function formatDistanceKmLabel(km: number): string {
+  return km >= 100 ? km.toFixed(0) : km >= 10 ? km.toFixed(0) : km.toFixed(1);
 }
 
 export function HomeAiPickListingCard({
   listing,
   userCoords,
-  matchBadge,
-  matchSummary,
   className,
 }: HomeAiPickListingCardProps) {
   const { t } = useTranslation();
@@ -66,7 +67,6 @@ export function HomeAiPickListingCard({
   const phoneHref = formatPhoneHref(phone);
   const canAddToCart = listing.status === 'ACTIVE' && listing.availableQty >= listing.moq;
   const detailsPath = `/medicine/${listing.id}`;
-  const unitLabel = listing.unit?.trim() ? listing.unit.trim().toUpperCase() : t('aiMatch.units');
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -122,45 +122,32 @@ export function HomeAiPickListingCard({
 
         <Link
           to={detailsPath}
-          className="block min-w-0 flex-1 p-2.5 pr-9 active:scale-[0.995] transition-transform"
+          className="block min-w-0 flex-1 p-2.5 pr-9 pt-2 active:scale-[0.995] transition-transform"
           data-testid={`ai-pick-card-link-${listing.id}`}
         >
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex flex-wrap items-start gap-1.5 pr-1">
-              <h3 className="text-sm font-bold leading-tight text-text-primary line-clamp-2">{listing.medicine.name}</h3>
-              {matchBadge && (
-                <span
-                  className={cn(
-                    'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                    matchBadge.className,
-                  )}
-                >
-                  {matchBadge.label}
+          <div className="space-y-1 min-w-0">
+            <h3 className="pr-6 text-sm font-bold leading-tight text-text-primary line-clamp-1">
+              {listing.medicine.name}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              {genericLine ? (
+                <p className="text-[11px] text-text-secondary line-clamp-1">{genericLine}</p>
+              ) : null}
+              {listing.medicine.dosageForm ? (
+                <span className="inline-flex shrink-0 rounded-full bg-primary-subtle px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
+                  {listing.medicine.dosageForm}
                 </span>
-              )}
+              ) : null}
             </div>
 
-            {genericLine ? (
-              <p className="text-[11px] text-text-secondary line-clamp-1">{genericLine}</p>
-            ) : null}
-
-            {listing.medicine.dosageForm ? (
-              <span className="inline-flex rounded-full bg-primary-subtle px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
-                {listing.medicine.dosageForm}
-              </span>
-            ) : null}
-
-            {matchSummary ? (
-              <p className="text-[10px] text-text-secondary line-clamp-1">{matchSummary}</p>
-            ) : null}
-
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-text-secondary">
-              <span className="inline-flex items-center gap-0.5 font-medium text-warning">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+              <span className="inline-flex items-center gap-0.5 font-semibold tabular-nums text-warning">
                 <Star className="h-3 w-3 fill-warning text-warning" aria-hidden />
                 {listing.pharmacy.rating}
               </span>
               <span className="inline-flex min-w-0 items-center gap-1 font-semibold text-text-primary">
-                <Store className="h-3 w-3 shrink-0 text-text-disabled" aria-hidden />
+                <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
                 <span className="truncate">{listing.pharmacy.name}</span>
                 {verified ? (
                   <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
@@ -174,15 +161,15 @@ export function HomeAiPickListingCard({
                 <span className="truncate">{formatSellerLocation(listing)}</span>
               </span>
               {distanceKm != null ? (
-                <span className="inline-flex items-center gap-0.5 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-medium text-primary">
+                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-medium text-primary">
                   <Truck className="h-3 w-3" aria-hidden />
-                  {t('home.kmAway', { km: distanceKm.toFixed(0) })}
+                  {t('home.kmAway', { km: formatDistanceKmLabel(distanceKm) })}
                 </span>
               ) : null}
             </div>
 
             <div
-              className="rounded-[var(--radius-sm)] border border-dashed border-warning/60 bg-warning/10 px-2 py-1.5"
+              className="rounded-[var(--radius-sm)] border border-dashed border-warning/70 bg-[#FFF4ED] px-2 py-1"
               data-testid={`ai-pick-expiry-${listing.id}`}
             >
               <p className="flex items-center gap-1 text-[11px] font-semibold text-warning">
@@ -196,8 +183,11 @@ export function HomeAiPickListingCard({
           </div>
         </Link>
 
-        <div className="flex items-center justify-between gap-2 border-t border-border-subtle px-2.5 py-2">
-          <div className="flex min-w-0 flex-wrap items-center gap-2 text-[10px] text-text-secondary">
+        <div
+          className="mt-auto flex items-center justify-between gap-1 border-t border-border-subtle px-2.5 py-1.5"
+          data-testid={`ai-pick-footer-${listing.id}`}
+        >
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-text-secondary">
             {showAuthentic ? (
               <span className="inline-flex items-center gap-0.5 font-medium text-success">
                 <Shield className="h-3 w-3" aria-hidden />
@@ -205,7 +195,7 @@ export function HomeAiPickListingCard({
               </span>
             ) : null}
             {showFastDelivery ? (
-              <span className="inline-flex items-center gap-0.5">
+              <span className="inline-flex items-center gap-0.5 text-text-secondary">
                 <Truck className="h-3 w-3" aria-hidden />
                 {t('aiMatch.fastDelivery')}
               </span>
@@ -215,12 +205,12 @@ export function HomeAiPickListingCard({
             <Button
               type="button"
               size="sm"
-              className="h-8 shrink-0 gap-1 rounded-full bg-primary px-3 text-[11px] text-white hover:bg-primary-hover"
+              className="h-7 shrink-0 gap-1 rounded-full bg-primary px-2.5 text-[10px] text-white hover:bg-primary-hover"
               data-testid={`ai-pick-call-${listing.id}`}
               asChild
             >
               <a href={phoneHref} onClick={stopBubble}>
-                <Phone className="h-3.5 w-3.5" aria-hidden />
+                <Phone className="h-3 w-3" aria-hidden />
                 {t('aiMatch.call')}
               </a>
             </Button>
@@ -238,7 +228,7 @@ export function HomeAiPickListingCard({
       >
         {hasDiscount ? (
           <div
-            className="flex w-full items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border border-dashed border-white/50 bg-warning px-1 py-1 text-[10px] font-bold leading-none"
+            className="flex w-full items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border border-dashed border-white/60 bg-warning px-1 py-1 text-[10px] font-bold leading-none text-white"
             data-testid={`ai-pick-discount-${listing.id}`}
           >
             <Tag className="h-3 w-3 shrink-0" aria-hidden />
@@ -248,17 +238,17 @@ export function HomeAiPickListingCard({
           <div className="h-6 w-full" aria-hidden />
         )}
 
-        <div className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1">
-          <p className="text-[9px] font-medium uppercase tracking-wider text-primary-subtle/90">
+        <div className="flex flex-1 flex-col items-center justify-center gap-0.5 py-0.5">
+          <p className="text-[9px] font-medium uppercase tracking-wider text-white/80">
             {t('aiMatch.stockLeft')}
           </p>
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-accent/80 bg-primary-hover/80"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-accent bg-primary-hover/90"
             data-testid={`ai-pick-stock-${listing.id}`}
           >
-            <span className="text-xl font-bold tabular-nums text-accent">{listing.availableQty}</span>
+            <span className="text-lg font-bold tabular-nums text-accent">{listing.availableQty}</span>
           </div>
-          <p className="text-[9px] font-medium uppercase tracking-wider text-primary-subtle/90">{unitLabel}</p>
+          <p className="text-[9px] font-medium uppercase tracking-wider text-white/80">{t('aiMatch.units')}</p>
         </div>
 
         <Button
