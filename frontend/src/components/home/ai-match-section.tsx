@@ -54,7 +54,14 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-[7.5rem] rounded-[var(--radius-md)] bg-surface-sunken animate-pulse" />
+            <div
+              key={i}
+              className="flex h-[7.5rem] w-full max-w-full min-w-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle"
+              data-testid="ai-match-card-skeleton"
+            >
+              <div className="w-[70%] animate-pulse bg-surface-sunken" />
+              <div className="w-[30%] animate-pulse bg-primary/40" />
+            </div>
           ))}
         </div>
       ) : (
