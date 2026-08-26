@@ -11,6 +11,22 @@ const publicDir = join(__dirname, '..', 'public');
 const iconsDir = join(publicDir, 'icons');
 const sourcePath = join(iconsDir, 'logo-source.png');
 
+/** Match app icon squircle; clips white square corners from the source asset. */
+const ICON_CORNER_RADIUS_RATIO = 0.22;
+
+async function resizeIconWithRoundedAlpha(sharp, source, size) {
+  const radius = Math.max(1, Math.round(size * ICON_CORNER_RADIUS_RATIO));
+  const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="white"/>
+  </svg>`;
+  const mask = await sharp(Buffer.from(maskSvg)).png().toBuffer();
+  return sharp(source)
+    .resize(size, size, { fit: 'cover' })
+    .ensureAlpha()
+    .composite([{ input: mask, blend: 'dest-in' }])
+    .png();
+}
+
 async function main() {
   const sharp = (await import('sharp')).default;
   mkdirSync(iconsDir, { recursive: true });
@@ -32,13 +48,12 @@ async function main() {
   ];
 
   for (const { size, out } of sizes) {
-    await sharp(source).resize(size, size).png().toFile(out);
+    await (await resizeIconWithRoundedAlpha(sharp, source, size)).toFile(out);
     console.log('Wrote', out);
   }
 
   const maskable = join(iconsDir, 'icon-maskable-512.png');
-  await sharp(source)
-    .resize(410, 410)
+  await (await resizeIconWithRoundedAlpha(sharp, source, 410))
     .extend({
       top: 51,
       bottom: 51,
@@ -46,13 +61,12 @@ async function main() {
       right: 51,
       background: { r: 15, g: 76, b: 110, alpha: 1 },
     })
-    .png()
     .toFile(maskable);
   console.log('Wrote', maskable);
 
   const faviconIco = join(publicDir, 'favicon.ico');
   const faviconTmp = faviconIco.replace('.ico', '-tmp.png');
-  await sharp(source).resize(32, 32).png().toFile(faviconTmp);
+  await (await resizeIconWithRoundedAlpha(sharp, source, 32)).toFile(faviconTmp);
   writeFileSync(faviconIco, readFileSync(faviconTmp));
   try { (await import('fs')).unlinkSync(faviconTmp); } catch { /* ignore */ }
   console.log('Wrote', faviconIco, '(32px PNG as .ico fallback)');
