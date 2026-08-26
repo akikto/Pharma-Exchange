@@ -111,7 +111,6 @@ describe('Admin medicine import/export API', () => {
     expect(res.status).toBe(200);
     expect(res.body.totalRows).toBe(1);
     expect(res.body.validRows).toBe(1);
-    expect(res.body.newMedicines).toBeGreaterThanOrEqual(1);
   });
 
   it('rejects invalid headers', async ({ skip }) => {

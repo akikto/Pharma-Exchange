@@ -3,7 +3,7 @@ import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { logger } from '../../shared/utils/logger';
 import { createMedicineSchema } from './medicine.validation';
-import { XLSX } from './medicine-import.xlsx';
+import { getXlsx } from './medicine-sheetjs';
 import {
   DOSAGE_FORM_VALUES,
   MEDICINE_IMPORT_COLUMNS,
@@ -80,6 +80,7 @@ export function medicineIdentityKey(parts: {
 }
 
 function parseWorkbook(buffer: Buffer, filename: string): ParsedRow[] {
+  const XLSX = getXlsx();
   const workbook = XLSX.read(buffer, {
     type: 'buffer',
     raw: false,
@@ -358,6 +359,7 @@ export class MedicineImportService {
   }
 
   buildTemplateWorkbook(): Buffer {
+    const XLSX = getXlsx();
     const sheet = XLSX.utils.json_to_sheet([TEMPLATE_EXAMPLE_ROW]);
     const book = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book, sheet, 'Medicines');
@@ -365,6 +367,7 @@ export class MedicineImportService {
   }
 
   buildExportWorkbook(rows: Array<Record<string, string>>, format: 'xlsx' | 'csv'): Buffer {
+    const XLSX = getXlsx();
     const sheet = XLSX.utils.json_to_sheet(rows);
     const book = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book, sheet, 'Medicines');
