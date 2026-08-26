@@ -14,6 +14,7 @@ import { notificationService } from '../notification';
 import { broadcastSchema } from '../notification/notification.validation';
 import { paymentsService } from '../payments/payments.service';
 import { adminBannerRouter } from '../banner/banner.routes';
+import { medicineImportRouter } from '../medicine/medicine-import.routes';
 
 const verifySchema = z.object({
   action: z.enum(['approve', 'reject']),
@@ -204,5 +205,6 @@ adminRouter.get('/users', adminCtrl.users.bind(adminCtrl));
 adminRouter.get('/payments', adminCtrl.payments.bind(adminCtrl));
 adminRouter.post('/notifications/broadcast', validate(broadcastSchema), adminCtrl.broadcastNotification.bind(adminCtrl));
 adminRouter.use('/banners', adminBannerRouter);
+adminRouter.use('/medicines', medicineImportRouter);
 
 export { analyticsRouter, adminRouter };

@@ -43,6 +43,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
       delete: vi.fn(),
       getText: vi.fn(),
       upload: vi.fn(),
+      download: vi.fn(),
     },
   };
 });
@@ -170,6 +171,17 @@ describe('AdminMedicinesPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /create medicine/i }));
 
     expect(await screen.findByTestId('medicine-form-error')).toHaveTextContent('category: Invalid category');
+  });
+
+  it('shows Import / Export button and opens dialog', async () => {
+    renderAdminMedicinesPage();
+    await screen.findByTestId('admin-medicines-table');
+
+    fireEvent.click(screen.getByTestId('admin-medicines-import-export-button'));
+    expect(screen.getByTestId('medicine-import-export-dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('medicine-import-xlsx')).toBeInTheDocument();
+    expect(screen.getByTestId('medicine-export-csv')).toBeInTheDocument();
+    expect(screen.getByTestId('medicine-download-template')).toBeInTheDocument();
   });
 
   it('edits a medicine via PATCH /medicines/:id', async () => {
