@@ -34,7 +34,7 @@ const sampleSeller = {
   rating: 4.5,
   createdAt: new Date().toISOString(),
   listingCount: 3,
-  owner: { id: 'u1', email: 'seller@pharmex.bd', phone: '+880', name: 'Seller User' },
+  owner: { id: 'u1', email: 'seller@pharmex.bd', phone: '01712345678', name: 'Seller User' },
 };
 
 function renderPage(initialPath = '/admin/sellers') {

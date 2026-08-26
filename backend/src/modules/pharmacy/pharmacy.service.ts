@@ -265,6 +265,7 @@ export class PharmacyService {
       district?: string;
       postalCode?: string | null;
       description?: string | null;
+      ownerPhone?: string | null;
     },
   ) {
     const pharmacy = await prisma.pharmacy.findUnique({ where: { id: pharmacyId } });
@@ -280,7 +281,7 @@ export class PharmacyService {
     if (data.postalCode !== undefined) updates.postalCode = data.postalCode;
     if (data.description !== undefined) updates.description = data.description;
 
-    if (Object.keys(updates).length === 0) {
+    if (Object.keys(updates).length === 0 && data.ownerPhone === undefined) {
       throw AppError.badRequest('No valid fields to update');
     }
 
@@ -291,10 +292,26 @@ export class PharmacyService {
       if (licenseTaken) throw AppError.conflict('License number already registered');
     }
 
-    const updated = await prisma.pharmacy.update({
-      where: { id: pharmacyId },
-      data: updates,
-    });
+    if (data.ownerPhone !== undefined) {
+      const phone = data.ownerPhone?.trim() || null;
+      if (phone) {
+        const phoneTaken = await prisma.user.findFirst({
+          where: { phone, NOT: { id: pharmacy.userId } },
+        });
+        if (phoneTaken) throw AppError.conflict('Phone number already registered');
+      }
+      await prisma.user.update({
+        where: { id: pharmacy.userId },
+        data: { phone },
+      });
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await prisma.pharmacy.update({
+        where: { id: pharmacyId },
+        data: updates,
+      });
+    }
 
     if (data.isActive === false) {
       await notificationService.create({
@@ -307,7 +324,7 @@ export class PharmacyService {
       });
     }
 
-    return updated;
+    return this.getForAdmin(pharmacyId);
   }
 
   /**

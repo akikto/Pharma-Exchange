@@ -44,6 +44,7 @@ const pharmacyUpdateSchema = z
     district: z.string().trim().min(1).max(100).optional(),
     postalCode: z.string().trim().max(20).nullable().optional(),
     description: z.string().trim().max(2000).nullable().optional(),
+    ownerPhone: z.string().trim().min(10).max(20).nullable().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: 'At least one field is required',

@@ -855,6 +855,7 @@
         "postalCode": "Postal code",
         "description": "Description",
         "owner": "Owner contact",
+        "ownerPhone": "Owner mobile number",
         "listings": "Listings",
         "orders": "Orders fulfilled",
         "buyRequests": "Buy requests"
