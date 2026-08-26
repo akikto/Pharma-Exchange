@@ -95,7 +95,8 @@ describe('HomeAiPickListingCard', () => {
     expect(screen.getByText('Toni Pharmacy')).toBeInTheDocument();
     expect(screen.getByTestId('ai-pick-discount-listing-ai-1')).toHaveTextContent('20% OFF');
     expect(screen.getByTestId('ai-pick-stock-listing-ai-1')).toHaveTextContent('9');
-    expect(screen.getByText('STRIP')).toBeInTheDocument();
+    expect(screen.getByText('UNITS')).toBeInTheDocument();
+    expect(screen.queryByText('STRIP')).not.toBeInTheDocument();
   });
 
   it('calculates expiry days from expiry date', () => {
