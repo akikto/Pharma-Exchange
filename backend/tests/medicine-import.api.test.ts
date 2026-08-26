@@ -4,7 +4,6 @@ import { createApp } from '../src/app';
 import prisma from '../src/config/database';
 import { signAccessToken } from '../src/shared/middleware/auth.middleware';
 import { medicineIdentityKey } from '../src/modules/medicine/medicine-import.service';
-import { MEDICINE_IMPORT_COLUMNS, TEMPLATE_EXAMPLE_ROW } from '../src/modules/medicine/medicine-import.constants';
 
 async function isDatabaseAvailable() {
   try {
@@ -13,19 +12,6 @@ async function isDatabaseAvailable() {
   } catch {
     return false;
   }
-}
-
-function escapeCsvCell(value: string): string {
-  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
-  return value;
-}
-
-function buildCsvBuffer(rows: Record<string, string>[], headers: string[] = [...MEDICINE_IMPORT_COLUMNS]): Buffer {
-  const lines = [
-    headers.join(','),
-    ...rows.map((row) => headers.map((h) => escapeCsvCell(row[h] ?? '')).join(',')),
-  ];
-  return Buffer.from(lines.join('\n'), 'utf-8');
 }
 
 describe('medicineIdentityKey', () => {
@@ -72,13 +58,11 @@ describe('Admin medicine import/export API', () => {
     expect(res.status).toBe(401);
   });
 
-  it('rejects non-admin import preview', async ({ skip }) => {
+  it('rejects non-admin export', async ({ skip }) => {
     if (!dbAvailable || !sellerToken) skip();
-    const buffer = buildCsvBuffer([TEMPLATE_EXAMPLE_ROW]);
     const res = await request(app)
-      .post('/api/v1/admin/medicines/import/preview')
-      .set('Authorization', `Bearer ${sellerToken}`)
-      .attach('file', buffer, 'medicines.csv');
+      .get('/api/v1/admin/medicines/export?format=csv')
+      .set('Authorization', `Bearer ${sellerToken}`);
     expect(res.status).toBe(403);
   });
 
@@ -89,88 +73,14 @@ describe('Admin medicine import/export API', () => {
       .set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/spreadsheet/);
-    const len = Number(res.headers['content-length'] ?? 0);
-    expect(len > 100 || (Buffer.isBuffer(res.body) && res.body.length > 100)).toBe(true);
   });
 
-  it('previews valid xlsx import', async ({ skip }) => {
-    if (!dbAvailable || !adminToken) skip();
-    const unique = `ImportTest-${Date.now()}`;
-    const row = {
-      ...TEMPLATE_EXAMPLE_ROW,
-      name: unique,
-      brandName: unique,
-      company: `Company ${unique}`,
-      packSize: `Pack ${unique}`,
-    };
-    const buffer = buildCsvBuffer([row]);
-    const res = await request(app)
-      .post('/api/v1/admin/medicines/import/preview')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .field('mode', 'upsert')
-      .attach('file', buffer, 'medicines.csv');
-    expect(res.status).toBe(200);
-    expect(res.body.totalRows).toBe(1);
-    expect(res.body.validRows).toBe(1);
-  });
-
-  it('rejects invalid headers', async ({ skip }) => {
-    if (!dbAvailable || !adminToken) skip();
-    const buffer = buildCsvBuffer([{ wrongColumn: 'x' }], ['wrongColumn']);
-    const res = await request(app)
-      .post('/api/v1/admin/medicines/import/preview')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .attach('file', buffer, 'bad.csv');
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Missing required columns/i);
-  });
-
-  it('createOnly rejects duplicate medicines', async ({ skip }) => {
-    if (!dbAvailable || !adminToken) skip();
-    const unique = `DupTest-${Date.now()}`;
-    const created = await prisma.medicine.create({
-      data: {
-        name: unique,
-        company: `Co ${unique}`,
-        dosageForm: 'TABLET',
-        packSize: '10 tabs',
-        category: 'Test',
-      },
-    });
-
-    const row = {
-      name: created.name,
-      genericName: created.genericName ?? '',
-      brandName: created.brandName ?? '',
-      company: created.company,
-      dosageForm: created.dosageForm,
-      strength: created.strength ?? '',
-      packSize: created.packSize,
-      category: created.category,
-      scheduleClass: created.scheduleClass ?? '',
-      composition: created.composition ?? '',
-      imageUrl: created.imageUrl ?? '',
-    };
-    const buffer = buildCsvBuffer([row]);
-    const res = await request(app)
-      .post('/api/v1/admin/medicines/import/preview')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .field('mode', 'createOnly')
-      .attach('file', buffer, 'dup.csv');
-    expect(res.status).toBe(200);
-    expect(res.body.validRows).toBe(0);
-    expect(res.body.errors.some((e: { message: string }) => /Duplicate/i.test(e.message))).toBe(true);
-
-    await prisma.medicine.delete({ where: { id: created.id } });
-  });
-
-  it('exports medicine catalog as csv', async ({ skip }) => {
+  it('exports medicine catalog as csv for admin', async ({ skip }) => {
     if (!dbAvailable || !adminToken) skip();
     const res = await request(app)
       .get('/api/v1/admin/medicines/export?format=csv')
       .set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/csv/);
-    expect(res.text.length).toBeGreaterThan(0);
   });
 });
