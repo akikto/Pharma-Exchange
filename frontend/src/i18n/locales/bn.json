@@ -170,7 +170,17 @@
     "poweredByRules": "স্মার্ট নিয়মভিত্তিক মিল",
     "refresh": "প্রস্তাবনা রিফ্রেশ",
     "addToCart": "কার্টে যোগ",
-    "addedToCart": "কার্টে যোগ হয়েছে"
+    "addedToCart": "কার্টে যোগ হয়েছে",
+    "expiresInDays_one": "Expires in {{count}} day",
+    "expiresInDays_other": "Expires in {{count}} days",
+    "expiryDate": "(Exp: {{date}})",
+    "stockLeft": "STOCK LEFT",
+    "units": "UNITS",
+    "add": "Add",
+    "call": "Call",
+    "authentic": "Authentic",
+    "fastDelivery": "Fast Delivery",
+    "discountOff": "{{percent}}% OFF"
   },
   "sync": {
     "offlineBanner": "আপনি অফলাইনে আছেন — যেখানে সম্ভব সংরক্ষিত তথ্য দেখানো হচ্ছে",
