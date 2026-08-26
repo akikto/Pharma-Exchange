@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from 'vitest';
 import request from 'supertest';
-import XLSX from '../src/vendor/xlsx/xlsx.cjs';
+import { XLSX } from '../src/modules/medicine/medicine-import.xlsx';
 import { createApp } from '../src/app';
 import prisma from '../src/config/database';
 import { signAccessToken } from '../src/shared/middleware/auth.middleware';

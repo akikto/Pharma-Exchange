@@ -5,6 +5,7 @@ import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { logger } from '../../shared/utils/logger';
 import { createMedicineSchema } from './medicine.validation';
+import { XLSX } from './medicine-import.xlsx';
 import {
   DOSAGE_FORM_VALUES,
   MEDICINE_IMPORT_COLUMNS,
@@ -13,9 +14,6 @@ import {
   TEMPLATE_EXAMPLE_ROW,
   type MedicineImportColumn,
 } from './medicine-import.constants';
-
-const moduleRequire = createRequire(__filename);
-const XLSX = moduleRequire(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'));
 
 export type MedicineImportMode = 'upsert' | 'createOnly' | 'updateOnly';
 
@@ -93,7 +91,7 @@ function parseWorkbook(buffer: Buffer, filename: string): ParsedRow[] {
     throw AppError.badRequest('The file contains no worksheets');
   }
   const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' }) as string[][];
+  const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as string[][];
   if (matrix.length < 2) {
     throw AppError.badRequest('The file must include a header row and at least one data row');
   }
