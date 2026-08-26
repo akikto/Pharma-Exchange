@@ -1,11 +1,10 @@
 import { describe, expect, it, beforeAll } from 'vitest';
 import request from 'supertest';
-import { XLSX } from '../src/modules/medicine/medicine-import.xlsx';
 import { createApp } from '../src/app';
 import prisma from '../src/config/database';
 import { signAccessToken } from '../src/shared/middleware/auth.middleware';
 import { medicineIdentityKey } from '../src/modules/medicine/medicine-import.service';
-import { TEMPLATE_EXAMPLE_ROW } from '../src/modules/medicine/medicine-import.constants';
+import { MEDICINE_IMPORT_COLUMNS, TEMPLATE_EXAMPLE_ROW } from '../src/modules/medicine/medicine-import.constants';
 
 async function isDatabaseAvailable() {
   try {
@@ -16,11 +15,18 @@ async function isDatabaseAvailable() {
   }
 }
 
-function buildXlsxBuffer(rows: Record<string, string>[]): Buffer {
-  const sheet = XLSX.utils.json_to_sheet(rows);
-  const book = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(book, sheet, 'Medicines');
-  return XLSX.write(book, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+function escapeCsvCell(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
+function buildCsvBuffer(rows: Record<string, string>[]): Buffer {
+  const headers = [...MEDICINE_IMPORT_COLUMNS];
+  const lines = [
+    headers.join(','),
+    ...rows.map((row) => headers.map((h) => escapeCsvCell(row[h] ?? '')).join(',')),
+  ];
+  return Buffer.from(lines.join('\n'), 'utf-8');
 }
 
 describe('medicineIdentityKey', () => {
@@ -69,11 +75,11 @@ describe('Admin medicine import/export API', () => {
 
   it('rejects non-admin import preview', async ({ skip }) => {
     if (!dbAvailable || !sellerToken) skip();
-    const buffer = buildXlsxBuffer([TEMPLATE_EXAMPLE_ROW]);
+    const buffer = buildCsvBuffer([TEMPLATE_EXAMPLE_ROW]);
     const res = await request(app)
       .post('/api/v1/admin/medicines/import/preview')
       .set('Authorization', `Bearer ${sellerToken}`)
-      .attach('file', buffer, 'medicines.xlsx');
+      .attach('file', buffer, 'medicines.csv');
     expect(res.status).toBe(403);
   });
 
@@ -97,12 +103,12 @@ describe('Admin medicine import/export API', () => {
       company: `Company ${unique}`,
       packSize: `Pack ${unique}`,
     };
-    const buffer = buildXlsxBuffer([row]);
+    const buffer = buildCsvBuffer([row]);
     const res = await request(app)
       .post('/api/v1/admin/medicines/import/preview')
       .set('Authorization', `Bearer ${adminToken}`)
       .field('mode', 'upsert')
-      .attach('file', buffer, 'medicines.xlsx');
+      .attach('file', buffer, 'medicines.csv');
     expect(res.status).toBe(200);
     expect(res.body.totalRows).toBe(1);
     expect(res.body.validRows).toBe(1);
@@ -111,11 +117,11 @@ describe('Admin medicine import/export API', () => {
 
   it('rejects invalid headers', async ({ skip }) => {
     if (!dbAvailable || !adminToken) skip();
-    const buffer = buildXlsxBuffer([{ wrongColumn: 'x' }]);
+    const buffer = buildCsvBuffer([{ wrongColumn: 'x' }]);
     const res = await request(app)
       .post('/api/v1/admin/medicines/import/preview')
       .set('Authorization', `Bearer ${adminToken}`)
-      .attach('file', buffer, 'bad.xlsx');
+      .attach('file', buffer, 'bad.csv');
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/Missing required columns/i);
   });
@@ -129,13 +135,13 @@ describe('Admin medicine import/export API', () => {
       brandName: unique,
       company: `Company ${unique}`,
     };
-    const buffer = buildXlsxBuffer([row]);
+    const buffer = buildCsvBuffer([row]);
 
     const importRes = await request(app)
       .post('/api/v1/admin/medicines/import')
       .set('Authorization', `Bearer ${adminToken}`)
       .field('mode', 'createOnly')
-      .attach('file', buffer, 'medicines.xlsx');
+      .attach('file', buffer, 'medicines.csv');
     expect(importRes.status).toBe(200);
     expect(importRes.body.created).toBeGreaterThanOrEqual(1);
 
@@ -166,12 +172,12 @@ describe('Admin medicine import/export API', () => {
       composition: existing.composition ?? '',
       imageUrl: existing.imageUrl ?? '',
     };
-    const buffer = buildXlsxBuffer([row]);
+    const buffer = buildCsvBuffer([row]);
     const res = await request(app)
       .post('/api/v1/admin/medicines/import/preview')
       .set('Authorization', `Bearer ${adminToken}`)
       .field('mode', 'createOnly')
-      .attach('file', buffer, 'dup.xlsx');
+      .attach('file', buffer, 'dup.csv');
     expect(res.status).toBe(200);
     expect(res.body.validRows).toBe(0);
     expect(res.body.errors[0]?.message).toMatch(/already exists|Duplicate/i);
