@@ -390,6 +390,3 @@ export function MedicineImportExportDialog({
     </Dialog>
   );
 }
-
-// re-export accept for tests
-export { MEDICINE_IMPORT_ACCEPT };
