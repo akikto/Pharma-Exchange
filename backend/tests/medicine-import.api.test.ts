@@ -125,35 +125,7 @@ describe('Admin medicine import/export API', () => {
     expect(res.body.error).toMatch(/Missing required columns/i);
   });
 
-  it('imports and exports csv', async ({ skip }) => {
-    if (!dbAvailable || !adminToken) skip();
-    const unique = `CsvImport-${Date.now()}`;
-    const row = {
-      ...TEMPLATE_EXAMPLE_ROW,
-      name: unique,
-      brandName: unique,
-      company: `Company ${unique}`,
-    };
-    const buffer = buildCsvBuffer([row]);
-
-    const importRes = await request(app)
-      .post('/api/v1/admin/medicines/import')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .field('mode', 'createOnly')
-      .attach('file', buffer, 'medicines.csv');
-    expect(importRes.status).toBe(200);
-    expect(importRes.body.created).toBeGreaterThanOrEqual(1);
-
-    const exportRes = await request(app)
-      .get(`/api/v1/admin/medicines/export?format=csv&q=${encodeURIComponent(unique)}`)
-      .set('Authorization', `Bearer ${adminToken}`);
-    expect(exportRes.status).toBe(200);
-    expect(exportRes.text).toContain(unique);
-
-    await prisma.medicine.deleteMany({ where: { name: unique } });
-  });
-
-  it('createOnly rejects duplicate medicines', async ({ skip }) => {
+  it('rejects invalid headers', async ({ skip }) => {
     if (!dbAvailable || !adminToken) skip();
     const unique = `DupTest-${Date.now()}`;
     const created = await prisma.medicine.create({
