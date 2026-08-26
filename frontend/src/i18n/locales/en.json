@@ -178,7 +178,17 @@
     "poweredByRules": "Smart rule-based matches",
     "refresh": "Refresh suggestions",
     "addToCart": "Add to cart",
-    "addedToCart": "Added to cart"
+    "addedToCart": "Added to cart",
+    "expiresInDays_one": "Expires in {{count}} day",
+    "expiresInDays_other": "Expires in {{count}} days",
+    "expiryDate": "(Exp: {{date}})",
+    "stockLeft": "STOCK LEFT",
+    "units": "UNITS",
+    "add": "Add",
+    "call": "Call",
+    "authentic": "Authentic",
+    "fastDelivery": "Fast Delivery",
+    "discountOff": "{{percent}}% OFF"
   },
   "sync": {
     "offlineBanner": "You're offline — showing saved data where available",
