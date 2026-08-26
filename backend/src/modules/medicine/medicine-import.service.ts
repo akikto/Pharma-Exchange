@@ -1,5 +1,3 @@
-import path from 'path';
-import { createRequire } from 'module';
 import { z } from 'zod';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';

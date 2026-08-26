@@ -153,23 +153,31 @@ describe('Admin medicine import/export API', () => {
     await prisma.medicine.deleteMany({ where: { name: unique } });
   });
 
-  it('createOnly skips duplicate medicines', async ({ skip }) => {
+  it('createOnly rejects duplicate medicines', async ({ skip }) => {
     if (!dbAvailable || !adminToken) skip();
-    const existing = await prisma.medicine.findFirst({ where: { isActive: true } });
-    if (!existing) skip();
+    const unique = `DupTest-${Date.now()}`;
+    const created = await prisma.medicine.create({
+      data: {
+        name: unique,
+        company: `Co ${unique}`,
+        dosageForm: 'TABLET',
+        packSize: '10 tabs',
+        category: 'Test',
+      },
+    });
 
     const row = {
-      name: existing.name,
-      genericName: existing.genericName ?? '',
-      brandName: existing.brandName ?? '',
-      company: existing.company,
-      dosageForm: existing.dosageForm,
-      strength: existing.strength ?? '',
-      packSize: existing.packSize,
-      category: existing.category,
-      scheduleClass: existing.scheduleClass ?? '',
-      composition: existing.composition ?? '',
-      imageUrl: existing.imageUrl ?? '',
+      name: created.name,
+      genericName: created.genericName ?? '',
+      brandName: created.brandName ?? '',
+      company: created.company,
+      dosageForm: created.dosageForm,
+      strength: created.strength ?? '',
+      packSize: created.packSize,
+      category: created.category,
+      scheduleClass: created.scheduleClass ?? '',
+      composition: created.composition ?? '',
+      imageUrl: created.imageUrl ?? '',
     };
     const buffer = buildCsvBuffer([row]);
     const res = await request(app)
@@ -179,6 +187,8 @@ describe('Admin medicine import/export API', () => {
       .attach('file', buffer, 'dup.csv');
     expect(res.status).toBe(200);
     expect(res.body.validRows).toBe(0);
-    expect(res.body.errors[0]?.message).toMatch(/already exists|Duplicate/i);
+    expect(res.body.errors.some((e: { message: string }) => /Duplicate/i.test(e.message))).toBe(true);
+
+    await prisma.medicine.delete({ where: { id: created.id } });
   });
 });
