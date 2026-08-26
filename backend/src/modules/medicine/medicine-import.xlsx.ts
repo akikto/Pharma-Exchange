@@ -20,10 +20,12 @@ export type XlsxModule = {
   write: (book: unknown, opts: { type: string; bookType: string }) => Buffer;
 };
 
+let cached: XlsxModule | null = null;
+
 export function getXlsx(): XlsxModule {
   if (!cached) {
     const moduleRequire = createRequire(__filename);
-    cached = moduleRequire(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'));
+    cached = moduleRequire(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs')) as XlsxModule;
   }
   return cached;
 }
