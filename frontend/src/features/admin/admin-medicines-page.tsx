@@ -8,6 +8,7 @@ import { StatusChip } from '@/components/ui/status-chip';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminMedicines, useCreateMedicine, useUpdateMedicine } from '@/hooks/use-admin-medicines';
 import { MedicineFormDialog } from '@/features/admin/components/medicine-form-dialog';
+import { MedicineImportExportDialog } from '@/features/admin/components/medicine-import-export-dialog';
 import type { MedicineFormValues, MedicineRecord } from '@/lib/medicine-form';
 
 export function AdminMedicinesPage() {
@@ -15,6 +16,7 @@ export function AdminMedicinesPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importExportOpen, setImportExportOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineRecord | null>(null);
 
@@ -53,9 +55,18 @@ export function AdminMedicinesPage() {
       <div className="p-4 space-y-4 max-w-6xl mx-auto">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-text-secondary">{t('admin.medicines.description')}</p>
-          <Button onClick={openCreateDialog} data-testid="admin-medicines-add-button">
-            {t('admin.medicines.addButton')}
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Button
+              variant="secondary"
+              onClick={() => setImportExportOpen(true)}
+              data-testid="admin-medicines-import-export-button"
+            >
+              {t('admin.medicines.importExport.openButton')}
+            </Button>
+            <Button onClick={openCreateDialog} data-testid="admin-medicines-add-button">
+              {t('admin.medicines.addButton')}
+            </Button>
+          </div>
         </div>
 
         <Input
@@ -122,6 +133,12 @@ export function AdminMedicinesPage() {
           </div>
         )}
       </div>
+
+      <MedicineImportExportDialog
+        open={importExportOpen}
+        onOpenChange={setImportExportOpen}
+        searchQuery={search}
+      />
 
       <MedicineFormDialog
         open={dialogOpen}

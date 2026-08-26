@@ -136,6 +136,45 @@ async function apiText(path: string): Promise<string> {
   return res.text();
 }
 
+async function apiBlob(path: string): Promise<{ blob: Blob; filename?: string }> {
+  const headers: Record<string, string> = {};
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+  let res = await fetch(apiUrl(path), { headers });
+  if (res.status === 401 && refreshToken) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      headers.Authorization = `Bearer ${accessToken}`;
+      res = await fetch(apiUrl(path), { headers });
+    }
+  }
+  if (res.status === 401) {
+    clearTokens();
+    onUnauthorized?.();
+    throw new ApiError(401, 'Session expired');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new ApiError(res.status, err.error || 'Request failed', err.code, err.details);
+  }
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const match = disposition.match(/filename="?([^";\n]+)"?/i);
+  const blob = await res.blob();
+  return { blob, filename: match?.[1] };
+}
+
+function triggerBrowserDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.rel = 'noopener';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const apiClient = {
   get: <T>(path: string) => api<T>(path),
   getText: (path: string) => apiText(path),
@@ -149,5 +188,9 @@ export const apiClient = {
     const form = new FormData();
     form.append('file', file);
     return api<T>(path, { method: 'POST', body: form });
+  },
+  download: async (path: string, fallbackFilename: string) => {
+    const { blob, filename } = await apiBlob(path);
+    triggerBrowserDownload(blob, filename ?? fallbackFilename);
   },
 };
