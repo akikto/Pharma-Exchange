@@ -169,7 +169,7 @@ export function HomeAiPickListingCard({
             </div>
 
             <div
-              className="rounded-[var(--radius-sm)] border border-dashed border-warning/70 bg-[#FFF4ED] px-2 py-1"
+              className="rounded-[var(--radius-sm)] border border-dashed border-warning/70 bg-warning/10 px-2 py-1"
               data-testid={`ai-pick-expiry-${listing.id}`}
             >
               <p className="flex items-center gap-1 text-[11px] font-semibold text-warning">
