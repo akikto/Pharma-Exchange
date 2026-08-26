@@ -101,12 +101,13 @@ export function HomeAiPickListingCard({
   return (
     <article
       className={cn(
-        'flex min-w-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-base shadow-elevation-1',
+        'flex w-full max-w-full min-w-0 flex-row items-stretch overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-base shadow-elevation-1',
         className,
       )}
       data-testid={`ai-pick-listing-card-${listing.id}`}
+      data-ai-pick-layout="horizontal"
     >
-      <div className="relative flex min-w-0 flex-1 flex-col">
+      <div className="relative flex w-[70%] max-w-[70%] min-w-0 basis-[70%] flex-col border-r border-border-subtle">
         <Button
           type="button"
           variant="ghost"
@@ -150,7 +151,7 @@ export function HomeAiPickListingCard({
             ) : null}
 
             {matchSummary ? (
-              <p className="text-[10px] text-text-secondary line-clamp-2">{matchSummary}</p>
+              <p className="text-[10px] text-text-secondary line-clamp-1">{matchSummary}</p>
             ) : null}
 
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-text-secondary">
@@ -228,7 +229,7 @@ export function HomeAiPickListingCard({
       </div>
 
       <aside
-        className="flex w-[30%] max-w-[7.5rem] min-w-[5.75rem] shrink-0 flex-col items-center justify-between bg-primary px-1.5 py-2 text-center text-white"
+        className="flex w-[30%] max-w-[30%] min-w-[5.5rem] shrink-0 basis-[30%] flex-col items-center justify-between bg-primary px-1.5 py-2 text-center text-white"
         style={{
           backgroundImage:
             'radial-gradient(circle at 1px 1px, color-mix(in srgb, white 12%, transparent) 1px, transparent 0)',
