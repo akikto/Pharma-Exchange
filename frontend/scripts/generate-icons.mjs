@@ -11,8 +11,23 @@ const publicDir = join(__dirname, '..', 'public');
 const iconsDir = join(publicDir, 'icons');
 const sourcePath = join(iconsDir, 'logo-source.png');
 
-/** Match app icon squircle; clips white square corners from the source asset. */
-const ICON_CORNER_RADIUS_RATIO = 0.22;
+/** Squircle corner radius as a fraction of edge length (clips white square corners in source PNG). */
+const ICON_CORNER_RADIUS_RATIO = 0.34;
+
+async function stripNearWhiteBackground(sharp, pipeline) {
+  const { data, info } = await pipeline.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    if (r >= 248 && g >= 248 && b >= 248) {
+      data[i + 3] = 0;
+    }
+  }
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  });
+}
 
 async function resizeIconWithRoundedAlpha(sharp, source, size) {
   const radius = Math.max(1, Math.round(size * ICON_CORNER_RADIUS_RATIO));
@@ -20,11 +35,11 @@ async function resizeIconWithRoundedAlpha(sharp, source, size) {
     <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="white"/>
   </svg>`;
   const mask = await sharp(Buffer.from(maskSvg)).png().toBuffer();
-  return sharp(source)
-    .resize(size, size, { fit: 'cover' })
-    .ensureAlpha()
-    .composite([{ input: mask, blend: 'dest-in' }])
-    .png();
+  const resized = await stripNearWhiteBackground(
+    sharp,
+    sharp(source).resize(size, size, { fit: 'cover' }),
+  );
+  return resized.composite([{ input: mask, blend: 'dest-in' }]).png();
 }
 
 async function main() {

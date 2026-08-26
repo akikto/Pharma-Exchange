@@ -30,11 +30,15 @@
         background: linear-gradient(135deg, #0f4c6e 0%, #0f766e 50%, #166534 100%);
       }
       #app-splash .splash-icon-wrap {
-        width: 7rem;
-        height: 7rem;
-        border-radius: 22%;
+        --splash-icon-size: 7rem;
+        --splash-icon-radius: 34%;
+        width: var(--splash-icon-size);
+        height: var(--splash-icon-size);
+        border-radius: var(--splash-icon-radius);
         overflow: hidden;
         flex-shrink: 0;
+        isolation: isolate;
+        background: linear-gradient(135deg, #0f4c6e 0%, #0f766e 50%, #166534 100%);
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
       }
       #app-splash .splash-icon-wrap img {
@@ -42,6 +46,9 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transform: scale(1.12);
+        transform-origin: center;
+        clip-path: inset(0 round var(--splash-icon-radius));
       }
       #app-splash p {
         margin: 0;
@@ -54,7 +61,7 @@
   <body>
     <div id="app-splash" aria-hidden="true">
       <div class="splash-icon-wrap">
-        <img src="/icons/icon-192.png" alt="Pharma-Exchange" width="192" height="192" />
+        <img src="/icons/icon-192.png?v=2" alt="Pharma-Exchange" width="192" height="192" decoding="async" />
       </div>
       <p>B2B Pharmacy Marketplace</p>
     </div>
