@@ -86,8 +86,10 @@ describe('HomeAiPickListingCard', () => {
     expect(screen.getByText('Nap 10')).toBeInTheDocument();
     expect(screen.getByText(/Naproxen 500mg/i)).toBeInTheDocument();
     expect(screen.getByText('TABLET')).toBeInTheDocument();
-    expect(screen.getByText('Toni Pharmacy')).toBeInTheDocument();
-    expect(screen.getByText(/12 km away/i)).toBeInTheDocument();
+    expect(screen.getByTestId('ai-pick-location-line-listing-ai-1')).toHaveTextContent('Toni Pharmacy');
+    expect(screen.getByTestId('ai-pick-location-line-listing-ai-1')).toHaveTextContent(/12 km away/i);
+    expect(screen.getByTestId('ai-pick-location-line-listing-ai-1')).toHaveTextContent(/Odisha/i);
+    expect(screen.getByLabelText(/Verified/i)).toBeInTheDocument();
     expect(screen.getByTestId('ai-pick-discount-listing-ai-1')).toHaveTextContent('20% OFF');
     expect(screen.getByTestId('ai-pick-stock-listing-ai-1')).toHaveTextContent('9');
     expect(screen.getByText('UNITS')).toBeInTheDocument();
@@ -104,6 +106,7 @@ describe('HomeAiPickListingCard', () => {
   it('shows verified indicator without authentic footer actions', () => {
     renderCard();
     expect(screen.getByLabelText(/Verified/i)).toBeInTheDocument();
+    expect(screen.queryByText('4.8')).not.toBeInTheDocument();
     expect(screen.queryByText('Authentic')).not.toBeInTheDocument();
     expect(screen.queryByTestId('ai-pick-watchlist-listing-ai-1')).not.toBeInTheDocument();
     expect(screen.queryByTestId('ai-pick-call-listing-ai-1')).not.toBeInTheDocument();

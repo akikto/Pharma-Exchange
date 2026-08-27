@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { MapPin, Shield, Truck, Package } from 'lucide-react';
+import { MapPin, Shield, Truck, Package, Star } from 'lucide-react';
 import { StatusChip } from '@/components/ui/status-chip';
 import { formatDate, getExpiryLabel, getExpiryStatus } from '@/lib/utils';
 import {
@@ -30,6 +30,14 @@ export function ListingDetailInsights({ listing, userCoords }: ListingDetailInsi
 
   return (
     <div className="space-y-3" data-testid="listing-detail-insights">
+      <p
+        className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-warning"
+        data-testid="listing-seller-rating"
+      >
+        <Star className="h-4 w-4 fill-warning text-warning" aria-hidden />
+        {t('listing.sellerRating', { rating: listing.pharmacy.rating })}
+      </p>
+
       {(showAuthentic || showFastDelivery) && (
         <div className="flex flex-wrap gap-3 text-sm">
           {showAuthentic && (

@@ -345,6 +345,7 @@
     "authentic": "Authentic",
     "fastDelivery": "Fast Delivery",
     "distanceFromYou": "{{km}} km from you",
+    "sellerRating": "Seller rating {{rating}}",
     "deliveryInDays_one": "Delivery in about {{count}} day",
     "deliveryInDays_other": "Delivery in about {{count}} days",
     "expiryDays_one": "Expires in {{count}} day",
