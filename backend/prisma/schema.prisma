@@ -50,6 +50,11 @@ enum ListingStatus {
   SOLD_OUT
 }
 
+enum ItemDeliveryMode {
+  BUYER_PICKUP
+  SELLER_DELIVERS
+}
+
 enum BuyRequestStatus {
   PENDING
   ACCEPTED
@@ -315,6 +320,9 @@ model Medicine {
   category       String
   scheduleClass  String?
   composition    String?
+  indications    String?
+  dosageInstructions String?
+  sideEffects    String?
   imageUrl       String?
   isActive       Boolean    @default(true)
   createdAt      DateTime   @default(now())
@@ -351,6 +359,8 @@ model Listing {
   status          ListingStatus @default(DRAFT)
   lowStockThreshold Int?
   imageUrl        String?
+  deliveryMode    ItemDeliveryMode @default(SELLER_DELIVERS)
+  estimatedDeliveryDays Int?
   lastSellerActivityAt DateTime      @default(now())
   staleListingReminderSentAt DateTime?
   createdAt       DateTime      @default(now())

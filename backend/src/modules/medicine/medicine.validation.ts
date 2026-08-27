@@ -12,6 +12,9 @@ export const createMedicineSchema = z.object({
   category: z.string().min(1),
   scheduleClass: z.string().optional(),
   composition: z.string().optional(),
+  indications: z.string().optional(),
+  dosageInstructions: z.string().optional(),
+  sideEffects: z.string().optional(),
   imageUrl: z.string().url().optional(),
 });
 

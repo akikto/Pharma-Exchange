@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DosageForm, ListingStatus } from '@prisma/client';
+import { DosageForm, ItemDeliveryMode, ListingStatus } from '@prisma/client';
 
 const booleanQuery = z.preprocess((value) => {
   if (value === undefined || value === null || value === '') return undefined;
@@ -24,6 +24,8 @@ export const createListingSchema = z.object({
   unit: z.string().default('strip'),
   lowStockThreshold: z.number().int().positive().optional(),
   imageUrl: z.string().url().optional(),
+  deliveryMode: z.nativeEnum(ItemDeliveryMode).default(ItemDeliveryMode.SELLER_DELIVERS),
+  estimatedDeliveryDays: z.number().int().positive().optional(),
   status: z.nativeEnum(ListingStatus).default(ListingStatus.DRAFT),
 });
 
