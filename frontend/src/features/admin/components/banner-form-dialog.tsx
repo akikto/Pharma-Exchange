@@ -363,6 +363,7 @@ export function BannerFormDialog({
               <Label htmlFor="banner-pharmacy-search">{t('admin.banners.fields.pharmacy')}</Label>
               <Input
                 id="banner-pharmacy-search"
+                data-testid="banner-pharmacy-search"
                 value={pharmacySearch}
                 onChange={(e) => setPharmacySearch(e.target.value)}
                 placeholder={t('admin.banners.pharmacySearchPlaceholder')}

@@ -51,18 +51,22 @@ function renderDialog() {
 describe('BannerFormDialog pharmacy target', () => {
   beforeEach(() => {
     listingsPages.mockReturnValue({
-      pages: [
-        {
-          data: [
-            {
-              id: 'listing-abc',
-              batchNumber: 'FR12',
-              availableQty: 10,
-              medicine: { name: 'Ace Plus' },
-            },
-          ],
-        },
-      ],
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                id: 'listing-abc',
+                batchNumber: 'FR12',
+                availableQty: 10,
+                medicine: { name: 'Ace Plus' },
+              },
+            ],
+            pagination: { page: 1, totalPages: 1, total: 1, limit: 50 },
+          },
+        ],
+        pageParams: [1],
+      },
     });
     pharmacyList.mockReturnValue({
       data: {
@@ -92,7 +96,7 @@ describe('BannerFormDialog pharmacy target', () => {
       expect(screen.getByTestId('banner-pharmacy-select')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText(/search shops/i), { target: { value: 'Toni' } });
+    fireEvent.change(screen.getByTestId('banner-pharmacy-search'), { target: { value: 'Toni' } });
 
     const select = screen.getByTestId('banner-pharmacy-select');
     expect(select).toHaveTextContent('Toni Pharmacy');
