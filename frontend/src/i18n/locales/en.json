@@ -1006,7 +1006,10 @@
       "actionSummary": "{{type}} → {{target}}",
       "selectPath": "Select a page",
       "selectMedicine": "Select a medicine",
+      "selectPharmacy": "Select a pharmacy / shop",
       "medicineSearchPlaceholder": "Search medicines…",
+      "pharmacySearchPlaceholder": "Search shops by name or city…",
+      "pharmacySelectHint": "Pick the shop from the list — no need to copy an ID from the browser.",
       "pharmacyIdPlaceholder": "Pharmacy ID",
       "categoryPlaceholder": "Category name",
       "fields": {
@@ -1018,6 +1021,7 @@
         "actionType": "Click action",
         "actionTarget": "Target",
         "medicine": "Medicine",
+        "pharmacy": "Shop (pharmacy)",
         "isActive": "Active on home page",
         "sortOrder": "Display order"
       },

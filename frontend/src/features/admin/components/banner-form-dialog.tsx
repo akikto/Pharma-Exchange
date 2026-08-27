@@ -16,6 +16,7 @@ import { useBannerMediaUpload } from '@/hooks/use-banner-media-upload';
 import { useToast } from '@/hooks/use-toast';
 import { isValidBannerMediaHttpUrl } from '@/lib/banner-media-url';
 import { useAdminMedicines } from '@/hooks/use-admin-medicines';
+import { useAdminSellers, type AdminSellersFilters } from '@/hooks/use-admin-sellers';
 import { getErrorMessage } from '@/lib/api-errors';
 import {
   EMPTY_BANNER_FORM,
@@ -52,8 +53,14 @@ export function BannerFormDialog({
   const [errors, setErrors] = useState<BannerFormErrors>({});
   const [submitError, setSubmitError] = useState('');
   const [medicineSearch, setMedicineSearch] = useState('');
+  const [pharmacySearch, setPharmacySearch] = useState('');
   const uploadMedia = useBannerMediaUpload();
   const { data: medicineResults } = useAdminMedicines(medicineSearch);
+  const pharmacyFilters: AdminSellersFilters = useMemo(
+    () => ({ q: pharmacySearch, verificationStatus: 'ALL', isActive: 'all' }),
+    [pharmacySearch],
+  );
+  const { data: pharmacyResults } = useAdminSellers(pharmacyFilters);
 
   useEffect(() => {
     if (!open) return;
@@ -61,6 +68,7 @@ export function BannerFormDialog({
     setErrors({});
     setSubmitError('');
     setMedicineSearch('');
+    setPharmacySearch('');
   }, [open, mode, banner]);
 
   const previewAlt = useMemo(
@@ -116,6 +124,7 @@ export function BannerFormDialog({
   };
 
   const medicineOptions = medicineResults?.data ?? [];
+  const pharmacyOptions = pharmacyResults?.data ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -238,7 +247,37 @@ export function BannerFormDialog({
             </div>
           ) : null}
 
-          {form.actionType === 'PHARMACY' || form.actionType === 'CATEGORY' || form.actionType === 'EXTERNAL_URL' ? (
+          {form.actionType === 'PHARMACY' ? (
+            <div className="space-y-2">
+              <Label htmlFor="banner-pharmacy-search">{t('admin.banners.fields.pharmacy')}</Label>
+              <Input
+                id="banner-pharmacy-search"
+                value={pharmacySearch}
+                onChange={(e) => setPharmacySearch(e.target.value)}
+                placeholder={t('admin.banners.pharmacySearchPlaceholder')}
+              />
+              <select
+                className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                value={form.actionTarget}
+                onChange={(e) => updateField('actionTarget', e.target.value)}
+                data-testid="banner-pharmacy-select"
+              >
+                <option value="">{t('admin.banners.selectPharmacy')}</option>
+                {form.actionTarget &&
+                !pharmacyOptions.some((pharmacy) => pharmacy.id === form.actionTarget) ? (
+                  <option value={form.actionTarget}>{form.actionTarget}</option>
+                ) : null}
+                {pharmacyOptions.map((pharmacy) => (
+                  <option key={pharmacy.id} value={pharmacy.id}>
+                    {pharmacy.name} — {pharmacy.city}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-text-secondary">{t('admin.banners.pharmacySelectHint')}</p>
+            </div>
+          ) : null}
+
+          {form.actionType === 'CATEGORY' || form.actionType === 'EXTERNAL_URL' ? (
             <div>
               <Label htmlFor="banner-action-target">{t('admin.banners.fields.actionTarget')}</Label>
               <Input
@@ -246,11 +285,9 @@ export function BannerFormDialog({
                 value={form.actionTarget}
                 onChange={(e) => updateField('actionTarget', e.target.value)}
                 placeholder={
-                  form.actionType === 'PHARMACY'
-                    ? t('admin.banners.pharmacyIdPlaceholder')
-                    : form.actionType === 'CATEGORY'
-                      ? t('admin.banners.categoryPlaceholder')
-                      : 'https://'
+                  form.actionType === 'CATEGORY'
+                    ? t('admin.banners.categoryPlaceholder')
+                    : 'https://'
                 }
               />
             </div>
