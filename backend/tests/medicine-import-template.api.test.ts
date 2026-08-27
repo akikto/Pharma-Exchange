@@ -25,12 +25,20 @@ describe('Admin medicine import template API', () => {
     if (!dbAvailable || !adminToken) skip();
     const res = await request(app)
       .get('/api/v1/admin/medicines/import/template')
-      .set('Authorization', `Bearer ${adminToken}`);
+      .set('Authorization', `Bearer ${adminToken}`)
+      .buffer(true)
+      .parse((res, callback) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
 
     expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toMatch(/spreadsheetml/);
-    expect(res.body.length).toBeGreaterThan(1000);
-    expect(res.body.slice(0, 2).toString('utf8')).toBe('PK');
+    expect(res.headers['content-type']).toMatch(/spreadsheet/);
+    const body = res.body as Buffer;
+    expect(Buffer.isBuffer(body)).toBe(true);
+    expect(body.length).toBeGreaterThan(1000);
+    expect(body.subarray(0, 2).toString('utf8')).toBe('PK');
   });
 
   it('rejects non-admin', async ({ skip }) => {
