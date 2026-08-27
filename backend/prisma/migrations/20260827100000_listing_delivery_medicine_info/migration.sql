@@ -1,5 +1,9 @@
--- CreateEnum
-CREATE TYPE "ItemDeliveryMode" AS ENUM ('BUYER_PICKUP', 'SELLER_DELIVERS');
+-- CreateEnum (idempotent for preview DBs that already received schema via db push)
+DO $$ BEGIN
+    CREATE TYPE "ItemDeliveryMode" AS ENUM ('BUYER_PICKUP', 'SELLER_DELIVERS');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AlterTable
 ALTER TABLE "Medicine" ADD COLUMN IF NOT EXISTS "indications" TEXT;
