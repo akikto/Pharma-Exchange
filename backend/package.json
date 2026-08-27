@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && cp -R src/vendor dist/vendor",
+    "build": "tsc && cp -R src/vendor dist/vendor && mkdir -p dist/modules/medicine && cp -R src/modules/medicine/assets dist/modules/medicine/assets",
     "vercel-build": "prisma generate && node scripts/vercel-schema-sync.mjs && npm run build",
     "postinstall": "prisma generate",
     "start": "node dist/server.js",

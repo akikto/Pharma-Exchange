@@ -4,6 +4,7 @@ import { AppError } from '../../shared/errors/AppError';
 import { logger } from '../../shared/utils/logger';
 import { createMedicineSchema } from './medicine.validation';
 import { getXlsx } from './medicine-sheetjs';
+import { readMedicineImportTemplateBuffer } from './medicine-import-template';
 import {
   DOSAGE_FORM_VALUES,
   MEDICINE_IMPORT_COLUMNS,
@@ -359,6 +360,13 @@ export class MedicineImportService {
   }
 
   buildTemplateWorkbook(): Buffer {
+    try {
+      return readMedicineImportTemplateBuffer();
+    } catch (err) {
+      logger.warn('Falling back to dynamic medicine import template', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
     const XLSX = getXlsx();
     const sheet = XLSX.utils.json_to_sheet([TEMPLATE_EXAMPLE_ROW]);
     const book = XLSX.utils.book_new();
