@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { medicineIdentityKey } from '../src/modules/medicine/medicine-import.service';
+import { medicineIdentityKey, medicineImportService } from '../src/modules/medicine/medicine-import.service';
 
 describe('medicineIdentityKey', () => {
   it('normalizes case and whitespace for stable matching', () => {
@@ -18,5 +18,14 @@ describe('medicineIdentityKey', () => {
       packSize: '10 tablets',
     });
     expect(a).toBe(b);
+  });
+});
+
+describe('medicineImportService.buildTemplateWorkbook', () => {
+  it('returns a non-empty xlsx buffer', () => {
+    const buffer = medicineImportService.buildTemplateWorkbook();
+    expect(Buffer.isBuffer(buffer)).toBe(true);
+    expect(buffer.length).toBeGreaterThan(1000);
+    expect(buffer.subarray(0, 2).toString('utf8')).toBe('PK');
   });
 });

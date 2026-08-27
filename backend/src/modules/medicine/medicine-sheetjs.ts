@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
 
@@ -22,10 +23,23 @@ export type XlsxModule = {
 
 let cached: XlsxModule | null = null;
 
+function resolveXlsxModulePath(): string {
+  const candidates = [
+    path.join(__dirname, '../../vendor/xlsx/xlsx.cjs'),
+    path.join(process.cwd(), 'src/vendor/xlsx/xlsx.cjs'),
+    path.join(process.cwd(), 'backend/src/vendor/xlsx/xlsx.cjs'),
+    path.join(process.cwd(), 'dist/vendor/xlsx/xlsx.cjs'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  throw new Error('SheetJS vendor module not found (xlsx.cjs)');
+}
+
 export function getXlsx(): XlsxModule {
   if (!cached) {
     const moduleRequire = createRequire(__filename);
-    cached = moduleRequire(path.join(__dirname, '../../vendor/xlsx/xlsx.cjs')) as XlsxModule;
+    cached = moduleRequire(resolveXlsxModulePath()) as XlsxModule;
   }
   return cached;
 }

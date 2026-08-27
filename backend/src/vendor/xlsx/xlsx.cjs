@@ -10,7 +10,7 @@ var current_codepage = 1200, current_ansi = 1252;
 var $cptable;
 if(typeof cptable !== 'undefined') $cptable = cptable;
 else if(typeof module !== "undefined" && typeof require !== 'undefined') {
-	$cptable = require('./dist/cpexcel.js');
+	try { $cptable = require('./dist/cpexcel.js'); } catch (e) { /* optional: codepage tables for legacy encodings */ }
 }
 
 var VALID_ANSI = [ 874, 932, 936, 949, 950, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258, 10000 ];
