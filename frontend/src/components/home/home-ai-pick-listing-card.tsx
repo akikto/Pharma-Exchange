@@ -104,9 +104,9 @@ export function HomeAiPickListingCard({
             className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] min-w-0 break-words"
             data-testid={`ai-pick-location-line-${listing.id}`}
           >
-            <span className="inline-flex items-center gap-1 font-semibold text-text-primary shrink-0">
+            <span className="inline-flex max-w-full min-w-0 flex-nowrap items-center gap-1 font-semibold text-text-primary">
               <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-              <span>{listing.pharmacy.name}</span>
+              <span className="truncate">{listing.pharmacy.name}</span>
               {verified ? (
                 <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
               ) : null}

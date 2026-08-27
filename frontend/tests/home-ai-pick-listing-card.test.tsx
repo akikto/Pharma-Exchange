@@ -106,6 +106,7 @@ describe('HomeAiPickListingCard', () => {
   it('shows verified indicator without authentic footer actions', () => {
     renderCard();
     expect(screen.getByLabelText(/Verified/i)).toBeInTheDocument();
+    expect(screen.queryByText('4.8')).not.toBeInTheDocument();
     expect(screen.queryByText('Authentic')).not.toBeInTheDocument();
     expect(screen.queryByTestId('ai-pick-watchlist-listing-ai-1')).not.toBeInTheDocument();
     expect(screen.queryByTestId('ai-pick-call-listing-ai-1')).not.toBeInTheDocument();
