@@ -73,14 +73,12 @@ export function BannerFormDialog({
     [listingShopSearch],
   );
   const { data: listingShopResults } = useAdminSellers(listingShopFilters);
+  const listingPrefillTarget =
+    open && banner?.actionType === 'LISTING' ? banner.actionTarget?.trim() ?? '' : '';
   const { data: listingPrefill } = useQuery({
-    queryKey: ['banner-listing-prefill', banner?.actionTarget],
-    queryFn: () => apiClient.get<Listing>(`/listings/${banner!.actionTarget!}`),
-    enabled:
-      open
-      && banner?.actionType === 'LISTING'
-      && Boolean(banner.actionTarget)
-      && !listingShopId,
+    queryKey: ['banner-listing-prefill', listingPrefillTarget],
+    queryFn: () => apiClient.get<Listing>(`/listings/${listingPrefillTarget}`),
+    enabled: Boolean(listingPrefillTarget) && !listingShopId,
   });
   const { data: shopListingsPages } = useListings(
     { pharmacyId: listingShopId, status: 'ACTIVE', limit: 50 },
@@ -100,10 +98,10 @@ export function BannerFormDialog({
   }, [open, mode, banner]);
 
   useEffect(() => {
-    if (listingPrefill.data?.pharmacy?.id) {
-      setListingShopId(listingPrefill.data.pharmacy.id);
+    if (listingPrefill?.pharmacy?.id) {
+      setListingShopId(listingPrefill.pharmacy.id);
     }
-  }, [listingPrefill.data?.pharmacy?.id]);
+  }, [listingPrefill?.pharmacy?.id]);
 
   const previewAlt = useMemo(
     () => form.mediaAlt.trim() || form.title.trim() || t('admin.banners.previewFallback'),
