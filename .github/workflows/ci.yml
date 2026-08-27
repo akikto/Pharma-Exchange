@@ -229,6 +229,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platforms;android-35 build-tools;35.0.0 platform-tools
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
@@ -236,6 +238,8 @@ jobs:
         run: node twa/scripts/validate-twa-manifest.mjs
       - name: Prepare Android launcher icons
         run: bash twa/scripts/prepare-android-resources.sh
+      - name: Configure Android SDK for Gradle
+        run: echo "sdk.dir=${ANDROID_SDK_ROOT}" > twa/android/local.properties
       - name: Build TWA debug APK
         working-directory: twa/android
         run: gradle assembleDebug --stacktrace

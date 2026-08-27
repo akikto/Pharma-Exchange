@@ -4,13 +4,5 @@
     <string name="launchUrl">https://pharma-exchange-frontend.vercel.app/</string>
     <string name="providerAuthority">com.pharmex.exchange.fileprovider</string>
     <string name="fallbackType">customtabs</string>
-    <string name="assetStatements">
-        [{
-            \"relation\": [\"delegate_permission/common.handle_all_urls\"],
-            \"target\": {
-                \"namespace\": \"web\",
-                \"site\": \"https://pharma-exchange-frontend.vercel.app\"
-            }
-        }]
-    </string>
+    <string name="assetStatements" translatable="false"><![CDATA[[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"web","site":"https://pharma-exchange-frontend.vercel.app"}}]]]></string>
 </resources>
