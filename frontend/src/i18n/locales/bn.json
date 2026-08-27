@@ -862,7 +862,10 @@
       "actionSummary": "{{type}} → {{target}}",
       "selectPath": "পেজ নির্বাচন করুন",
       "selectMedicine": "ওষুধ নির্বাচন করুন",
+      "selectPharmacy": "ফার্মেসি / দোকান নির্বাচন করুন",
       "medicineSearchPlaceholder": "ওষুধ খুঁজুন…",
+      "pharmacySearchPlaceholder": "দোকানের নাম বা শহর দিয়ে খুঁজুন…",
+      "pharmacySelectHint": "তালিকা থেকে দোকান বেছে নিন — ব্রাউজার থেকে আইডি কপি করতে হবে না।",
       "pharmacyIdPlaceholder": "ফার্মেসি আইডি",
       "categoryPlaceholder": "ক্যাটাগরি নাম",
       "fields": {
@@ -874,6 +877,7 @@
         "actionType": "ক্লিক অ্যাকশন",
         "actionTarget": "টার্গেট",
         "medicine": "ওষুধ",
+        "pharmacy": "দোকান (ফার্মেসি)",
         "isActive": "হোম পেজে সক্রিয়",
         "sortOrder": "প্রদর্শন ক্রম"
       },
