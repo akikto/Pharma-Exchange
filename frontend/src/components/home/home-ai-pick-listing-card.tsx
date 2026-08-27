@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Star,
   Store,
   MapPin,
   Truck,
@@ -101,30 +100,32 @@ export function HomeAiPickListingCard({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-            <span className="inline-flex items-center gap-0.5 font-semibold tabular-nums text-warning">
-              <Star className="h-3 w-3 fill-warning text-warning" aria-hidden />
-              {listing.pharmacy.rating}
-            </span>
-            <span className="inline-flex min-w-0 flex-wrap items-center gap-1 font-semibold text-text-primary">
-              <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-              <span className="break-words">{listing.pharmacy.name}</span>
-              {verified ? (
-                <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
-              ) : null}
-              {distanceKm != null ? (
-                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-medium text-primary">
-                  <Truck className="h-3 w-3" aria-hidden />
-                  {t('home.kmAway', { km: formatDistanceKmLabel(distanceKm) })}
-                </span>
-              ) : null}
-            </span>
+          <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-text-primary min-w-0">
+            <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
+            <span className="break-words">{listing.pharmacy.name}</span>
+            {verified ? (
+              <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
+            ) : null}
           </div>
 
-          <div className="flex flex-wrap items-center gap-1 text-[10px] text-text-secondary">
+          <p
+            className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] text-text-secondary min-w-0 break-words"
+            data-testid={`ai-pick-location-line-${listing.id}`}
+          >
             <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-            <span className="break-words">{formatSellerLocation(listing)}</span>
-          </div>
+            <span>{formatSellerLocation(listing)}</span>
+            {distanceKm != null ? (
+              <>
+                <span className="text-text-disabled" aria-hidden>
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-0.5 font-medium text-primary">
+                  <Truck className="h-3 w-3 shrink-0" aria-hidden />
+                  {t('home.kmAway', { km: formatDistanceKmLabel(distanceKm) })}
+                </span>
+              </>
+            ) : null}
+          </p>
 
           <div
             className="rounded-[var(--radius-sm)] border border-dashed border-warning/70 bg-warning/10 px-2 py-1"

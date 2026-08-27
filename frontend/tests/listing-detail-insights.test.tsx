@@ -68,6 +68,7 @@ describe('ListingDetailInsights', () => {
 
     expect(screen.getByText('Authentic')).toBeInTheDocument();
     expect(screen.getByText('Fast Delivery')).toBeInTheDocument();
+    expect(screen.getByTestId('listing-seller-rating')).toHaveTextContent('4.5');
     expect(screen.getByText(/Expires in 50 days/i)).toBeInTheDocument();
     expect(screen.getByText(/km from you/i)).toBeInTheDocument();
     expect(screen.getByText(/Seller delivers to the buyer/i)).toBeInTheDocument();

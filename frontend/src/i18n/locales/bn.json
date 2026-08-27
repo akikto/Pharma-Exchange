@@ -337,6 +337,7 @@
     "authentic": "Authentic",
     "fastDelivery": "Fast Delivery",
     "distanceFromYou": "আপনার থেকে {{km}} km",
+    "sellerRating": "বিক্রেতার রেটিং {{rating}}",
     "deliveryInDays_one": "প্রায় {{count}} দিনে ডেলিভারি",
     "deliveryInDays_other": "প্রায় {{count}} দিনে ডেলিভারি",
     "expiryDays_one": "{{count}} দিনে মেয়াদ শেষ",
