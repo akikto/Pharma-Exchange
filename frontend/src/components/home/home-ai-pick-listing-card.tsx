@@ -100,26 +100,30 @@ export function HomeAiPickListingCard({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-text-primary min-w-0">
-            <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-            <span className="break-words">{listing.pharmacy.name}</span>
-            {verified ? (
-              <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
-            ) : null}
-          </div>
-
           <p
-            className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] text-text-secondary min-w-0 break-words"
+            className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] min-w-0 break-words"
             data-testid={`ai-pick-location-line-${listing.id}`}
           >
-            <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-            <span>{formatSellerLocation(listing)}</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-text-primary shrink-0">
+              <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
+              <span>{listing.pharmacy.name}</span>
+              {verified ? (
+                <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
+              ) : null}
+            </span>
+            <span className="text-text-disabled shrink-0" aria-hidden>
+              ·
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] text-text-secondary min-w-0">
+              <MapPin className="h-3 w-3 shrink-0" aria-hidden />
+              <span>{formatSellerLocation(listing)}</span>
+            </span>
             {distanceKm != null ? (
               <>
-                <span className="text-text-disabled" aria-hidden>
+                <span className="text-text-disabled shrink-0" aria-hidden>
                   ·
                 </span>
-                <span className="inline-flex items-center gap-0.5 font-medium text-primary">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary shrink-0">
                   <Truck className="h-3 w-3 shrink-0" aria-hidden />
                   {t('home.kmAway', { km: formatDistanceKmLabel(distanceKm) })}
                 </span>
