@@ -87,7 +87,9 @@ describe('HomeAiPickListingCard', () => {
     expect(screen.getByText(/Naproxen 500mg/i)).toBeInTheDocument();
     expect(screen.getByText('TABLET')).toBeInTheDocument();
     expect(screen.getByText('Toni Pharmacy')).toBeInTheDocument();
-    expect(screen.getByText(/12 km away/i)).toBeInTheDocument();
+    expect(screen.queryByText('4.8')).not.toBeInTheDocument();
+    expect(screen.getByTestId('ai-pick-location-line-listing-ai-1')).toHaveTextContent(/12 km away/i);
+    expect(screen.getByTestId('ai-pick-location-line-listing-ai-1')).toHaveTextContent(/Odisha/i);
     expect(screen.getByTestId('ai-pick-discount-listing-ai-1')).toHaveTextContent('20% OFF');
     expect(screen.getByTestId('ai-pick-stock-listing-ai-1')).toHaveTextContent('9');
     expect(screen.getByText('UNITS')).toBeInTheDocument();
