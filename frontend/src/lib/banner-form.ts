@@ -6,7 +6,8 @@ export type BannerActionType =
   | 'INTERNAL_PATH'
   | 'MEDICINE'
   | 'PHARMACY'
-  | 'CATEGORY';
+  | 'CATEGORY'
+  | 'LISTING';
 
 export type HomeBanner = {
   id: string;
@@ -131,7 +132,10 @@ export function validateBannerForm(
     errors.actionTarget = t('admin.banners.validation.internalPathRequired');
   }
   if (
-    (values.actionType === 'MEDICINE' || values.actionType === 'PHARMACY' || values.actionType === 'CATEGORY') &&
+    (values.actionType === 'MEDICINE'
+      || values.actionType === 'PHARMACY'
+      || values.actionType === 'CATEGORY'
+      || values.actionType === 'LISTING') &&
     !values.actionTarget.trim()
   ) {
     errors.actionTarget = t('admin.banners.validation.targetRequired');

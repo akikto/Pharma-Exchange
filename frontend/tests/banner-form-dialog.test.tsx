@@ -6,6 +6,14 @@ import i18n from '@/i18n';
 import { BannerFormDialog } from '@/features/admin/components/banner-form-dialog';
 
 const pharmacyList = vi.fn();
+const listingsPages = vi.fn();
+
+vi.mock('@/hooks/use-listings', () => ({
+  useListings: (_params: unknown, options?: { enabled?: boolean }) => {
+    if (options?.enabled === false) return { data: undefined };
+    return listingsPages();
+  },
+}));
 
 vi.mock('@/hooks/use-banner-media-upload', () => ({
   useBannerMediaUpload: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -42,6 +50,24 @@ function renderDialog() {
 
 describe('BannerFormDialog pharmacy target', () => {
   beforeEach(() => {
+    listingsPages.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                id: 'listing-abc',
+                batchNumber: 'FR12',
+                availableQty: 10,
+                medicine: { name: 'Ace Plus' },
+              },
+            ],
+            pagination: { page: 1, totalPages: 1, total: 1, limit: 50 },
+          },
+        ],
+        pageParams: [1],
+      },
+    });
     pharmacyList.mockReturnValue({
       data: {
         data: [
@@ -70,11 +96,32 @@ describe('BannerFormDialog pharmacy target', () => {
       expect(screen.getByTestId('banner-pharmacy-select')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText(/search shops/i), { target: { value: 'Toni' } });
+    fireEvent.change(screen.getByTestId('banner-pharmacy-search'), { target: { value: 'Toni' } });
 
     const select = screen.getByTestId('banner-pharmacy-select');
     expect(select).toHaveTextContent('Toni Pharmacy');
     fireEvent.change(select, { target: { value: 'pharm-550e8400-e29b-41d4-a716-446655440099' } });
     expect(select).toHaveValue('pharm-550e8400-e29b-41d4-a716-446655440099');
+  });
+
+  it('shows shop then item selects when action type is Shop item (listing)', async () => {
+    renderDialog();
+
+    fireEvent.change(screen.getByLabelText(/click action/i), { target: { value: 'LISTING' } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('banner-listing-shop-select')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('banner-listing-shop-select'), {
+      target: { value: 'pharm-550e8400-e29b-41d4-a716-446655440099' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('banner-listing-item-select')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('banner-listing-item-select'), { target: { value: 'listing-abc' } });
+    expect(screen.getByTestId('banner-listing-item-select')).toHaveValue('listing-abc');
   });
 });

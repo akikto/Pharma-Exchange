@@ -43,6 +43,10 @@ async function assertActionTarget(actionType: BannerActionType, actionTarget?: s
   if (actionType === BannerActionType.CATEGORY && target) {
     if (target.length > 120) throw AppError.badRequest('Category value is too long');
   }
+  if (actionType === BannerActionType.LISTING && target) {
+    const listing = await prisma.listing.findUnique({ where: { id: target } });
+    if (!listing) throw AppError.badRequest('Listing not found for banner action');
+  }
 }
 
 function assertBannerMediaUrl(mediaUrl: string) {
