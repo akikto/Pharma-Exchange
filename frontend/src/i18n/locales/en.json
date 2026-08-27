@@ -1007,6 +1007,9 @@
       "selectPath": "Select a page",
       "selectMedicine": "Select a medicine",
       "selectPharmacy": "Select a pharmacy / shop",
+      "selectListing": "Select an item from this shop",
+      "listingSearchPlaceholder": "Filter items by medicine name or batch…",
+      "listingActionHint": "Choose a shop, then pick one of its active listings. Tapping the banner opens that item’s detail page.",
       "medicineSearchPlaceholder": "Search medicines…",
       "pharmacySearchPlaceholder": "Search shops by name or city…",
       "pharmacySelectHint": "Pick the shop from the list — no need to copy an ID from the browser.",
@@ -1022,6 +1025,7 @@
         "actionTarget": "Target",
         "medicine": "Medicine",
         "pharmacy": "Shop (pharmacy)",
+        "listingItem": "Item from shop",
         "isActive": "Active on home page",
         "sortOrder": "Display order"
       },
@@ -1031,7 +1035,8 @@
         "internal": "App page",
         "medicine": "Product (medicine)",
         "pharmacy": "Shop (pharmacy)",
-        "category": "Category search"
+        "category": "Category search",
+        "listing": "Shop item (specific listing)"
       },
       "internalPaths": {
         "home": "Home",

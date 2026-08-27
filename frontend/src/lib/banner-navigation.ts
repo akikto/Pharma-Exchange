@@ -14,6 +14,8 @@ export function resolveBannerDestination(
       return target || null;
     case 'MEDICINE':
       return target ? `/medicine/${target}` : null;
+    case 'LISTING':
+      return target ? `/medicine/${target}` : null;
     case 'PHARMACY':
       return target ? `/pharmacy/${target}` : null;
     case 'CATEGORY':

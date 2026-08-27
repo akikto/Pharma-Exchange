@@ -6,6 +6,14 @@ import i18n from '@/i18n';
 import { BannerFormDialog } from '@/features/admin/components/banner-form-dialog';
 
 const pharmacyList = vi.fn();
+const listingsPages = vi.fn();
+
+vi.mock('@/hooks/use-listings', () => ({
+  useListings: (_params: unknown, options?: { enabled?: boolean }) => {
+    if (options?.enabled === false) return { data: undefined };
+    return listingsPages();
+  },
+}));
 
 vi.mock('@/hooks/use-banner-media-upload', () => ({
   useBannerMediaUpload: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -42,6 +50,20 @@ function renderDialog() {
 
 describe('BannerFormDialog pharmacy target', () => {
   beforeEach(() => {
+    listingsPages.mockReturnValue({
+      pages: [
+        {
+          data: [
+            {
+              id: 'listing-abc',
+              batchNumber: 'FR12',
+              availableQty: 10,
+              medicine: { name: 'Ace Plus' },
+            },
+          ],
+        },
+      ],
+    });
     pharmacyList.mockReturnValue({
       data: {
         data: [
@@ -76,5 +98,26 @@ describe('BannerFormDialog pharmacy target', () => {
     expect(select).toHaveTextContent('Toni Pharmacy');
     fireEvent.change(select, { target: { value: 'pharm-550e8400-e29b-41d4-a716-446655440099' } });
     expect(select).toHaveValue('pharm-550e8400-e29b-41d4-a716-446655440099');
+  });
+
+  it('shows shop then item selects when action type is Shop item (listing)', async () => {
+    renderDialog();
+
+    fireEvent.change(screen.getByLabelText(/click action/i), { target: { value: 'LISTING' } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('banner-listing-shop-select')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('banner-listing-shop-select'), {
+      target: { value: 'pharm-550e8400-e29b-41d4-a716-446655440099' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('banner-listing-item-select')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('banner-listing-item-select'), { target: { value: 'listing-abc' } });
+    expect(screen.getByTestId('banner-listing-item-select')).toHaveValue('listing-abc');
   });
 });

@@ -144,6 +144,7 @@ enum BannerActionType {
   MEDICINE
   PHARMACY
   CATEGORY
+  LISTING
 }
 
 enum BulkRequestUrgency {

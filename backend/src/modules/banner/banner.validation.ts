@@ -46,6 +46,7 @@ function actionTargetRefine(
     case BannerActionType.MEDICINE:
     case BannerActionType.PHARMACY:
     case BannerActionType.CATEGORY:
+    case BannerActionType.LISTING:
       if (!target) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Action target is required', path: ['actionTarget'] });
       }

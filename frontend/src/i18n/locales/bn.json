@@ -863,6 +863,9 @@
       "selectPath": "পেজ নির্বাচন করুন",
       "selectMedicine": "ওষুধ নির্বাচন করুন",
       "selectPharmacy": "ফার্মেসি / দোকান নির্বাচন করুন",
+      "selectListing": "এই দোকান থেকে একটি আইটেম নির্বাচন করুন",
+      "listingSearchPlaceholder": "ওষুধের নাম বা batch দিয়ে ফিল্টার…",
+      "listingActionHint": "প্রথমে দোকান, তারপর সেই দোকানের active listing বেছে নিন। ব্যানারে tap করলে ওই আইটেমের details page খুলবে।",
       "medicineSearchPlaceholder": "ওষুধ খুঁজুন…",
       "pharmacySearchPlaceholder": "দোকানের নাম বা শহর দিয়ে খুঁজুন…",
       "pharmacySelectHint": "তালিকা থেকে দোকান বেছে নিন — ব্রাউজার থেকে আইডি কপি করতে হবে না।",
@@ -878,6 +881,7 @@
         "actionTarget": "টার্গেট",
         "medicine": "ওষুধ",
         "pharmacy": "দোকান (ফার্মেসি)",
+        "listingItem": "দোকানের আইটেম",
         "isActive": "হোম পেজে সক্রিয়",
         "sortOrder": "প্রদর্শন ক্রম"
       },
@@ -887,7 +891,8 @@
         "internal": "অ্যাপ পেজ",
         "medicine": "পণ্য (ওষুধ)",
         "pharmacy": "দোকান (ফার্মেসি)",
-        "category": "ক্যাটাগরি সার্চ"
+        "category": "ক্যাটাগরি সার্চ",
+        "listing": "দোকানের আইটেম (নির্দিষ্ট listing)"
       },
       "internalPaths": {
         "home": "হোম",

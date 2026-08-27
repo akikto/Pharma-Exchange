@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,9 @@ import { useToast } from '@/hooks/use-toast';
 import { isValidBannerMediaHttpUrl } from '@/lib/banner-media-url';
 import { useAdminMedicines } from '@/hooks/use-admin-medicines';
 import { useAdminSellers, type AdminSellersFilters } from '@/hooks/use-admin-sellers';
+import { useListings } from '@/hooks/use-listings';
+import { apiClient } from '@/lib/api';
+import type { Listing } from '@/types';
 import { getErrorMessage } from '@/lib/api-errors';
 import {
   EMPTY_BANNER_FORM,
@@ -54,6 +58,9 @@ export function BannerFormDialog({
   const [submitError, setSubmitError] = useState('');
   const [medicineSearch, setMedicineSearch] = useState('');
   const [pharmacySearch, setPharmacySearch] = useState('');
+  const [listingShopId, setListingShopId] = useState('');
+  const [listingShopSearch, setListingShopSearch] = useState('');
+  const [listingItemSearch, setListingItemSearch] = useState('');
   const uploadMedia = useBannerMediaUpload();
   const { data: medicineResults } = useAdminMedicines(medicineSearch);
   const pharmacyFilters: AdminSellersFilters = useMemo(
@@ -61,6 +68,24 @@ export function BannerFormDialog({
     [pharmacySearch],
   );
   const { data: pharmacyResults } = useAdminSellers(pharmacyFilters);
+  const listingShopFilters: AdminSellersFilters = useMemo(
+    () => ({ q: listingShopSearch, verificationStatus: 'ALL', isActive: 'all' }),
+    [listingShopSearch],
+  );
+  const { data: listingShopResults } = useAdminSellers(listingShopFilters);
+  const { data: listingPrefill } = useQuery({
+    queryKey: ['banner-listing-prefill', banner?.actionTarget],
+    queryFn: () => apiClient.get<Listing>(`/listings/${banner!.actionTarget!}`),
+    enabled:
+      open
+      && banner?.actionType === 'LISTING'
+      && Boolean(banner.actionTarget)
+      && !listingShopId,
+  });
+  const { data: shopListingsPages } = useListings(
+    { pharmacyId: listingShopId, status: 'ACTIVE', limit: 50 },
+    { enabled: open && form.actionType === 'LISTING' && Boolean(listingShopId) },
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -69,7 +94,16 @@ export function BannerFormDialog({
     setSubmitError('');
     setMedicineSearch('');
     setPharmacySearch('');
+    setListingShopId('');
+    setListingShopSearch('');
+    setListingItemSearch('');
   }, [open, mode, banner]);
+
+  useEffect(() => {
+    if (listingPrefill.data?.pharmacy?.id) {
+      setListingShopId(listingPrefill.data.pharmacy.id);
+    }
+  }, [listingPrefill.data?.pharmacy?.id]);
 
   const previewAlt = useMemo(
     () => form.mediaAlt.trim() || form.title.trim() || t('admin.banners.previewFallback'),
@@ -84,6 +118,14 @@ export function BannerFormDialog({
       delete next[key];
       return next;
     });
+    setSubmitError('');
+  };
+
+  const handleActionTypeChange = (actionType: BannerActionType) => {
+    setForm((current) => ({ ...current, actionType, actionTarget: '' }));
+    setListingShopId('');
+    setListingItemSearch('');
+    setErrors({});
     setSubmitError('');
   };
 
@@ -125,6 +167,17 @@ export function BannerFormDialog({
 
   const medicineOptions = medicineResults?.data ?? [];
   const pharmacyOptions = pharmacyResults?.data ?? [];
+  const listingShopOptions = listingShopResults?.data ?? [];
+  const shopListingOptions = useMemo(() => {
+    const listings = shopListingsPages?.pages.flatMap((page) => page.data) ?? [];
+    const query = listingItemSearch.trim().toLowerCase();
+    if (!query) return listings;
+    return listings.filter((listing) => {
+      const name = listing.medicine.name.toLowerCase();
+      const batch = listing.batchNumber.toLowerCase();
+      return name.includes(query) || batch.includes(query);
+    });
+  }, [shopListingsPages, listingItemSearch]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -193,12 +246,13 @@ export function BannerFormDialog({
               id="banner-action-type"
               className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
               value={form.actionType}
-              onChange={(e) => updateField('actionType', e.target.value as BannerActionType)}
+              onChange={(e) => handleActionTypeChange(e.target.value as BannerActionType)}
             >
               <option value="NONE">{t('admin.banners.actionTypes.none')}</option>
               <option value="EXTERNAL_URL">{t('admin.banners.actionTypes.external')}</option>
               <option value="INTERNAL_PATH">{t('admin.banners.actionTypes.internal')}</option>
               <option value="MEDICINE">{t('admin.banners.actionTypes.medicine')}</option>
+              <option value="LISTING">{t('admin.banners.actionTypes.listing')}</option>
               <option value="PHARMACY">{t('admin.banners.actionTypes.pharmacy')}</option>
               <option value="CATEGORY">{t('admin.banners.actionTypes.category')}</option>
             </select>
@@ -244,6 +298,65 @@ export function BannerFormDialog({
                   </option>
                 ))}
               </select>
+            </div>
+          ) : null}
+
+          {form.actionType === 'LISTING' ? (
+            <div className="space-y-3 rounded-[var(--radius-md)] border border-border-subtle p-3">
+              <p className="text-xs text-text-secondary">{t('admin.banners.listingActionHint')}</p>
+              <div className="space-y-2">
+                <Label htmlFor="banner-listing-shop-search">{t('admin.banners.fields.pharmacy')}</Label>
+                <Input
+                  id="banner-listing-shop-search"
+                  value={listingShopSearch}
+                  onChange={(e) => setListingShopSearch(e.target.value)}
+                  placeholder={t('admin.banners.pharmacySearchPlaceholder')}
+                />
+                <select
+                  className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                  value={listingShopId}
+                  onChange={(e) => {
+                    setListingShopId(e.target.value);
+                    updateField('actionTarget', '');
+                  }}
+                  data-testid="banner-listing-shop-select"
+                >
+                  <option value="">{t('admin.banners.selectPharmacy')}</option>
+                  {listingShopOptions.map((pharmacy) => (
+                    <option key={pharmacy.id} value={pharmacy.id}>
+                      {pharmacy.name} — {pharmacy.city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {listingShopId ? (
+                <div className="space-y-2">
+                  <Label htmlFor="banner-listing-item-search">{t('admin.banners.fields.listingItem')}</Label>
+                  <Input
+                    id="banner-listing-item-search"
+                    value={listingItemSearch}
+                    onChange={(e) => setListingItemSearch(e.target.value)}
+                    placeholder={t('admin.banners.listingSearchPlaceholder')}
+                  />
+                  <select
+                    className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                    value={form.actionTarget}
+                    onChange={(e) => updateField('actionTarget', e.target.value)}
+                    data-testid="banner-listing-item-select"
+                  >
+                    <option value="">{t('admin.banners.selectListing')}</option>
+                    {form.actionTarget &&
+                    !shopListingOptions.some((listing) => listing.id === form.actionTarget) ? (
+                      <option value={form.actionTarget}>{form.actionTarget}</option>
+                    ) : null}
+                    {shopListingOptions.map((listing) => (
+                      <option key={listing.id} value={listing.id}>
+                        {listing.medicine.name} · {listing.batchNumber} · {listing.availableQty} left
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
