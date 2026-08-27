@@ -132,6 +132,7 @@ describe('ListingFormPage', () => {
 
   it('keeps Create Listing enabled when no medicine is selected', () => {
     renderPage();
+    expect(screen.getByTestId('listing-delivery-mode-seller-delivers')).toBeChecked();
     expect(screen.getByRole('button', { name: /create listing/i })).toBeEnabled();
   });
 
@@ -202,6 +203,7 @@ describe('ListingFormPage', () => {
     expect(body.lowStockThreshold).toBeUndefined();
     expect(body.purchasePrice).toBe(25);
     expect(body.sellingPrice).toBe(30);
+    expect(body.deliveryMode).toBe('SELLER_DELIVERS');
   });
 
   it('shows friendly medicine message for backend validation errors', async () => {

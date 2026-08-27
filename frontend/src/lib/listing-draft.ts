@@ -1,4 +1,5 @@
 import { LOCAL_DB_KEYS, getLocalJson, removeLocalJson, setLocalJson } from '@/lib/local-db';
+import type { ItemDeliveryMode } from '@/types';
 
 export interface ListingDraft {
   medicineId: string;
@@ -13,6 +14,8 @@ export interface ListingDraft {
   moq: string;
   lowStockThreshold: string;
   imageUrl?: string;
+  deliveryMode: ItemDeliveryMode;
+  estimatedDeliveryDays: string;
   updatedAt: string;
 }
 

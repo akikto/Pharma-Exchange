@@ -20,7 +20,7 @@ import {
   saveListingDraft,
   type ListingDraft,
 } from '@/lib/listing-draft';
-import type { Listing, Medicine } from '@/types';
+import type { ItemDeliveryMode, Listing, Medicine } from '@/types';
 
 const EMPTY_FORM: Omit<ListingDraft, 'updatedAt'> = {
   medicineId: '',
@@ -35,6 +35,8 @@ const EMPTY_FORM: Omit<ListingDraft, 'updatedAt'> = {
   moq: '1',
   lowStockThreshold: '',
   imageUrl: '',
+  deliveryMode: 'SELLER_DELIVERS' as const,
+  estimatedDeliveryDays: '',
 };
 
 export function ListingFormPage() {
@@ -72,6 +74,9 @@ export function ListingFormPage() {
         moq: String(existing.moq),
         lowStockThreshold: existing.lowStockThreshold != null ? String(existing.lowStockThreshold) : '',
         imageUrl: existing.imageUrl ?? existing.medicine.imageUrl ?? '',
+        deliveryMode: existing.deliveryMode ?? 'SELLER_DELIVERS',
+        estimatedDeliveryDays:
+          existing.estimatedDeliveryDays != null ? String(existing.estimatedDeliveryDays) : '',
       });
       setMedicineQuery(existing.medicine.name);
       setSelectedMedicine(existing.medicine);
@@ -95,6 +100,8 @@ export function ListingFormPage() {
           moq: draft.moq,
           lowStockThreshold: draft.lowStockThreshold,
           imageUrl: draft.imageUrl ?? '',
+          deliveryMode: draft.deliveryMode ?? 'SELLER_DELIVERS',
+          estimatedDeliveryDays: draft.estimatedDeliveryDays ?? '',
         });
         setMedicineQuery(draft.medicineQuery);
       }
@@ -136,6 +143,10 @@ export function ListingFormPage() {
         availableQty: Number(form.availableQty),
         moq: Number(form.moq),
         ...(form.lowStockThreshold ? { lowStockThreshold: Number(form.lowStockThreshold) } : {}),
+        deliveryMode: form.deliveryMode,
+        ...(form.estimatedDeliveryDays
+          ? { estimatedDeliveryDays: Number(form.estimatedDeliveryDays) }
+          : {}),
         status: 'ACTIVE',
       };
       if (isEdit) return apiClient.patch(`/listings/${id}`, body);
@@ -243,6 +254,45 @@ export function ListingFormPage() {
         </div>
         <div><Label>MOQ</Label><Input type="number" value={form.moq} onChange={(e) => setForm({ ...form, moq: e.target.value })} required /></div>
         <div><Label>Low Stock Threshold (optional)</Label><Input type="number" value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })} placeholder="Default: max(MOQ×2, 20)" /></div>
+
+        <fieldset className="space-y-2 rounded-[var(--radius-md)] border border-border-subtle p-3">
+          <legend className="px-1 text-sm font-medium">{t('listing.deliveryMode')}</legend>
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              name="deliveryMode"
+              className="mt-1"
+              checked={form.deliveryMode === 'SELLER_DELIVERS'}
+              onChange={() => setForm((f) => ({ ...f, deliveryMode: 'SELLER_DELIVERS' as ItemDeliveryMode }))}
+              data-testid="listing-delivery-mode-seller-delivers"
+            />
+            <span>{t('listing.deliveryModeSellerDelivers')}</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              name="deliveryMode"
+              className="mt-1"
+              checked={form.deliveryMode === 'BUYER_PICKUP'}
+              onChange={() => setForm((f) => ({ ...f, deliveryMode: 'BUYER_PICKUP' as ItemDeliveryMode }))}
+              data-testid="listing-delivery-mode-buyer-pickup"
+            />
+            <span>{t('listing.deliveryModeBuyerPickup')}</span>
+          </label>
+        </fieldset>
+
+        <div>
+          <Label htmlFor="listing-estimated-delivery-days">{t('listing.estimatedDeliveryDays')}</Label>
+          <Input
+            id="listing-estimated-delivery-days"
+            type="number"
+            min={1}
+            value={form.estimatedDeliveryDays}
+            onChange={(e) => setForm({ ...form, estimatedDeliveryDays: e.target.value })}
+            placeholder={t('listing.estimatedDeliveryDaysHint')}
+            data-testid="listing-estimated-delivery-days"
+          />
+        </div>
 
         {atActiveCap && (
           <p className="text-sm text-warning" data-testid="listing-active-cap-warning">

@@ -8,15 +8,9 @@ import type { Listing } from '@/types';
 
 const mutate = vi.fn();
 const isAddingToCart = vi.fn(() => false);
-const watchlistMutate = vi.fn();
 
 vi.mock('@/hooks/use-api', () => ({
   useAddToCart: () => ({ mutate, isAddingToCart }),
-}));
-
-vi.mock('@/hooks/use-watchlist', () => ({
-  useToggleWatchlist: () => ({ mutate: watchlistMutate }),
-  useIsWatched: () => false,
 }));
 
 vi.mock('@/hooks/use-toast', () => ({
@@ -93,6 +87,7 @@ describe('HomeAiPickListingCard', () => {
     expect(screen.getByText(/Naproxen 500mg/i)).toBeInTheDocument();
     expect(screen.getByText('TABLET')).toBeInTheDocument();
     expect(screen.getByText('Toni Pharmacy')).toBeInTheDocument();
+    expect(screen.getByText(/12 km away/i)).toBeInTheDocument();
     expect(screen.getByTestId('ai-pick-discount-listing-ai-1')).toHaveTextContent('20% OFF');
     expect(screen.getByTestId('ai-pick-stock-listing-ai-1')).toHaveTextContent('9');
     expect(screen.getByText('UNITS')).toBeInTheDocument();
@@ -106,10 +101,12 @@ describe('HomeAiPickListingCard', () => {
     expect(expiry.textContent).toMatch(/Exp:/);
   });
 
-  it('shows verified indicator for approved pharmacies', () => {
+  it('shows verified indicator without authentic footer actions', () => {
     renderCard();
     expect(screen.getByLabelText(/Verified/i)).toBeInTheDocument();
-    expect(screen.getByText('Authentic')).toBeInTheDocument();
+    expect(screen.queryByText('Authentic')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ai-pick-watchlist-listing-ai-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ai-pick-call-listing-ai-1')).not.toBeInTheDocument();
   });
 
   it('hides discount badge when discount is zero', () => {
@@ -121,19 +118,6 @@ describe('HomeAiPickListingCard', () => {
     renderCard();
     fireEvent.click(screen.getByTestId('ai-pick-card-link-listing-ai-1'));
     expect(screen.getByTestId('medicine-detail-page')).toBeInTheDocument();
-  });
-
-  it('does not navigate when wishlist is clicked', () => {
-    renderCard();
-    fireEvent.click(screen.getByTestId('ai-pick-watchlist-listing-ai-1'));
-    expect(watchlistMutate).toHaveBeenCalledWith('med-1', expect.any(Object));
-    expect(screen.queryByTestId('medicine-detail-page')).not.toBeInTheDocument();
-  });
-
-  it('does not navigate when call is clicked', () => {
-    renderCard();
-    fireEvent.click(screen.getByTestId('ai-pick-call-listing-ai-1'));
-    expect(screen.queryByTestId('medicine-detail-page')).not.toBeInTheDocument();
   });
 
   it('does not navigate when add to cart is clicked', () => {
