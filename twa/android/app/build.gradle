@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keystorePropertiesFile = rootProject.file('../keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace 'com.pharmex.exchange'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.pharmex.exchange'
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+
+        resValue 'string', 'appName', 'Pharma Exchange'
+        resValue 'string', 'hostName', 'pharma-exchange-frontend.vercel.app'
+        resValue 'string', 'launchUrl', 'https://pharma-exchange-frontend.vercel.app/'
+        resValue 'string', 'providerAuthority', 'com.pharmex.exchange.fileprovider'
+        resValue 'string', 'fallbackType', 'customtabs'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
