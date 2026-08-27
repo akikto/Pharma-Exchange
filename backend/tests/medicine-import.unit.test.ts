@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { medicineIdentityKey, medicineImportService } from '../src/modules/medicine/medicine-import.service';
+import { readMedicineImportTemplateBuffer } from '../src/modules/medicine/medicine-import-template';
 
 describe('medicineIdentityKey', () => {
   it('normalizes case and whitespace for stable matching', () => {
@@ -27,5 +28,11 @@ describe('medicineImportService.buildTemplateWorkbook', () => {
     expect(Buffer.isBuffer(buffer)).toBe(true);
     expect(buffer.length).toBeGreaterThan(1000);
     expect(buffer.subarray(0, 2).toString('utf8')).toBe('PK');
+  });
+
+  it('matches the committed static template asset', () => {
+    const fromService = medicineImportService.buildTemplateWorkbook();
+    const fromAsset = readMedicineImportTemplateBuffer();
+    expect(fromService.equals(fromAsset)).toBe(true);
   });
 });
