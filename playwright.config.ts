@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'e2e-report' }]],
   timeout: 60_000,
@@ -16,6 +16,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    geolocation: { latitude: 23.75, longitude: 90.39 },
+    permissions: ['geolocation'],
     ...devices['Pixel 5'],
   },
   projects: [

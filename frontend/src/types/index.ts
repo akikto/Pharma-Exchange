@@ -53,6 +53,9 @@ export interface Medicine {
   imageUrl?: string;
   isActive?: boolean;
   scheduleClass?: string | null;
+  indications?: string | null;
+  dosageInstructions?: string | null;
+  sideEffects?: string | null;
 }
 
 export interface Pharmacy {
@@ -94,10 +97,14 @@ export interface Listing {
   lowStockThreshold?: number | null;
   status: string;
   imageUrl?: string;
+  deliveryMode?: ItemDeliveryMode;
+  estimatedDeliveryDays?: number | null;
   medicine: Medicine;
   pharmacy: Pharmacy;
   distanceKm?: number | null;
 }
+
+export type ItemDeliveryMode = 'BUYER_PICKUP' | 'SELLER_DELIVERS';
 
 export interface CartItem {
   id: string;

@@ -6,13 +6,12 @@ import { Minus, Plus, GitCompare, Heart, TrendingUp } from 'lucide-react';
 import { VerifiedBadge } from '@/components/pharmacy/verified-badge';
 import { TopBar } from '@/components/layout/top-bar';
 import { Button } from '@/components/ui/button';
-import { StatusChip } from '@/components/ui/status-chip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ListingCard } from '@/components/listing-card';
 import { ContactActions } from '@/components/offers/contact-actions';
 import { PriceTrendDialog } from '@/components/offers/price-trend-dialog';
 import { apiClient } from '@/lib/api';
-import { formatPrice, getExpiryStatus, getExpiryLabel, cn } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
 import { isLowStock } from '@/lib/offer-utils';
 import { useAddToCart } from '@/hooks/use-api';
 import { useNavBadges } from '@/hooks/use-nav-badges';
@@ -26,6 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import { isRenderableListing } from '@/lib/catalog-groups';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import { getListingPharmacyId } from '@/lib/listing-utils';
+import { useGeolocation } from '@/hooks/use-geolocation';
+import { ListingDetailInsights } from '@/components/listing/listing-detail-insights';
 
 import type { Listing } from '@/types';
 
@@ -40,6 +41,7 @@ export function MedicineDetailPage() {
   const { toast } = useToast();
   const toggleWatchlist = useToggleWatchlist();
   const [trendOpen, setTrendOpen] = useState(false);
+  const { coords } = useGeolocation();
 
   const { data: listing, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -52,7 +54,6 @@ export function MedicineDetailPage() {
   if (isLoading) return <div className="p-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-8 w-2/3 mt-4" /></div>;
   if (!listing) return <div className="p-4 text-center text-text-secondary">{t('listing.notFound')}</div>;
 
-  const expiryStatus = getExpiryStatus(listing.expiryDate);
   const lowStock = isLowStock(listing.availableQty, listing.moq);
   const verified = listing.pharmacy.verificationStatus === 'APPROVED';
 
@@ -134,7 +135,8 @@ export function MedicineDetailPage() {
 
         <p className="text-sm text-text-secondary">{t('listing.moq', { count: listing.moq })} · {t('listing.available', { count: listing.availableQty })}</p>
         {lowStock && <p className="text-sm text-warning font-medium">{t('offer.lowStock')}</p>}
-        <StatusChip label={t('listing.expiry', { label: getExpiryLabel(listing.expiryDate) })} variant={expiryStatus === 'safe' ? 'success' : expiryStatus} />
+
+        <ListingDetailInsights listing={listing} userCoords={coords} />
 
         <ContactActions listing={listing} medicineName={listing.medicine.name} size="md" />
 

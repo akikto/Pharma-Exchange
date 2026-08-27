@@ -1,4 +1,4 @@
-import { ListingStatus, VerificationStatus, Prisma } from '@prisma/client';
+import { ItemDeliveryMode, ListingStatus, VerificationStatus, Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { AppError } from '../../shared/errors/AppError';
 import { computeFinalPrice, parsePagination } from '../../shared/utils/helpers';
@@ -319,6 +319,9 @@ export class ListingService {
           moq: Number(sellerData.moq ?? 1),
           unit: (sellerData.unit as string) ?? 'strip',
           lowStockThreshold: sellerData.lowStockThreshold != null ? Number(sellerData.lowStockThreshold) : undefined,
+          deliveryMode: (sellerData.deliveryMode as ItemDeliveryMode | undefined) ?? ItemDeliveryMode.SELLER_DELIVERS,
+          estimatedDeliveryDays:
+            sellerData.estimatedDeliveryDays != null ? Number(sellerData.estimatedDeliveryDays) : undefined,
           status,
           ...sellerActivityTouchFields(),
         },

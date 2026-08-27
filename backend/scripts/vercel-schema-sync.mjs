@@ -39,6 +39,14 @@ function isP3005(output) {
   return output.includes('P3005') || output.includes('database schema is not empty');
 }
 
+function isRecoverableMigrateDrift(output) {
+  return (
+    output.includes('already exists')
+    || output.includes('duplicate_object')
+    || output.includes('42710')
+  );
+}
+
 function listMigrationNames() {
   const migrationsDir = join(process.cwd(), 'prisma', 'migrations');
   return readdirSync(migrationsDir, { withFileTypes: true })
@@ -96,6 +104,10 @@ if (!migrate.ok && isP3005(migrate.output)) {
 
 if (migrate.ok) {
   console.log('[vercel-schema-sync] Migrations applied successfully.');
+} else if (isRecoverableMigrateDrift(migrate.output)) {
+  console.warn(
+    '[vercel-schema-sync] Migrate deploy hit existing schema objects; continuing with prisma db push.',
+  );
 } else if (!isP3005(migrate.output)) {
   console.error('[vercel-schema-sync] prisma migrate deploy failed:\n', migrate.output);
   process.exit(1);

@@ -1,21 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Heart,
   Star,
   Store,
   MapPin,
   Truck,
   Clock,
-  Shield,
-  Phone,
   ShoppingCart,
   Tag,
   CircleCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatPhoneHref } from '@/lib/offer-utils';
 import { getListingCompositionText } from '@/lib/listing-utils';
 import { debugListingAction, warnInvalidListing } from '@/lib/listing-debug';
 import {
@@ -24,11 +20,9 @@ import {
   formatSellerLocation,
   getDaysUntilExpiry,
   resolveAiPickDistanceKm,
-  showsAiPickAuthenticBadge,
-  showsAiPickFastDeliveryBadge,
 } from '@/lib/ai-pick-card-utils';
+import { formatDistanceKmLabel } from '@/lib/listing-detail-display';
 import { useAddToCart } from '@/hooks/use-api';
-import { useToggleWatchlist, useIsWatched } from '@/hooks/use-watchlist';
 import { useToast } from '@/hooks/use-toast';
 import type { Listing } from '@/types';
 
@@ -36,10 +30,6 @@ export interface HomeAiPickListingCardProps {
   listing: Listing;
   userCoords?: { latitude: number; longitude: number } | null;
   className?: string;
-}
-
-function formatDistanceKmLabel(km: number): string {
-  return km >= 100 ? km.toFixed(0) : km >= 10 ? km.toFixed(0) : km.toFixed(1);
 }
 
 export function HomeAiPickListingCard({
@@ -50,8 +40,6 @@ export function HomeAiPickListingCard({
   const { t } = useTranslation();
   const { toast } = useToast();
   const addToCart = useAddToCart();
-  const toggleWatchlist = useToggleWatchlist();
-  const watched = useIsWatched(listing.medicine.id);
 
   const verified = listing.pharmacy.verificationStatus === 'APPROVED';
   const hasDiscount = listing.discountPercent > 0;
@@ -60,10 +48,6 @@ export function HomeAiPickListingCard({
   const distanceKm = resolveAiPickDistanceKm(listing, userCoords);
   const daysUntilExpiry = getDaysUntilExpiry(listing.expiryDate);
   const expiryDateLabel = formatAiPickExpiryDate(listing.expiryDate);
-  const showAuthentic = showsAiPickAuthenticBadge(listing);
-  const showFastDelivery = showsAiPickFastDeliveryBadge(distanceKm);
-  const phone = listing.pharmacy.user?.phone;
-  const phoneHref = formatPhoneHref(phone);
   const canAddToCart = listing.status === 'ACTIVE' && listing.availableQty >= listing.moq;
   const detailsPath = `/medicine/${listing.id}`;
 
@@ -85,18 +69,6 @@ export function HomeAiPickListingCard({
     );
   };
 
-  const handleWatchlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleWatchlist.mutate(listing.medicine.id, {
-      onSuccess: (r) => toast({ title: r.added ? t('search.addedWatchlist') : t('search.removedWatchlist') }),
-    });
-  };
-
-  const stopBubble = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
   return (
     <article
       className={cn(
@@ -106,32 +78,20 @@ export function HomeAiPickListingCard({
       data-testid={`ai-pick-listing-card-${listing.id}`}
       data-ai-pick-layout="horizontal"
     >
-      <div className="relative flex w-[70%] max-w-[70%] min-w-0 basis-[70%] flex-col border-r border-border-subtle">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="absolute right-1 top-1 z-10 h-8 w-8 text-text-disabled hover:text-danger"
-          aria-label={t('search.watchlist')}
-          data-testid={`ai-pick-watchlist-${listing.id}`}
-          onClick={handleWatchlist}
-        >
-          <Heart className={cn('h-4 w-4', watched && 'fill-primary text-primary')} />
-        </Button>
+      <Link
+        to={detailsPath}
+        className="flex w-[70%] max-w-[70%] min-w-0 basis-[70%] flex-col border-r border-border-subtle p-2.5 active:scale-[0.995] transition-transform"
+        data-testid={`ai-pick-card-link-${listing.id}`}
+      >
+        <div className="space-y-1 min-w-0">
+          <h3 className="text-sm font-bold leading-snug text-text-primary break-words">
+            {listing.medicine.name}
+          </h3>
 
-        <Link
-          to={detailsPath}
-          className="block min-w-0 flex-1 p-2.5 pr-9 pt-2 active:scale-[0.995] transition-transform"
-          data-testid={`ai-pick-card-link-${listing.id}`}
-        >
-          <div className="space-y-1 min-w-0">
-            <h3 className="pr-6 text-sm font-bold leading-tight text-text-primary line-clamp-1">
-              {listing.medicine.name}
-            </h3>
-
+          {(genericLine || listing.medicine.dosageForm) && (
             <div className="flex flex-wrap items-center gap-1.5">
               {genericLine ? (
-                <p className="text-[11px] text-text-secondary line-clamp-1">{genericLine}</p>
+                <p className="text-[11px] leading-snug text-text-secondary break-words">{genericLine}</p>
               ) : null}
               {listing.medicine.dosageForm ? (
                 <span className="inline-flex shrink-0 rounded-full bg-primary-subtle px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
@@ -139,86 +99,50 @@ export function HomeAiPickListingCard({
                 </span>
               ) : null}
             </div>
+          )}
 
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-              <span className="inline-flex items-center gap-0.5 font-semibold tabular-nums text-warning">
-                <Star className="h-3 w-3 fill-warning text-warning" aria-hidden />
-                {listing.pharmacy.rating}
-              </span>
-              <span className="inline-flex min-w-0 items-center gap-1 font-semibold text-text-primary">
-                <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-                <span className="truncate">{listing.pharmacy.name}</span>
-                {verified ? (
-                  <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
-                ) : null}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-text-secondary">
-              <span className="inline-flex min-w-0 items-center gap-0.5">
-                <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-                <span className="truncate">{formatSellerLocation(listing)}</span>
-              </span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+            <span className="inline-flex items-center gap-0.5 font-semibold tabular-nums text-warning">
+              <Star className="h-3 w-3 fill-warning text-warning" aria-hidden />
+              {listing.pharmacy.rating}
+            </span>
+            <span className="inline-flex min-w-0 flex-wrap items-center gap-1 font-semibold text-text-primary">
+              <Store className="h-3 w-3 shrink-0 text-primary" aria-hidden />
+              <span className="break-words">{listing.pharmacy.name}</span>
+              {verified ? (
+                <CircleCheck className="h-3.5 w-3.5 shrink-0 text-success" aria-label={t('home.verified')} />
+              ) : null}
               {distanceKm != null ? (
                 <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-medium text-primary">
                   <Truck className="h-3 w-3" aria-hidden />
                   {t('home.kmAway', { km: formatDistanceKmLabel(distanceKm) })}
                 </span>
               ) : null}
-            </div>
-
-            <div
-              className="rounded-[var(--radius-sm)] border border-dashed border-warning/70 bg-warning/10 px-2 py-1"
-              data-testid={`ai-pick-expiry-${listing.id}`}
-            >
-              <p className="flex items-center gap-1 text-[11px] font-semibold text-warning">
-                <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                {t('aiMatch.expiresInDays', { count: daysUntilExpiry })}
-              </p>
-              <p className="text-[10px] text-text-secondary">
-                {t('aiMatch.expiryDate', { date: expiryDateLabel })}
-              </p>
-            </div>
+            </span>
           </div>
-        </Link>
 
-        <div
-          className="mt-auto flex items-center justify-between gap-1 border-t border-border-subtle px-2.5 py-1.5"
-          data-testid={`ai-pick-footer-${listing.id}`}
-        >
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-text-secondary">
-            {showAuthentic ? (
-              <span className="inline-flex items-center gap-0.5 font-medium text-success">
-                <Shield className="h-3 w-3" aria-hidden />
-                {t('aiMatch.authentic')}
-              </span>
-            ) : null}
-            {showFastDelivery ? (
-              <span className="inline-flex items-center gap-0.5 text-text-secondary">
-                <Truck className="h-3 w-3" aria-hidden />
-                {t('aiMatch.fastDelivery')}
-              </span>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-1 text-[10px] text-text-secondary">
+            <MapPin className="h-3 w-3 shrink-0" aria-hidden />
+            <span className="break-words">{formatSellerLocation(listing)}</span>
           </div>
-          {phoneHref ? (
-            <Button
-              type="button"
-              size="sm"
-              className="h-7 shrink-0 gap-1 rounded-full bg-primary px-2.5 text-[10px] text-white hover:bg-primary-hover"
-              data-testid={`ai-pick-call-${listing.id}`}
-              asChild
-            >
-              <a href={phoneHref} onClick={stopBubble}>
-                <Phone className="h-3 w-3" aria-hidden />
-                {t('aiMatch.call')}
-              </a>
-            </Button>
-          ) : null}
+
+          <div
+            className="rounded-[var(--radius-sm)] border border-dashed border-warning/70 bg-warning/10 px-2 py-1"
+            data-testid={`ai-pick-expiry-${listing.id}`}
+          >
+            <p className="flex items-center gap-1 text-[11px] font-semibold text-warning">
+              <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {t('aiMatch.expiresInDays', { count: daysUntilExpiry })}
+            </p>
+            <p className="text-[10px] text-text-secondary break-words">
+              {t('aiMatch.expiryDate', { date: expiryDateLabel })}
+            </p>
+          </div>
         </div>
-      </div>
+      </Link>
 
       <aside
-        className="flex w-[30%] max-w-[30%] min-w-[5.5rem] shrink-0 basis-[30%] flex-col items-center justify-between bg-primary px-1.5 py-2 text-center text-white"
+        className="flex w-[30%] max-w-[30%] min-w-[5.5rem] shrink-0 basis-[30%] flex-col items-center justify-between bg-primary px-1.5 py-1.5 text-center text-white"
         style={{
           backgroundImage:
             'radial-gradient(circle at 1px 1px, color-mix(in srgb, white 12%, transparent) 1px, transparent 0)',
@@ -227,25 +151,25 @@ export function HomeAiPickListingCard({
       >
         {hasDiscount ? (
           <div
-            className="flex w-full items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border border-dashed border-white/60 bg-warning px-1 py-1 text-[10px] font-bold leading-none text-white"
+            className="flex w-full items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border border-dashed border-white/60 bg-warning px-1 py-0.5 text-[10px] font-bold leading-none text-white"
             data-testid={`ai-pick-discount-${listing.id}`}
           >
             <Tag className="h-3 w-3 shrink-0" aria-hidden />
             {t('aiMatch.discountOff', { percent: listing.discountPercent })}
           </div>
         ) : (
-          <div className="h-6 w-full" aria-hidden />
+          <div className="h-4 w-full" aria-hidden />
         )}
 
-        <div className="flex flex-1 flex-col items-center justify-center gap-0.5 py-0.5">
+        <div className="flex flex-col items-center justify-center gap-0.5 py-0.5">
           <p className="text-[9px] font-medium uppercase tracking-wider text-white/80">
             {t('aiMatch.stockLeft')}
           </p>
           <div
-            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-accent bg-primary-hover/90"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent bg-primary-hover/90"
             data-testid={`ai-pick-stock-${listing.id}`}
           >
-            <span className="text-lg font-bold tabular-nums text-accent">{listing.availableQty}</span>
+            <span className="text-base font-bold tabular-nums text-accent">{listing.availableQty}</span>
           </div>
           <p className="text-[9px] font-medium uppercase tracking-wider text-white/80">{t('aiMatch.units')}</p>
         </div>
@@ -254,7 +178,7 @@ export function HomeAiPickListingCard({
           type="button"
           variant="secondary"
           size="sm"
-          className="h-8 w-full gap-1 border-0 bg-white text-[11px] font-bold text-primary hover:bg-surface-raised"
+          className="h-7 w-full gap-1 border-0 bg-white text-[10px] font-bold text-primary hover:bg-surface-raised"
           onClick={handleAddToCart}
           loading={addToCart.isAddingToCart(listing?.id)}
           disabled={!canAddToCart || addToCart.isAddingToCart(listing?.id)}
