@@ -33,6 +33,7 @@ import {
   type BannerFormValues,
   type BannerMediaType,
 } from '@/lib/banner-form';
+import { BannerTargetingFields } from '@/components/banner/banner-targeting-fields';
 
 type BannerFormDialogProps = {
   open: boolean;
@@ -406,6 +407,8 @@ export function BannerFormDialog({
           ) : null}
 
           {errors.actionTarget ? <p className="text-xs text-danger">{errors.actionTarget}</p> : null}
+
+          <BannerTargetingFields form={form} errors={errors} t={t} onChange={updateField} />
 
           <div className="flex items-center gap-2">
             <input

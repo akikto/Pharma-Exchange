@@ -18,7 +18,7 @@ router.post(
 router.post(
   '/banner-media',
   authenticate,
-  requireAdmin,
+  requireAdminOrVerifiedPharmacy,
   bannerMediaUpload.single('file'),
   uploadController.uploadBannerMedia.bind(uploadController),
 );

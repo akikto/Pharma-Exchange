@@ -147,6 +147,29 @@ enum BannerActionType {
   LISTING
 }
 
+enum BannerType {
+  ADMIN
+  SELLER_AD
+}
+
+enum BannerStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  ACTIVE
+  PAUSED
+  EXPIRED
+}
+
+enum BannerTargetType {
+  WORLDWIDE
+  COUNTRY
+  REGION
+  CITY
+  RADIUS
+}
+
 enum BulkRequestUrgency {
   LOW
   NORMAL
@@ -211,6 +234,7 @@ model User {
   reportsReviewed   Report[]           @relation("ReportsReviewed")
   payments          Payment[]
   passwordResetTokens PasswordResetToken[]
+  approvedBanners   HomeBanner[]       @relation("BannerApprovedBy")
 
   @@index([email])
   @@index([phone])
@@ -288,6 +312,7 @@ model Pharmacy {
   bulkRequests        BulkRequest[]
   ordersAsSeller      Order[]      @relation("SellerOrders")
   reviewsReceived     Review[]     @relation("ReviewsReceived")
+  homeBanners         HomeBanner[]
 
   @@index([city])
   @@index([verificationStatus])
@@ -767,19 +792,41 @@ model Report {
 // ─── Home promotional banners ────────────────────────────────────────────────
 
 model HomeBanner {
-  id           String           @id @default(uuid())
-  title        String
-  subtitle     String?
-  mediaUrl     String
-  mediaType    BannerMediaType
-  mediaAlt     String?
-  ctaText      String?
-  actionType   BannerActionType @default(NONE)
-  actionTarget String?
-  isActive     Boolean          @default(true)
-  sortOrder    Int              @default(0)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id                   String           @id @default(uuid())
+  title                String
+  subtitle             String?
+  mediaUrl             String
+  mediaType            BannerMediaType
+  mediaAlt             String?
+  ctaText              String?
+  actionType           BannerActionType @default(NONE)
+  actionTarget         String?
+  isActive             Boolean          @default(true)
+  sortOrder            Int              @default(0)
+  bannerType           BannerType       @default(ADMIN)
+  advertiserPharmacyId String?
+  status               BannerStatus     @default(ACTIVE)
+  targetType           BannerTargetType @default(WORLDWIDE)
+  targetCountry        String?
+  targetState          String?
+  targetCity           String?
+  targetLatitude       Float?
+  targetLongitude      Float?
+  radiusKm             Float?
+  startsAt             DateTime?
+  endsAt               DateTime?
+  priority             Int              @default(0)
+  rejectionReason      String?
+  approvedById         String?
+  approvedAt           DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  advertiserPharmacy Pharmacy? @relation(fields: [advertiserPharmacyId], references: [id], onDelete: SetNull)
+  approvedBy         User?     @relation("BannerApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   @@index([isActive, sortOrder])
+  @@index([status, bannerType])
+  @@index([targetType])
+  @@index([advertiserPharmacyId])
 }
