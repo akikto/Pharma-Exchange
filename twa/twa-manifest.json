@@ -1,0 +1,41 @@
+{
+  "packageId": "com.pharmex.exchange",
+  "host": "pharma-exchange-frontend.vercel.app",
+  "name": "Pharma Exchange",
+  "launcherName": "Pharma Exchange",
+  "display": "standalone",
+  "themeColor": "#0F4C6E",
+  "navigationColor": "#0F4C6E",
+  "navigationColorDark": "#0F4C6E",
+  "navigationDividerColor": "#0F4C6E",
+  "navigationDividerColorDark": "#0F4C6E",
+  "backgroundColor": "#0F4C6E",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://pharma-exchange-frontend.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://pharma-exchange-frontend.vercel.app/icons/icon-maskable-512.png",
+  "monochromeIconUrl": "https://pharma-exchange-frontend.vercel.app/icons/icon-192.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./release.keystore",
+    "alias": "pharmex-release"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://pharma-exchange-frontend.vercel.app/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 21,
+  "targetSdkVersion": 35,
+  "compileSdkVersion": 35,
+  "orientation": "portrait",
+  "fingerprints": []
+}
