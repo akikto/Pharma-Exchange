@@ -132,7 +132,7 @@ export function HomePage() {
     <div {...handlers} className="min-w-0 max-w-full">
       <HomeAppBar />
 
-      <div className={cn('box-border w-full max-w-full pb-3 pt-2', HOME_GUTTER_CLASS)} data-testid="home-page-feed">
+      <div className={cn('box-border w-full max-w-full min-w-0 overflow-x-hidden pb-3 pt-2', HOME_GUTTER_CLASS)} data-testid="home-page-feed">
         <HomeHeroStack />
 
         <div className={cn('mt-2.5 flex flex-col gap-3')}>
@@ -263,13 +263,16 @@ export function HomePage() {
         ) : (
           <>
             {featured.length > 0 && (
-              <section>
+              <section className="min-w-0 max-w-full">
                 <HomeSectionHeader
                   title={t('home.featuredDeals')}
                   subtitle={t('home.featuredDealsSub')}
                   icon={Sparkles}
                 />
-                <div className="flex gap-2.5 overflow-x-auto pb-2 overscroll-x-contain">
+                <div
+                  className="flex gap-2.5 overflow-x-auto pb-2 overscroll-x-contain scroll-smooth"
+                  data-testid="home-featured-deals-rail"
+                >
                   {featured.map((l) => (
                     <ListingCard
                       key={l.id}
@@ -286,7 +289,7 @@ export function HomePage() {
             )}
 
             {shortExpiry.length > 0 && (
-              <section>
+              <section className="min-w-0 max-w-full">
                 <HomeSectionHeader
                   title={t('home.shortExpiry')}
                   subtitle={t('home.shortExpirySub')}

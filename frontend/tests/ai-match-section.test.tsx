@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -6,10 +6,11 @@ import i18n from '@/i18n';
 import { AiMatchSection } from '@/components/home/ai-match-section';
 import type { Listing } from '@/types';
 
-const aiPickListing = vi.hoisted(
+const makeAiPickListing = vi.hoisted(
   () =>
-    ({
-      id: 'listing-ai-1',
+    (id: string, lat?: number, lng?: number, distanceKm?: number): Listing =>
+      ({
+      id,
       batchNumber: 'B1',
       mfgDate: '2025-01-01',
       expiryDate: '2026-10-15T00:00:00Z',
@@ -20,7 +21,7 @@ const aiPickListing = vi.hoisted(
       moq: 1,
       unit: 'strip',
   status: 'ACTIVE',
-  distanceKm: 12,
+  distanceKm,
   medicine: {
         id: 'med-1',
         name: 'Xone',
@@ -32,17 +33,43 @@ const aiPickListing = vi.hoisted(
         genericName: 'Ceftriaxone',
       },
       pharmacy: {
-        id: 'pharm-1',
+        id: `pharm-${id}`,
         name: 'My medical',
         city: 'Saktipur',
         rating: 4.8,
         verificationStatus: 'APPROVED',
+        ...(lat != null && lng != null ? { latitude: lat, longitude: lng } : {}),
       },
     }) as Listing,
 );
 
+const aiPickListing = makeAiPickListing('listing-ai-1', undefined, undefined, 12);
+
+const mockUseGeolocation = vi.hoisted(() =>
+  vi.fn(() => ({ coords: null as { latitude: number; longitude: number } | null, error: null, requestLocation: vi.fn() })),
+);
+
+const mockUseAiMatches = vi.hoisted(() =>
+  vi.fn(() => ({
+    data: {
+      source: 'rules',
+      data: [
+        {
+          id: 'match-1',
+          score: 0.8,
+          summary: '25% discount · Healthy expiry window',
+          listing: aiPickListing,
+        },
+      ],
+    },
+    isLoading: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  })),
+);
+
 vi.mock('@/hooks/use-geolocation', () => ({
-  useGeolocation: () => ({ coords: null, error: null, requestLocation: vi.fn() }),
+  useGeolocation: () => mockUseGeolocation(),
 }));
 
 vi.mock('@/hooks/use-api', () => ({
@@ -59,25 +86,35 @@ vi.mock('@/hooks/use-toast', () => ({
 }));
 
 vi.mock('@/hooks/use-ai-matches', () => ({
-  useAiMatches: () => ({
-    data: {
-      source: 'rules',
-      data: [
-        {
-          id: 'match-1',
-          score: 0.8,
-          summary: '25% discount · Healthy expiry window',
-          listing: aiPickListing,
-        },
-      ],
-    },
-    isLoading: false,
-    isFetching: false,
-    refetch: vi.fn(),
-  }),
+  useAiMatches: () => mockUseAiMatches(),
 }));
 
 describe('AiMatchSection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseGeolocation.mockReturnValue({
+      coords: null,
+      error: null,
+      requestLocation: vi.fn(),
+    });
+    mockUseAiMatches.mockReturnValue({
+      data: {
+        source: 'rules',
+        data: [
+          {
+            id: 'match-1',
+            score: 0.8,
+            summary: '25% discount · Healthy expiry window',
+            listing: aiPickListing,
+          },
+        ],
+      },
+      isLoading: false,
+      isFetching: false,
+      refetch: vi.fn(),
+    });
+  });
+
   it('renders horizontal AI pick cards without listing image blocks', () => {
     render(
       <I18nextProvider i18n={i18n}>
@@ -97,5 +134,41 @@ describe('AiMatchSection', () => {
     expect(screen.queryByText('80%')).not.toBeInTheDocument();
     expect(card.querySelector('img')).toBeNull();
     expect(card.querySelector('.aspect-square')).toBeNull();
+  });
+
+  it('orders AI picks nearest-first when user location is available', () => {
+    mockUseGeolocation.mockReturnValue({
+      coords: { latitude: 23.8, longitude: 90.4 },
+      error: null,
+      requestLocation: vi.fn(),
+    });
+    mockUseAiMatches.mockReturnValue({
+      data: {
+        source: 'rules',
+        data: [
+          { id: 'match-far', score: 0.9, summary: '', listing: makeAiPickListing('listing-far', 24.5, 91.0) },
+          { id: 'match-near', score: 0.7, summary: '', listing: makeAiPickListing('listing-near', 23.81, 90.41) },
+          { id: 'match-mid', score: 0.8, summary: '', listing: makeAiPickListing('listing-mid', 24.0, 90.6) },
+        ],
+      },
+      isLoading: false,
+      isFetching: false,
+      refetch: vi.fn(),
+    });
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <MemoryRouter>
+          <AiMatchSection />
+        </MemoryRouter>
+      </I18nextProvider>,
+    );
+
+    const cards = screen.getAllByTestId(/^ai-pick-listing-card-/);
+    expect(cards.map((card) => card.getAttribute('data-testid'))).toEqual([
+      'ai-pick-listing-card-listing-near',
+      'ai-pick-listing-card-listing-mid',
+      'ai-pick-listing-card-listing-far',
+    ]);
   });
 });
