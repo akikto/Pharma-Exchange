@@ -31,14 +31,15 @@ describe('POST /api/v1/upload/medicine-image', () => {
     sellerToken = signAccessToken({ userId: seller.id, role: seller.role });
   });
 
-  it('rejects verified pharmacy sellers', async ({ skip }) => {
+  it('allows verified pharmacy sellers', async ({ skip }) => {
     if (!dbAvailable || !sellerToken) skip();
 
     const res = await request(app)
       .post('/api/v1/upload/medicine-image')
       .set('Authorization', `Bearer ${sellerToken}`);
 
-    expect(res.status).toBe(403);
+    expect(res.status).not.toBe(403);
+    expect([400, 201, 500]).toContain(res.status);
   });
 
   it('allows admin past auth middleware', async ({ skip }) => {

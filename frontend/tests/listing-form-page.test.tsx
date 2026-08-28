@@ -11,6 +11,7 @@ import { MEDICINE_SELECTION_MESSAGE } from '@/lib/api-errors';
 const post = vi.fn();
 const get = vi.fn();
 const navigate = vi.fn();
+const createSellerMedicine = vi.fn();
 
 vi.mock('@/components/layout/top-bar', () => ({
   TopBar: ({ title }: { title: string }) => <div>{title}</div>,
@@ -30,6 +31,13 @@ vi.mock('@/lib/api', async (importOriginal) => {
     },
   };
 });
+
+vi.mock('@/hooks/use-seller-medicines', () => ({
+  useCreateSellerMedicine: () => ({
+    mutateAsync: createSellerMedicine,
+    isPending: false,
+  }),
+}));
 
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
@@ -77,8 +85,32 @@ vi.mock('@/components/medicine/medicine-name-autocomplete', () => ({
   ),
 }));
 
-vi.mock('@/components/medicine/medicine-image-upload', () => ({
-  MedicineImageUpload: () => <div data-testid="listing-image-upload" />,
+vi.mock('@/components/medicine/medicine-form-fields', () => ({
+  MedicineFormFields: ({
+    onFieldChange,
+  }: {
+    onFieldChange: (key: string, value: string) => void;
+  }) => (
+    <div data-testid="listing-create-medicine-form-fields">
+      <input
+        data-testid="seller-medicine-name"
+        onChange={(event) => onFieldChange('name', event.target.value)}
+      />
+      <button
+        type="button"
+        data-testid="seller-medicine-fill-required"
+        onClick={() => {
+          onFieldChange('name', 'New Catalog Med');
+          onFieldChange('company', 'Square');
+          onFieldChange('dosageForm', 'TABLET');
+          onFieldChange('packSize', '10x10');
+          onFieldChange('category', 'Analgesic');
+        }}
+      >
+        Fill medicine fields
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/lib/listing-draft', () => ({
@@ -102,11 +134,10 @@ function renderPage() {
   );
 }
 
-function fillRequiredFields() {
+function fillListingFields() {
   const dateInputs = document.querySelectorAll('input[type="date"]');
   const numberInputs = document.querySelectorAll('input[type="number"]');
 
-  fireEvent.change(screen.getByTestId('medicine-search-input'), { target: { value: 'Ace' } });
   fireEvent.change(screen.getByLabelText('Batch Number'), { target: { value: 'Fr12' } });
   fireEvent.change(dateInputs[0], { target: { value: '2025-01-01' } });
   fireEvent.change(dateInputs[1], { target: { value: '2027-12-31' } });
@@ -122,6 +153,7 @@ describe('ListingFormPage', () => {
     post.mockReset();
     get.mockReset();
     navigate.mockReset();
+    createSellerMedicine.mockReset();
     get.mockImplementation((path: string) => {
       if (typeof path === 'string' && path.startsWith('/medicines')) {
         return Promise.resolve({ data: [] });
@@ -130,10 +162,10 @@ describe('ListingFormPage', () => {
     });
   });
 
-  it('keeps Create Listing enabled when no medicine is selected', () => {
+  it('disables Create Listing until a medicine is selected', () => {
     renderPage();
-    expect(screen.getByTestId('listing-delivery-mode-seller-delivers')).toBeChecked();
-    expect(screen.getByRole('button', { name: /create listing/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /create listing/i })).toBeDisabled();
+    expect(screen.queryByTestId('listing-details-section')).not.toBeInTheDocument();
   });
 
   it('blocks submit when search text is entered without selecting a result', async () => {
@@ -151,47 +183,32 @@ describe('ListingFormPage', () => {
     });
 
     renderPage();
-    fillRequiredFields();
+    fireEvent.change(screen.getByTestId('medicine-search-input'), { target: { value: 'Ace' } });
 
     await waitFor(() => {
       expect(screen.getByTestId('medicine-search-results')).toBeInTheDocument();
     });
 
-    const submit = screen.getByRole('button', { name: /create listing/i });
-    expect(submit).toBeEnabled();
-    fireEvent.click(submit);
+    fireEvent.click(screen.getByRole('button', { name: /create listing/i }));
 
     await waitFor(() => {
       expect(post).not.toHaveBeenCalled();
       expect(screen.getByTestId('listing-form-error')).toHaveTextContent(MEDICINE_SELECTION_MESSAGE);
-      expect(screen.getByTestId('medicine-search-results')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /ace plus/i })).toBeInTheDocument();
     });
   });
 
   it('submits with a selected medicine and omits empty lowStockThreshold', async () => {
-    get.mockImplementation((path: string) => {
-      if (typeof path === 'string' && path.startsWith('/medicines')) {
-        return Promise.resolve({
-          data: [{
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'Ace Plus',
-            company: 'Square',
-          }],
-        });
-      }
-      return Promise.resolve([]);
-    });
     post.mockResolvedValue({ id: 'listing-1' });
 
     renderPage();
-    fillRequiredFields();
+    fireEvent.change(screen.getByTestId('medicine-search-input'), { target: { value: 'Ace' } });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /ace plus/i })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /ace plus/i }));
+    fillListingFields();
     fireEvent.click(screen.getByRole('button', { name: /create listing/i }));
 
     await waitFor(() => {
@@ -206,19 +223,41 @@ describe('ListingFormPage', () => {
     expect(body.deliveryMode).toBe('SELLER_DELIVERS');
   });
 
-  it('shows friendly medicine message for backend validation errors', async () => {
-    get.mockImplementation((path: string) => {
-      if (typeof path === 'string' && path.startsWith('/medicines')) {
-        return Promise.resolve({
-          data: [{
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'Ace Plus',
-            company: 'Square',
-          }],
-        });
-      }
-      return Promise.resolve([]);
+  it('lets sellers create a new medicine and then create a listing', async () => {
+    createSellerMedicine.mockResolvedValue({
+      id: '660e8400-e29b-41d4-a716-446655440001',
+      name: 'New Catalog Med',
+      company: 'Square',
+      dosageForm: 'TABLET',
+      packSize: '10x10',
+      category: 'Analgesic',
     });
+    post.mockResolvedValue({ id: 'listing-2' });
+
+    renderPage();
+    fireEvent.click(screen.getByTestId('listing-create-medicine-button'));
+    expect(screen.getByTestId('listing-create-medicine-form')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('seller-medicine-fill-required'));
+    fireEvent.click(screen.getByTestId('listing-save-medicine-button'));
+
+    await waitFor(() => {
+      expect(createSellerMedicine).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('listing-details-section')).toBeInTheDocument();
+    });
+
+    fillListingFields();
+    fireEvent.click(screen.getByRole('button', { name: /create listing/i }));
+
+    await waitFor(() => {
+      expect(post).toHaveBeenCalledTimes(1);
+    });
+
+    expect(post.mock.calls[0][1].medicineId).toBe('660e8400-e29b-41d4-a716-446655440001');
+    expect(createSellerMedicine).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows friendly medicine message for backend validation errors', async () => {
     post.mockRejectedValue(
       new ApiError(400, 'Validation failed', 'VALIDATION_ERROR', [
         { path: 'medicineId', message: 'Medicine selection is required.' },
@@ -226,12 +265,13 @@ describe('ListingFormPage', () => {
     );
 
     renderPage();
-    fillRequiredFields();
+    fireEvent.change(screen.getByTestId('medicine-search-input'), { target: { value: 'Ace' } });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /ace plus/i })).toBeInTheDocument();
     });
     fireEvent.click(screen.getByRole('button', { name: /ace plus/i }));
+    fillListingFields();
     fireEvent.click(screen.getByRole('button', { name: /create listing/i }));
 
     await waitFor(() => {
