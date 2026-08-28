@@ -4,6 +4,7 @@ import {
   getDaysUntilExpiry,
   showsAiPickAuthenticBadge,
   showsAiPickFastDeliveryBadge,
+  sortAiPickMatchesByDistance,
 } from '@/lib/ai-pick-card-utils';
 import type { Listing } from '@/types';
 
@@ -61,5 +62,39 @@ describe('ai-pick-card-utils', () => {
     expect(showsAiPickFastDeliveryBadge(12)).toBe(true);
     expect(showsAiPickFastDeliveryBadge(30)).toBe(true);
     expect(showsAiPickFastDeliveryBadge(null)).toBe(false);
+  });
+
+  it('sorts AI picks by nearest distance with AI score as tie-breaker', () => {
+    const userCoords = { latitude: 23.8, longitude: 90.4 };
+    const makeListing = (id: string, lat: number, lng: number, distanceKm?: number): Listing => ({
+      ...baseListing,
+      id,
+      distanceKm,
+      pharmacy: {
+        ...baseListing.pharmacy,
+        latitude: lat,
+        longitude: lng,
+      },
+    });
+
+    const matches = [
+      { id: 'far', score: 0.9, listing: makeListing('far', 24.5, 91.0) },
+      { id: 'near', score: 0.7, listing: makeListing('near', 23.81, 90.41) },
+      { id: 'mid', score: 0.8, listing: makeListing('mid', 24.0, 90.6) },
+      { id: 'unknown', score: 0.95, listing: { ...baseListing, id: 'unknown', pharmacy: { ...baseListing.pharmacy, latitude: undefined, longitude: undefined } } },
+    ];
+
+    const sorted = sortAiPickMatchesByDistance(matches, userCoords);
+    expect(sorted.map((match) => match.id)).toEqual(['near', 'mid', 'far', 'unknown']);
+  });
+
+  it('preserves AI order when no location is available', () => {
+    const matches = [
+      { id: 'a', score: 0.5, listing: baseListing },
+      { id: 'b', score: 0.9, listing: { ...baseListing, id: 'listing-2' } },
+    ];
+
+    const sorted = sortAiPickMatchesByDistance(matches, null);
+    expect(sorted.map((match) => match.id)).toEqual(['a', 'b']);
   });
 });

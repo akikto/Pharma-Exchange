@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { HomeAiPickListingCard } from '@/components/home/home-ai-pick-listing-ca
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { useAiMatches } from '@/hooks/use-ai-matches';
 import { isRenderableListing } from '@/lib/catalog-groups';
+import { sortAiPickMatchesByDistance } from '@/lib/ai-pick-card-utils';
 import { cn } from '@/lib/utils';
 
 interface AiMatchSectionProps {
@@ -21,12 +22,15 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
     requestLocation();
   }, [requestLocation]);
 
-  const matches = data?.data.filter((m) => isRenderableListing(m.listing)) ?? [];
+  const matches = useMemo(() => {
+    const renderable = data?.data.filter((m) => isRenderableListing(m.listing)) ?? [];
+    return sortAiPickMatchesByDistance(renderable, coords);
+  }, [coords, data?.data]);
 
   if (!isLoading && matches.length === 0) return null;
 
   return (
-    <section data-testid="ai-match-section" className="space-y-3">
+    <section data-testid="ai-match-section" className="min-w-0 max-w-full space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="font-semibold flex items-center gap-2 text-text-primary">
@@ -63,7 +67,7 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2" data-testid="ai-match-card-list">
           {matches.map((match) => {
             const listing = match.listing;
             if (!listing) return null;
