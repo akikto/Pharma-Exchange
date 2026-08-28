@@ -1020,6 +1020,8 @@
       "orderLabel": "Order {{order}}",
       "actionSummary": "{{type}} → {{target}}",
       "targetAudience": "Target audience",
+      "targetingSectionTitle": "Advertisement targeting (optional)",
+      "targetingSectionDescription": "Control who sees this banner by location, schedule, and priority. Leave Worldwide for the classic home-page behavior.",
       "targetRadiusSummary": "{{city}} · {{radius}} km radius",
       "filterAll": "All",
       "filterPending": "Pending approval",

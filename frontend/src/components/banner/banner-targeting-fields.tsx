@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RADIUS_PRESETS_KM, type BannerFormErrors, type BannerFormValues } from '@/lib/banner-form';
+import { cn } from '@/lib/utils';
 
 type BannerTargetingFieldsProps = {
   form: BannerFormValues;
@@ -9,6 +10,8 @@ type BannerTargetingFieldsProps = {
   t: TFunction;
   onChange: <K extends keyof BannerFormValues>(key: K, value: BannerFormValues[K]) => void;
   showBannerType?: boolean;
+  /** When true, omit outer card styling (parent section provides the box). */
+  embedded?: boolean;
 };
 
 export function BannerTargetingFields({
@@ -17,10 +20,18 @@ export function BannerTargetingFields({
   t,
   onChange,
   showBannerType = true,
+  embedded = false,
 }: BannerTargetingFieldsProps) {
   return (
-    <div className="space-y-4 rounded-[var(--radius-md)] border border-border-subtle p-3">
-      <p className="text-sm font-medium text-text-primary">{t('admin.banners.targetAudience')}</p>
+    <div
+      className={cn(
+        'space-y-4',
+        !embedded && 'rounded-[var(--radius-md)] border border-border-subtle bg-surface-sunken/40 p-3',
+      )}
+    >
+      {!embedded ? (
+        <p className="text-sm font-medium text-text-primary">{t('admin.banners.targetAudience')}</p>
+      ) : null}
 
       {showBannerType ? (
         <div>

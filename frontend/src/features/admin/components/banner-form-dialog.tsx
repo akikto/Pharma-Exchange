@@ -408,8 +408,6 @@ export function BannerFormDialog({
 
           {errors.actionTarget ? <p className="text-xs text-danger">{errors.actionTarget}</p> : null}
 
-          <BannerTargetingFields form={form} errors={errors} t={t} onChange={updateField} />
-
           <div className="flex items-center gap-2">
             <input
               id="banner-active"
@@ -430,6 +428,17 @@ export function BannerFormDialog({
               onChange={(e) => updateField('sortOrder', e.target.value)}
             />
           </div>
+
+          <section
+            className="space-y-3 rounded-[var(--radius-md)] border-2 border-dashed border-primary/25 bg-surface-sunken/60 p-4"
+            data-testid="banner-targeting-section"
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-text-primary">{t('admin.banners.targetingSectionTitle')}</h3>
+              <p className="text-xs text-text-secondary mt-1">{t('admin.banners.targetingSectionDescription')}</p>
+            </div>
+            <BannerTargetingFields form={form} errors={errors} t={t} onChange={updateField} embedded />
+          </section>
 
           {submitError ? <p className="text-sm text-danger">{submitError}</p> : null}
         </div>
