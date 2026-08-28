@@ -18,11 +18,9 @@ import { useMedicineSuggestions } from '@/hooks/use-medicine-suggestions';
 import {
   EMPTY_MEDICINE_FORM,
   hasMedicineFormErrors,
-  medicineToForm,
   validateMedicineForm,
   type MedicineFormErrors,
   type MedicineFormValues,
-  type MedicineRecord,
 } from '@/lib/medicine-form';
 import { applyMedicineAutofill } from '@/lib/medicine-autofill';
 import {

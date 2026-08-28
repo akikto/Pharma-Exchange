@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label';
 import { MedicineImageUpload } from '@/components/medicine/medicine-image-upload';
 import { MedicineNameAutocomplete } from '@/components/medicine/medicine-name-autocomplete';
 import { MEDICINE_DOSAGE_FORMS } from '@/lib/medicine-constants';
-import type { MedicineAutofillField } from '@/lib/medicine-autofill';
 import type { MedicineFormErrors, MedicineFormValues, MedicineRecord } from '@/lib/medicine-form';
 
 type MedicineFormFieldsProps = {
@@ -173,5 +172,3 @@ function Field({
     </div>
   );
 }
-
-export type { MedicineAutofillField };
