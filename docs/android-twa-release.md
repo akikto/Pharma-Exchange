@@ -265,9 +265,10 @@ twa/
     app/
       build.gradle
       src/main/AndroidManifest.xml
-      src/main/java/com/pharmex/exchange/LauncherActivity.java
       src/main/res/...
 ```
+
+The manifest references `com.google.androidbrowserhelper.trusted.LauncherActivity` directly (no custom Java entry class required for the default TWA shell).
 
 Launcher icons for release: copied from `frontend/public/icons/` by `prepare-android-resources.sh` (not committed under `mipmap-*` — gitignored).
 
