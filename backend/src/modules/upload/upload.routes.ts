@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin } from '../../shared/middleware/auth.middleware';
+import { requireAdminOrVerifiedPharmacy } from '../../shared/middleware/upload-auth.middleware';
 import { upload, medicineImageUpload, bannerMediaUpload } from './upload.middleware';
 import { uploadController } from './upload.controller';
 
@@ -10,7 +11,7 @@ router.post('/image', authenticate, upload.single('file'), uploadController.uplo
 router.post(
   '/medicine-image',
   authenticate,
-  requireAdmin,
+  requireAdminOrVerifiedPharmacy,
   medicineImageUpload.single('file'),
   uploadController.uploadMedicineImage.bind(uploadController),
 );
