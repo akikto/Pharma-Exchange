@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Package, Inbox, TrendingUp, AlertTriangle, LogIn, ShieldCheck, Boxes } from 'lucide-react';
+import { Plus, Package, Inbox, TrendingUp, AlertTriangle, LogIn, ShieldCheck, Boxes, Megaphone } from 'lucide-react';
 import { TopBar } from '@/components/layout/top-bar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -128,6 +128,7 @@ export function SellerDashboardPage() {
             </Button>
           </Link>
           <Link to="/seller/analytics"><Button variant="secondary" className="w-full"><TrendingUp className="h-4 w-4" /> {t('seller.analytics')}</Button></Link>
+          <Link to="/seller/advertisements"><Button variant="secondary" className="w-full"><Megaphone className="h-4 w-4" /> {t('sellerAds.title')}</Button></Link>
           <Button variant="tertiary" className="col-span-2" onClick={() => openModal('bulk')}>{t('modal.bulkTitle')}</Button>
         </div>
       </div>

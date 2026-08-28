@@ -7,6 +7,7 @@ import { BannerMedia } from '@/components/banner/banner-media';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useHomeBanners } from '@/hooks/use-banners';
+import { useGeolocation } from '@/hooks/use-geolocation';
 import { openBannerDestination, resolveBannerDestination } from '@/lib/banner-navigation';
 import type { HomeBanner } from '@/lib/banner-form';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ function BannerSlide({
   banner: HomeBanner;
   isActive: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const destination = resolveBannerDestination(banner.actionType, banner.actionTarget);
   const alt = banner.mediaAlt?.trim() || banner.title;
@@ -42,6 +44,11 @@ function BannerSlide({
         priority={isActive}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
+      {banner.isSponsored ? (
+        <span className="absolute top-3 left-3 z-10 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white pointer-events-none">
+          {t('home.bannerSponsored')}
+        </span>
+      ) : null}
       <div className="absolute inset-x-0 bottom-0 p-4 text-left text-white pointer-events-none">
         <p className="font-semibold text-base sm:text-lg drop-shadow">{banner.title}</p>
         {banner.subtitle ? (
@@ -79,7 +86,12 @@ function BannerSlide({
 
 export function HomeBannerCarousel({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation();
-  const { data: banners = [], isLoading, isError } = useHomeBanners();
+  const { coords } = useGeolocation();
+  const { data: banners = [], isLoading, isError } = useHomeBanners(
+    coords
+      ? { latitude: coords.latitude, longitude: coords.longitude }
+      : undefined,
+  );
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const reducedMotion = useMemo(() => {
