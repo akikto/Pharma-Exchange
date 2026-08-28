@@ -236,7 +236,7 @@ export const createSellerAdvertisementSchema = z
   .superRefine(actionTargetRefine)
   .superRefine(targetingRefine)
   .superRefine((data, ctx) => {
-    const allowed = [BannerActionType.MEDICINE, BannerActionType.PHARMACY, BannerActionType.LISTING];
+    const allowed: BannerActionType[] = [BannerActionType.MEDICINE, BannerActionType.PHARMACY, BannerActionType.LISTING];
     if (!allowed.includes(data.actionType)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid click action for seller advertisement', path: ['actionType'] });
     }
@@ -263,8 +263,11 @@ export const updateSellerAdvertisementSchema = z
       },
       ctx,
     );
-    if (data.actionType && ![BannerActionType.MEDICINE, BannerActionType.PHARMACY, BannerActionType.LISTING].includes(data.actionType)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid click action for seller advertisement', path: ['actionType'] });
+    if (data.actionType) {
+      const allowed: BannerActionType[] = [BannerActionType.MEDICINE, BannerActionType.PHARMACY, BannerActionType.LISTING];
+      if (!allowed.includes(data.actionType)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid click action for seller advertisement', path: ['actionType'] });
+      }
     }
   })
   .superRefine((data, ctx) => {

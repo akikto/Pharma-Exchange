@@ -115,7 +115,8 @@ function assertEditableSellerBanner(banner: { status: BannerStatus; advertiserPh
   if (banner.advertiserPharmacyId !== pharmacyId) {
     throw AppError.forbidden('Advertisement not found');
   }
-  if (![BannerStatus.DRAFT, BannerStatus.PENDING_APPROVAL, BannerStatus.REJECTED].includes(banner.status)) {
+  const editableStatuses: BannerStatus[] = [BannerStatus.DRAFT, BannerStatus.PENDING_APPROVAL, BannerStatus.REJECTED];
+  if (!editableStatuses.includes(banner.status)) {
     throw AppError.badRequest('Only draft, pending, or rejected advertisements can be edited');
   }
 }
@@ -338,7 +339,13 @@ export class BannerService {
 
   async approve(id: string, adminUserId: string) {
     const banner = await this.getById(id);
-    if (![BannerStatus.PENDING_APPROVAL, BannerStatus.APPROVED, BannerStatus.PAUSED, BannerStatus.REJECTED].includes(banner.status)) {
+    const approvableStatuses: BannerStatus[] = [
+      BannerStatus.PENDING_APPROVAL,
+      BannerStatus.APPROVED,
+      BannerStatus.PAUSED,
+      BannerStatus.REJECTED,
+    ];
+    if (!approvableStatuses.includes(banner.status)) {
       throw AppError.badRequest('Advertisement cannot be approved in its current status');
     }
     const now = new Date();
@@ -376,7 +383,8 @@ export class BannerService {
 
   async pause(id: string) {
     const banner = await this.getById(id);
-    if (![BannerStatus.ACTIVE, BannerStatus.APPROVED].includes(banner.status)) {
+    const pausableStatuses: BannerStatus[] = [BannerStatus.ACTIVE, BannerStatus.APPROVED];
+    if (!pausableStatuses.includes(banner.status)) {
       throw AppError.badRequest('Only active or approved banners can be paused');
     }
     return prisma.homeBanner.update({
