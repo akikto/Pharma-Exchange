@@ -189,12 +189,12 @@ describe('ListingFormPage', () => {
       expect(screen.getByTestId('medicine-search-results')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /create listing/i }));
+    const submit = screen.getByRole('button', { name: /create listing/i });
+    expect(submit).toBeDisabled();
+    fireEvent.click(submit);
 
-    await waitFor(() => {
-      expect(post).not.toHaveBeenCalled();
-      expect(screen.getByTestId('listing-form-error')).toHaveTextContent(MEDICINE_SELECTION_MESSAGE);
-    });
+    expect(post).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('listing-details-section')).not.toBeInTheDocument();
   });
 
   it('submits with a selected medicine and omits empty lowStockThreshold', async () => {
