@@ -18,12 +18,6 @@ android {
         targetSdk 35
         versionCode 1
         versionName '1.0.0'
-
-        resValue 'string', 'appName', 'Pharma Exchange'
-        resValue 'string', 'hostName', 'pharma-exchange-frontend.vercel.app'
-        resValue 'string', 'launchUrl', 'https://pharma-exchange-frontend.vercel.app/'
-        resValue 'string', 'providerAuthority', 'com.pharmex.exchange.fileprovider'
-        resValue 'string', 'fallbackType', 'customtabs'
     }
 
     signingConfigs {
