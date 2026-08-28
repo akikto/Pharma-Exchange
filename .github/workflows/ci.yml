@@ -257,5 +257,5 @@ jobs:
             tail -120 gradle-build.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          ERR=$(grep -E "^(FAILURE:|> |\* What went wrong:|error:)" gradle-build.log | head -20 | tr '\n' ' ' || true)
+          ERR=$(grep -Ei "^(FAILURE:|\* What went wrong:|   > |error:|Caused by:)" gradle-build.log | tail -40 | tr '\n' ' ' | cut -c1-1500 || true)
           echo "::error title=android-twa build failed::${ERR:-see job summary for stacktrace}"
