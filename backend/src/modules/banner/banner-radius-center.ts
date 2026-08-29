@@ -12,6 +12,14 @@ export type RadiusCenter = {
   targetCountry: string | null;
 };
 
+export type RadiusCenterExisting = {
+  targetLatitude?: number | null;
+  targetLongitude?: number | null;
+  targetCity?: string | null;
+  targetState?: string | null;
+  targetCountry?: string | null;
+};
+
 function radiusCenterFromPharmacyCoords(pharmacy: Pick<Pharmacy, 'latitude' | 'longitude' | 'city' | 'district'>): RadiusCenter {
   if (pharmacy.latitude == null || pharmacy.longitude == null) {
     throw AppError.badRequest('Pharmacy location coordinates are required for radius targeting');
@@ -35,7 +43,7 @@ export function radiusCenterFromVerifiedPharmacy(pharmacy: Pharmacy): RadiusCent
 export async function resolveAdminRadiusCenter(
   actionType: BannerActionType,
   actionTarget: string | null | undefined,
-  existing?: Partial<RadiusCenter> | null,
+  existing?: RadiusCenterExisting | null,
 ): Promise<RadiusCenter> {
   const target = actionTarget?.trim();
   if (actionType === BannerActionType.PHARMACY && target) {
