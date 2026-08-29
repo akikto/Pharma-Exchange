@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 /** Promo banner + optional bulk CTA + shop card — shared width and spacing. */
 export function HomeHeroStack({ className }: { className?: string }) {
   return (
-    <div className={cn('flex w-full min-w-0 max-w-full flex-col', className)} data-testid="home-hero-stack">
+    <div className={cn('flex w-full min-w-0 max-w-full flex-col gap-3', className)} data-testid="home-hero-stack">
       <div
         className={cn(
           HOME_PROMO_BANNER_SHELL_CLASS,
