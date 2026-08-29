@@ -24,19 +24,25 @@ describe('BannerTargetingFields', () => {
     expect(screen.queryByTestId('banner-radius-km')).not.toBeInTheDocument();
   });
 
-  it('shows radius fields for radius targeting', () => {
+  it('shows only radius controls for radius targeting', () => {
     render(
       <I18nextProvider i18n={i18n}>
         <BannerTargetingFields
-          form={{ ...EMPTY_BANNER_FORM, targetType: 'RADIUS' }}
+          form={{ ...EMPTY_BANNER_FORM, targetType: 'RADIUS', radiusKm: '10' }}
           errors={{}}
           t={i18n.t.bind(i18n)}
           onChange={() => {}}
+          radiusCenterHint="Radius is centered on your verified shop location (City Pharmacy)."
         />
       </I18nextProvider>,
     );
 
-    expect(screen.getByTestId('banner-target-latitude')).toBeInTheDocument();
     expect(screen.getByTestId('banner-radius-km')).toBeInTheDocument();
+    expect(screen.getByTestId('banner-radius-center-hint')).toBeInTheDocument();
+    expect(screen.queryByTestId('banner-target-country')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('banner-target-state')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('banner-target-city')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('banner-target-latitude')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('banner-target-longitude')).not.toBeInTheDocument();
   });
 });

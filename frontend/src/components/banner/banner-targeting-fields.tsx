@@ -9,6 +9,7 @@ type BannerTargetingFieldsProps = {
   t: TFunction;
   onChange: <K extends keyof BannerFormValues>(key: K, value: BannerFormValues[K]) => void;
   showBannerType?: boolean;
+  radiusCenterHint?: string;
 };
 
 export function BannerTargetingFields({
@@ -17,7 +18,10 @@ export function BannerTargetingFields({
   t,
   onChange,
   showBannerType = true,
+  radiusCenterHint,
 }: BannerTargetingFieldsProps) {
+  const isRadius = form.targetType === 'RADIUS';
+
   return (
     <div className="space-y-4 rounded-[var(--radius-md)] border border-border-subtle p-3">
       <p className="text-sm font-medium text-text-primary">{t('admin.banners.targetAudience')}</p>
@@ -54,7 +58,7 @@ export function BannerTargetingFields({
         </select>
       </div>
 
-      {form.targetType !== 'WORLDWIDE' ? (
+      {!isRadius && form.targetType !== 'WORLDWIDE' ? (
         <div>
           <Label htmlFor="banner-target-country">{t('admin.banners.fields.targetCountry')}</Label>
           <Input
@@ -67,7 +71,7 @@ export function BannerTargetingFields({
         </div>
       ) : null}
 
-      {form.targetType === 'REGION' || form.targetType === 'CITY' || form.targetType === 'RADIUS' ? (
+      {!isRadius && (form.targetType === 'REGION' || form.targetType === 'CITY') ? (
         <div>
           <Label htmlFor="banner-target-state">{t('admin.banners.fields.targetState')}</Label>
           <Input
@@ -80,7 +84,7 @@ export function BannerTargetingFields({
         </div>
       ) : null}
 
-      {form.targetType === 'CITY' || form.targetType === 'RADIUS' ? (
+      {!isRadius && form.targetType === 'CITY' ? (
         <div>
           <Label htmlFor="banner-target-city">{t('admin.banners.fields.targetCity')}</Label>
           <Input
@@ -93,52 +97,43 @@ export function BannerTargetingFields({
         </div>
       ) : null}
 
-      {form.targetType === 'RADIUS' ? (
-        <>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label htmlFor="banner-target-lat">{t('admin.banners.fields.targetLatitude')}</Label>
-              <Input
-                id="banner-target-lat"
-                value={form.targetLatitude}
-                onChange={(e) => onChange('targetLatitude', e.target.value)}
-                data-testid="banner-target-latitude"
-              />
-            </div>
-            <div>
-              <Label htmlFor="banner-target-lng">{t('admin.banners.fields.targetLongitude')}</Label>
-              <Input
-                id="banner-target-lng"
-                value={form.targetLongitude}
-                onChange={(e) => onChange('targetLongitude', e.target.value)}
-                data-testid="banner-target-longitude"
-              />
-            </div>
+      {isRadius ? (
+        <div>
+          {radiusCenterHint ? (
+            <p className="text-xs text-text-secondary mb-2" data-testid="banner-radius-center-hint">
+              {radiusCenterHint}
+            </p>
+          ) : null}
+          <Label htmlFor="banner-radius">{t('admin.banners.fields.radiusKm')}</Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {RADIUS_PRESETS_KM.map((km) => (
+              <button
+                key={km}
+                type="button"
+                className="rounded-full border border-border-subtle px-3 py-1 text-xs"
+                onClick={() => onChange('radiusKm', String(km))}
+              >
+                {t('admin.banners.radiusPreset', { km })}
+              </button>
+            ))}
           </div>
-          {errors.targetLatitude ? <p className="text-xs text-danger">{errors.targetLatitude}</p> : null}
-          <div>
-            <Label htmlFor="banner-radius">{t('admin.banners.fields.radiusKm')}</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {RADIUS_PRESETS_KM.map((km) => (
-                <button
-                  key={km}
-                  type="button"
-                  className="rounded-full border border-border-subtle px-3 py-1 text-xs"
-                  onClick={() => onChange('radiusKm', String(km))}
-                >
-                  {t('admin.banners.radiusPreset', { km })}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center gap-2">
             <Input
               id="banner-radius"
+              type="number"
+              min={1}
+              max={1000}
+              step={1}
+              inputMode="numeric"
+              className="max-w-[8rem]"
               value={form.radiusKm}
               onChange={(e) => onChange('radiusKm', e.target.value)}
               data-testid="banner-radius-km"
             />
-            {errors.radiusKm ? <p className="text-xs text-danger mt-1">{errors.radiusKm}</p> : null}
+            <span className="text-sm text-text-secondary">km</span>
           </div>
-        </>
+          {errors.radiusKm ? <p className="text-xs text-danger mt-1">{errors.radiusKm}</p> : null}
+        </div>
       ) : null}
 
       <div className="grid grid-cols-2 gap-2">

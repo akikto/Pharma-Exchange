@@ -2,6 +2,7 @@ import {
   BannerActionType,
   BannerMediaType,
   BannerStatus,
+  BannerTargetType,
   BannerType,
   Prisma,
 } from '@prisma/client';
@@ -19,6 +20,7 @@ import {
   filterAndRankBannersWithFallback,
   resolveBannerPublicStatus,
 } from './banner-targeting';
+import { radiusCenterFromVerifiedPharmacy, resolveAdminRadiusCenter } from './banner-radius-center';
 
 export type PublicBannerDto = {
   id: string;
@@ -111,6 +113,49 @@ function normalizeTargetingInput<T extends Record<string, unknown>>(input: T) {
   };
 }
 
+async function applyRadiusTargeting<T extends Record<string, unknown>>(
+  input: T,
+  options: {
+    pharmacy?: Awaited<ReturnType<typeof getPharmacyForUser>>;
+    existing?: BannerRecord | null;
+  },
+): Promise<T> {
+  const targetType = input.targetType as BannerTargetType | undefined;
+  if (targetType !== BannerTargetType.RADIUS) return input;
+
+  const actionType = (input.actionType as BannerActionType | undefined)
+    ?? options.existing?.actionType
+    ?? BannerActionType.NONE;
+  const actionTarget = input.actionTarget !== undefined
+    ? (input.actionTarget as string | null)
+    : options.existing?.actionTarget ?? null;
+
+  const center = options.pharmacy
+    ? radiusCenterFromVerifiedPharmacy(options.pharmacy)
+    : await resolveAdminRadiusCenter(
+      actionType,
+      actionTarget,
+      options.existing
+        ? {
+            targetLatitude: options.existing.targetLatitude,
+            targetLongitude: options.existing.targetLongitude,
+            targetCity: options.existing.targetCity,
+            targetState: options.existing.targetState,
+            targetCountry: options.existing.targetCountry,
+          }
+        : null,
+    );
+
+  return {
+    ...input,
+    targetCountry: center.targetCountry,
+    targetState: center.targetState,
+    targetCity: center.targetCity,
+    targetLatitude: center.targetLatitude,
+    targetLongitude: center.targetLongitude,
+  };
+}
+
 function assertEditableSellerBanner(banner: { status: BannerStatus; advertiserPharmacyId: string | null }, pharmacyId: string) {
   if (banner.advertiserPharmacyId !== pharmacyId) {
     throw AppError.forbidden('Advertisement not found');
@@ -196,7 +241,7 @@ export class BannerService {
     approvedById?: string | null;
     approvedAt?: Date | null;
   }) {
-    const normalized = normalizeTargetingInput(input);
+    const normalized = await applyRadiusTargeting(normalizeTargetingInput(input), {});
     const actionType = normalized.actionType ?? BannerActionType.NONE;
     await assertActionTarget(actionType, normalized.actionTarget);
     assertBannerMediaUrl(normalized.mediaUrl);
@@ -238,7 +283,7 @@ export class BannerService {
 
   async createSellerAdvertisement(userId: string, input: Record<string, unknown>) {
     const pharmacy = await getPharmacyForUser(userId);
-    const normalized = normalizeTargetingInput(input);
+    const normalized = await applyRadiusTargeting(normalizeTargetingInput(input), { pharmacy });
     const actionType = normalized.actionType as BannerActionType;
     await assertActionTarget(actionType, normalized.actionTarget as string | null, { pharmacyId: pharmacy.id });
     assertBannerMediaUrl(normalized.mediaUrl as string);
@@ -273,18 +318,22 @@ export class BannerService {
 
   async update(id: string, data: Prisma.HomeBannerUpdateInput) {
     const existing = await this.getById(id);
-    if (typeof data.mediaUrl === 'string') {
-      assertBannerMediaUrl(data.mediaUrl);
+    const merged = await applyRadiusTargeting(
+      normalizeTargetingInput(data as Record<string, unknown>),
+      { existing },
+    );
+    if (typeof merged.mediaUrl === 'string') {
+      assertBannerMediaUrl(merged.mediaUrl);
     }
-    const actionType = (data.actionType as BannerActionType | undefined) ?? existing.actionType;
+    const actionType = (merged.actionType as BannerActionType | undefined) ?? existing.actionType;
     const actionTarget =
-      data.actionTarget !== undefined ? (data.actionTarget as string | null) : existing.actionTarget;
+      merged.actionTarget !== undefined ? (merged.actionTarget as string | null) : existing.actionTarget;
     await assertActionTarget(actionType, actionTarget, {
       pharmacyId: existing.advertiserPharmacyId ?? undefined,
     });
     return prisma.homeBanner.update({
       where: { id },
-      data,
+      data: merged as Prisma.HomeBannerUpdateInput,
       include: bannerInclude,
     });
   }
@@ -293,7 +342,7 @@ export class BannerService {
     const pharmacy = await getPharmacyForUser(userId);
     const existing = await this.getSellerAdvertisementById(userId, id);
     assertEditableSellerBanner(existing, pharmacy.id);
-    const normalized = normalizeTargetingInput(input);
+    const normalized = await applyRadiusTargeting(normalizeTargetingInput(input), { pharmacy, existing });
     const actionType = (normalized.actionType as BannerActionType | undefined) ?? existing.actionType;
     const actionTarget =
       normalized.actionTarget !== undefined

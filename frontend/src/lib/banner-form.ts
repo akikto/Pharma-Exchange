@@ -1,3 +1,6 @@
+import type { TFunction } from 'i18next';
+import { isValidBannerMediaHttpUrl } from '@/lib/banner-media-url';
+
 export type BannerMediaType = 'IMAGE' | 'VIDEO';
 
 export type BannerActionType =
@@ -114,7 +117,7 @@ export const EMPTY_BANNER_FORM: BannerFormValues = {
   priority: '0',
 };
 
-export const RADIUS_PRESETS_KM = [5, 10, 25, 50, 100] as const;
+export const RADIUS_PRESETS_KM = [5, 10, 25, 50, 100, 250, 500, 1000] as const;
 
 export const INTERNAL_BANNER_PATHS = [
   { value: '/', labelKey: 'admin.banners.internalPaths.home' },
@@ -171,6 +174,22 @@ function optionalField(value: string): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
+function validateRadiusKm(value: string, errors: BannerFormErrors, t: TFunction) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    errors.radiusKm = t('admin.banners.validation.radiusRequired');
+    return;
+  }
+  if (!/^\d+$/.test(trimmed)) {
+    errors.radiusKm = t('admin.banners.validation.radiusInvalid');
+    return;
+  }
+  const radius = Number(trimmed);
+  if (radius < 1 || radius > 1000) {
+    errors.radiusKm = t('admin.banners.validation.radiusInvalid');
+  }
+}
+
 export function formToCreatePayload(values: BannerFormValues) {
   return {
     title: values.title.trim(),
@@ -203,7 +222,7 @@ export function formToUpdatePayload(values: BannerFormValues) {
 
 export function formToSellerAdvertisementPayload(values: BannerFormValues) {
   const payload = formToCreatePayload(values);
-  return {
+  const base = {
     title: payload.title,
     subtitle: payload.subtitle,
     mediaUrl: payload.mediaUrl,
@@ -213,20 +232,23 @@ export function formToSellerAdvertisementPayload(values: BannerFormValues) {
     actionType: payload.actionType,
     actionTarget: payload.actionTarget,
     targetType: payload.targetType,
+    startsAt: payload.startsAt,
+    endsAt: payload.endsAt,
+    priority: payload.priority,
+  };
+  if (payload.targetType === 'RADIUS') {
+    return { ...base, radiusKm: payload.radiusKm };
+  }
+  return {
+    ...base,
     targetCountry: payload.targetCountry,
     targetState: payload.targetState,
     targetCity: payload.targetCity,
     targetLatitude: payload.targetLatitude,
     targetLongitude: payload.targetLongitude,
     radiusKm: payload.radiusKm,
-    startsAt: payload.startsAt,
-    endsAt: payload.endsAt,
-    priority: payload.priority,
   };
 }
-
-import type { TFunction } from 'i18next';
-import { isValidBannerMediaHttpUrl } from '@/lib/banner-media-url';
 
 export function validateBannerForm(
   values: BannerFormValues,
@@ -282,16 +304,7 @@ export function validateBannerForm(
     if (!values.targetCity.trim()) errors.targetCity = t('admin.banners.validation.cityRequired');
   }
   if (values.targetType === 'RADIUS') {
-    if (!values.targetCountry.trim()) errors.targetCountry = t('admin.banners.validation.countryRequired');
-    if (!values.targetState.trim()) errors.targetState = t('admin.banners.validation.stateRequired');
-    if (!values.targetCity.trim()) errors.targetCity = t('admin.banners.validation.cityRequired');
-    if (!values.targetLatitude.trim() || !values.targetLongitude.trim()) {
-      errors.targetLatitude = t('admin.banners.validation.coordinatesRequired');
-    }
-    const radius = Number(values.radiusKm);
-    if (!values.radiusKm.trim() || !Number.isFinite(radius) || radius <= 0) {
-      errors.radiusKm = t('admin.banners.validation.radiusRequired');
-    }
+    validateRadiusKm(values.radiusKm, errors, t);
   }
 
   return errors;

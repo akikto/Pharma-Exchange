@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { BannerStatus, BannerTargetType, BannerType } from '@prisma/client';
 import {
   filterAndRankBanners,
+  getBannerDistanceKm,
   isBannerGeographicallyEligible,
   isBannerPubliclyVisible,
 } from '../src/modules/banner/banner-targeting';
+import { haversineKm } from '../src/shared/utils/geo';
 
 const now = new Date('2026-08-28T12:00:00Z');
 
@@ -61,19 +63,59 @@ describe('banner-targeting', () => {
   it('includes radius banners only when user is inside radius', () => {
     const banner = makeBanner({
       targetType: BannerTargetType.RADIUS,
-      targetCountry: 'India',
-      targetState: 'West Bengal',
-      targetCity: 'Berhampore',
+      targetCountry: 'Bangladesh',
+      targetState: 'Dhaka',
+      targetCity: 'Dhaka',
+      targetLatitude: 23.7461,
+      targetLongitude: 90.3742,
+      radiusKm: 25,
+    });
+    expect(
+      isBannerGeographicallyEligible(banner, { latitude: 23.75, longitude: 90.38 }),
+    ).toBe(true);
+    expect(
+      isBannerGeographicallyEligible(banner, { latitude: 25.5, longitude: 91.0 }),
+    ).toBe(false);
+  });
+
+  it('includes buyers exactly on the radius boundary', () => {
+    const centerLat = 24.1;
+    const centerLon = 88.25;
+    const radiusKm = 20;
+    const banner = makeBanner({
+      targetType: BannerTargetType.RADIUS,
+      targetLatitude: centerLat,
+      targetLongitude: centerLon,
+      radiusKm,
+    });
+
+    let testLon = centerLon + 0.2;
+    for (let i = 0; i < 24; i += 1) {
+      const distance = haversineKm(centerLat, centerLon, centerLat, testLon);
+      if (distance > radiusKm) {
+        testLon -= 0.01;
+        break;
+      }
+      testLon += 0.01;
+    }
+
+    const boundaryDistance = getBannerDistanceKm(banner, { latitude: centerLat, longitude: testLon });
+    expect(boundaryDistance).not.toBeNull();
+    expect(boundaryDistance!).toBeLessThanOrEqual(radiusKm);
+    expect(
+      isBannerGeographicallyEligible(banner, { latitude: centerLat, longitude: testLon }),
+    ).toBe(true);
+  });
+
+  it('excludes radius banners when buyer coordinates are missing', () => {
+    const banner = makeBanner({
+      targetType: BannerTargetType.RADIUS,
       targetLatitude: 24.1,
       targetLongitude: 88.25,
       radiusKm: 25,
     });
-    expect(
-      isBannerGeographicallyEligible(banner, { latitude: 24.12, longitude: 88.27 }),
-    ).toBe(true);
-    expect(
-      isBannerGeographicallyEligible(banner, { latitude: 25.5, longitude: 89.0 }),
-    ).toBe(false);
+    expect(isBannerGeographicallyEligible(banner, {})).toBe(false);
+    expect(getBannerDistanceKm(banner, {})).toBeNull();
   });
 
   it('hides pending and rejected banners from public visibility', () => {
