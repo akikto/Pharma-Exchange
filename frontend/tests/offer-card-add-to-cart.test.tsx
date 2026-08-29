@@ -128,4 +128,23 @@ describe('OfferCard add to cart', () => {
 
     expect(screen.queryByTestId('offer-card-add-to-cart-listing-1')).not.toBeInTheDocument();
   });
+
+  it('renders the full medicine name without line-clamp truncation', () => {
+    const longName = 'Metronidazole Extended Release 400mg Tablet';
+    render(
+      <I18nextProvider i18n={i18n}>
+        <MemoryRouter>
+          <OfferCard
+            listing={{ ...baseListing, medicine: { ...baseListing.medicine, name: longName } }}
+            variant="grid"
+            showAddToCart
+          />
+        </MemoryRouter>
+      </I18nextProvider>,
+    );
+
+    const title = screen.getByRole('heading', { level: 3, name: longName });
+    expect(title).toHaveTextContent(longName);
+    expect(title.className).not.toContain('line-clamp');
+  });
 });

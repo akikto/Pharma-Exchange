@@ -192,10 +192,18 @@ function OfferCardContent({
     </div>
   );
 
+  const medicineTitleClass = (size: 'sm' | 'base' = 'sm') =>
+    cn(
+      'min-w-0 font-semibold leading-snug break-words [overflow-wrap:anywhere]',
+      size === 'sm' ? 'text-sm' : 'text-base',
+    );
+
+  const medicineTitleRowClass = 'flex flex-wrap items-start gap-x-1 gap-y-0.5';
+
   const featuredInfoBlock = (
     <div className="flex-1 min-w-0 space-y-1">
-      <div className="flex items-start gap-1">
-        <h3 className="font-semibold line-clamp-2 text-sm">{listing.medicine.name}</h3>
+      <div className={medicineTitleRowClass}>
+        <h3 className={medicineTitleClass('sm')}>{listing.medicine.name}</h3>
         {verified && <VerifiedBadge size="sm" className="shrink-0" />}
       </div>
       {compositionText && (
@@ -228,8 +236,8 @@ function OfferCardContent({
 
   const infoBlock = (
     <div className="flex-1 min-w-0 space-y-1">
-      <div className="flex items-start gap-1">
-        <h3 className={cn('font-semibold line-clamp-2', variant === 'grid' ? 'text-sm' : 'text-base')}>{listing.medicine.name}</h3>
+      <div className={medicineTitleRowClass}>
+        <h3 className={medicineTitleClass(variant === 'grid' ? 'sm' : 'base')}>{listing.medicine.name}</h3>
         {matchBadge && (
           <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full shrink-0', matchBadge.className)}>
             {matchBadge.label}
