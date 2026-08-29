@@ -247,15 +247,15 @@ describe('Banner advertisement targeting API', () => {
       priority: 1,
     });
     const country = await createAdminBanner({
-      title: 'India Wide',
-      targetType: BannerTargetType.COUNTRY,
-      targetCountry: 'India',
-      priority: 100,
-    });
-    const bangladesh = await createAdminBanner({
-      title: 'Bangladesh Only',
+      title: 'Bangladesh Wide',
       targetType: BannerTargetType.COUNTRY,
       targetCountry: 'Bangladesh',
+      priority: 100,
+    });
+    const india = await createAdminBanner({
+      title: 'India Only',
+      targetType: BannerTargetType.COUNTRY,
+      targetCountry: 'India',
       priority: 100,
     });
 
@@ -270,7 +270,7 @@ describe('Banner advertisement targeting API', () => {
     const ids = res.body.data.map((b: { id: string }) => b.id);
     expect(ids).toContain(local.body.id);
     expect(ids).toContain(country.body.id);
-    expect(ids).not.toContain(bangladesh.body.id);
+    expect(ids).not.toContain(india.body.id);
     expect(ids.indexOf(local.body.id)).toBeLessThan(ids.indexOf(country.body.id));
   });
 
