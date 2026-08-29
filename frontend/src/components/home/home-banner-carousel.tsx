@@ -42,14 +42,15 @@ function BannerSlide({
         alt={alt}
         isActive={isActive}
         priority={isActive}
+        showSoundToggle={banner.mediaType === 'VIDEO'}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
       {banner.isSponsored ? (
-        <span className="absolute top-3 left-3 z-10 rounded-full bg-accent/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white pointer-events-none shadow-sm">
+        <span className="absolute top-3 left-3 z-20 rounded-full bg-accent/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white pointer-events-none shadow-sm">
           {t('home.bannerSponsored')}
         </span>
       ) : null}
-      <div className="absolute inset-x-0 bottom-0 p-4 text-left text-white pointer-events-none">
+      <div className="absolute inset-x-0 bottom-0 z-20 p-4 text-left text-white pointer-events-none">
         <p className="font-semibold text-base sm:text-lg drop-shadow">{banner.title}</p>
         {banner.subtitle ? (
           <p className="text-xs sm:text-sm text-white/90 mt-0.5 line-clamp-2">{banner.subtitle}</p>
@@ -65,15 +66,15 @@ function BannerSlide({
 
   if (destination) {
     return (
-      <button
-        type="button"
-        className="absolute inset-0 w-full h-full text-left"
-        onClick={handleClick}
-        aria-label={banner.ctaText || banner.title}
-        data-testid={`home-banner-slide-${banner.id}`}
-      >
+      <div className="absolute inset-0" data-testid={`home-banner-slide-${banner.id}`}>
         {content}
-      </button>
+        <button
+          type="button"
+          className="absolute inset-0 z-10 w-full h-full text-left"
+          onClick={handleClick}
+          aria-label={banner.ctaText || banner.title}
+        />
+      </div>
     );
   }
 

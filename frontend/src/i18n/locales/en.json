@@ -249,6 +249,8 @@
     "bulkBannerTitle": "Need bulk procurement?",
     "bannerCarouselAria": "Promotional banners",
     "bannerSponsored": "Sponsored",
+    "bannerUnmute": "Turn sound on",
+    "bannerMute": "Turn sound off",
     "bannerPrev": "Previous banner",
     "bannerNext": "Next banner",
     "bannerDot": "Banner {{index}} of {{count}}: {{title}}",
