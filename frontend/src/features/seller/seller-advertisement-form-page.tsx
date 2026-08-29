@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { BannerFrame } from '@/components/banner/banner-frame';
 import { BannerMedia } from '@/components/banner/banner-media';
 import { BannerTargetingFields } from '@/components/banner/banner-targeting-fields';
+import { BannerFormSection } from '@/components/banner/banner-form-section';
 import { useBannerMediaUpload } from '@/hooks/use-banner-media-upload';
 import { useListings } from '@/hooks/use-listings';
 import { useToast } from '@/hooks/use-toast';
@@ -143,65 +144,72 @@ export function SellerAdvertisementFormPage() {
           <Input id="seller-ad-subtitle" value={form.subtitle} onChange={(e) => updateField('subtitle', e.target.value)} />
         </div>
 
-        <div>
-          <Label htmlFor="seller-ad-action-type">{t('admin.banners.fields.actionType')}</Label>
-          <select
-            id="seller-ad-action-type"
-            className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
-            value={form.actionType}
-            onChange={(e) => handleActionTypeChange(e.target.value as BannerActionType)}
-          >
-            <option value="MEDICINE">{t('admin.banners.actionTypes.medicine')}</option>
-            <option value="PHARMACY">{t('admin.banners.actionTypes.pharmacy')}</option>
-            <option value="LISTING">{t('admin.banners.actionTypes.listing')}</option>
-          </select>
-          <p className="text-xs text-text-secondary mt-1">{t('sellerAds.sellerActionHint')}</p>
-        </div>
-
-        {form.actionType === 'PHARMACY' ? (
+        <BannerFormSection
+          variant="click-action"
+          title={t('admin.banners.fields.actionType')}
+          description={t('admin.banners.clickActionHint')}
+          testId="seller-ad-click-action-section"
+        >
           <div>
-            <Label>{t('admin.banners.fields.pharmacy')}</Label>
-            <Input value={pharmacy?.name ?? ''} disabled />
-            <input type="hidden" value={pharmacy?.id ?? ''} />
-            {pharmacy?.id ? (
-              <Button type="button" variant="secondary" size="sm" className="mt-2" onClick={() => updateField('actionTarget', pharmacy.id)}>
-                {t('admin.banners.selectPharmacy')}
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-
-        {form.actionType === 'LISTING' ? (
-          <div className="space-y-2">
-            <Label htmlFor="seller-ad-listing-search">{t('admin.banners.fields.listingItem')}</Label>
-            <Input id="seller-ad-listing-search" value={listingSearch} onChange={(e) => setListingSearch(e.target.value)} />
             <select
-              className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
-              value={form.actionTarget}
-              onChange={(e) => updateField('actionTarget', e.target.value)}
-              data-testid="seller-ad-listing-select"
+              id="seller-ad-action-type"
+              aria-label={t('admin.banners.fields.actionType')}
+              className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
+              value={form.actionType}
+              onChange={(e) => handleActionTypeChange(e.target.value as BannerActionType)}
             >
-              <option value="">{t('admin.banners.selectListing')}</option>
-              {listingOptions.map((listing) => (
-                <option key={listing.id} value={listing.id}>
-                  {listing.medicine.name} · {listing.batchNumber}
-                </option>
-              ))}
+              <option value="MEDICINE">{t('admin.banners.actionTypes.medicine')}</option>
+              <option value="PHARMACY">{t('admin.banners.actionTypes.pharmacy')}</option>
+              <option value="LISTING">{t('admin.banners.actionTypes.listing')}</option>
             </select>
+            <p className="text-xs text-info/80 mt-1">{t('sellerAds.sellerActionHint')}</p>
           </div>
-        ) : null}
 
-        {form.actionType === 'MEDICINE' ? (
-          <div>
-            <Label htmlFor="seller-ad-medicine-id">{t('admin.banners.fields.medicine')}</Label>
-            <Input
-              id="seller-ad-medicine-id"
-              value={form.actionTarget}
-              onChange={(e) => updateField('actionTarget', e.target.value)}
-              placeholder={t('admin.banners.selectMedicine')}
-            />
-          </div>
-        ) : null}
+          {form.actionType === 'PHARMACY' ? (
+            <div>
+              <Label>{t('admin.banners.fields.pharmacy')}</Label>
+              <Input value={pharmacy?.name ?? ''} disabled />
+              <input type="hidden" value={pharmacy?.id ?? ''} />
+              {pharmacy?.id ? (
+                <Button type="button" variant="secondary" size="sm" className="mt-2" onClick={() => updateField('actionTarget', pharmacy.id)}>
+                  {t('admin.banners.selectPharmacy')}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {form.actionType === 'LISTING' ? (
+            <div className="space-y-2">
+              <Label htmlFor="seller-ad-listing-search">{t('admin.banners.fields.listingItem')}</Label>
+              <Input id="seller-ad-listing-search" value={listingSearch} onChange={(e) => setListingSearch(e.target.value)} />
+              <select
+                className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
+                value={form.actionTarget}
+                onChange={(e) => updateField('actionTarget', e.target.value)}
+                data-testid="seller-ad-listing-select"
+              >
+                <option value="">{t('admin.banners.selectListing')}</option>
+                {listingOptions.map((listing) => (
+                  <option key={listing.id} value={listing.id}>
+                    {listing.medicine.name} · {listing.batchNumber}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {form.actionType === 'MEDICINE' ? (
+            <div>
+              <Label htmlFor="seller-ad-medicine-id">{t('admin.banners.fields.medicine')}</Label>
+              <Input
+                id="seller-ad-medicine-id"
+                value={form.actionTarget}
+                onChange={(e) => updateField('actionTarget', e.target.value)}
+                placeholder={t('admin.banners.selectMedicine')}
+              />
+            </div>
+          ) : null}
+        </BannerFormSection>
 
         <BannerTargetingFields
           form={form}

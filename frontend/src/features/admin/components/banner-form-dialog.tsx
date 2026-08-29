@@ -34,6 +34,7 @@ import {
   type BannerMediaType,
 } from '@/lib/banner-form';
 import { BannerTargetingFields } from '@/components/banner/banner-targeting-fields';
+import { BannerFormSection } from '@/components/banner/banner-form-section';
 
 type BannerFormDialogProps = {
   open: boolean;
@@ -239,14 +240,20 @@ export function BannerFormDialog({
             <Input id="banner-alt" value={form.mediaAlt} onChange={(e) => updateField('mediaAlt', e.target.value)} />
           </div>
 
-          <div>
-            <Label htmlFor="banner-action-type">{t('admin.banners.fields.actionType')}</Label>
-            <select
-              id="banner-action-type"
-              className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
-              value={form.actionType}
-              onChange={(e) => handleActionTypeChange(e.target.value as BannerActionType)}
-            >
+          <BannerFormSection
+            variant="click-action"
+            title={t('admin.banners.fields.actionType')}
+            description={t('admin.banners.clickActionHint')}
+            testId="banner-click-action-section"
+          >
+            <div>
+              <select
+                id="banner-action-type"
+                aria-label={t('admin.banners.fields.actionType')}
+                className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
+                value={form.actionType}
+                onChange={(e) => handleActionTypeChange(e.target.value as BannerActionType)}
+              >
               <option value="NONE">{t('admin.banners.actionTypes.none')}</option>
               <option value="EXTERNAL_URL">{t('admin.banners.actionTypes.external')}</option>
               <option value="INTERNAL_PATH">{t('admin.banners.actionTypes.internal')}</option>
@@ -262,7 +269,7 @@ export function BannerFormDialog({
               <Label htmlFor="banner-internal-path">{t('admin.banners.fields.actionTarget')}</Label>
               <select
                 id="banner-internal-path"
-                className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
                 value={form.actionTarget}
                 onChange={(e) => updateField('actionTarget', e.target.value)}
               >
@@ -286,7 +293,7 @@ export function BannerFormDialog({
                 placeholder={t('admin.banners.medicineSearchPlaceholder')}
               />
               <select
-                className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
                 value={form.actionTarget}
                 onChange={(e) => updateField('actionTarget', e.target.value)}
               >
@@ -301,7 +308,7 @@ export function BannerFormDialog({
           ) : null}
 
           {form.actionType === 'LISTING' ? (
-            <div className="space-y-3 rounded-[var(--radius-md)] border border-border-subtle p-3">
+            <div className="space-y-3 rounded-[var(--radius-md)] border border-info/20 bg-surface-base/80 p-3">
               <p className="text-xs text-text-secondary">{t('admin.banners.listingActionHint')}</p>
               <div className="space-y-2">
                 <Label htmlFor="banner-listing-shop-search">{t('admin.banners.fields.pharmacy')}</Label>
@@ -312,7 +319,7 @@ export function BannerFormDialog({
                   placeholder={t('admin.banners.pharmacySearchPlaceholder')}
                 />
                 <select
-                  className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                  className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
                   value={listingShopId}
                   onChange={(e) => {
                     setListingShopId(e.target.value);
@@ -338,7 +345,7 @@ export function BannerFormDialog({
                     placeholder={t('admin.banners.listingSearchPlaceholder')}
                   />
                   <select
-                    className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                    className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
                     value={form.actionTarget}
                     onChange={(e) => updateField('actionTarget', e.target.value)}
                     data-testid="banner-listing-item-select"
@@ -370,7 +377,7 @@ export function BannerFormDialog({
                 placeholder={t('admin.banners.pharmacySearchPlaceholder')}
               />
               <select
-                className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+                className="w-full h-10 rounded-[var(--radius-md)] border border-info/25 bg-surface-base px-3 text-sm"
                 value={form.actionTarget}
                 onChange={(e) => updateField('actionTarget', e.target.value)}
                 data-testid="banner-pharmacy-select"
@@ -407,6 +414,7 @@ export function BannerFormDialog({
           ) : null}
 
           {errors.actionTarget ? <p className="text-xs text-danger">{errors.actionTarget}</p> : null}
+          </BannerFormSection>
 
           <BannerTargetingFields form={form} errors={errors} t={t} onChange={updateField} />
 
