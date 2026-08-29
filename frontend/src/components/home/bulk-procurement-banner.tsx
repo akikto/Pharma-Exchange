@@ -40,7 +40,7 @@ export function BulkProcurementBanner() {
 
   return (
     <div
-      className="rounded-[var(--radius-lg)] border border-primary/25 bg-gradient-to-br from-primary-subtle via-surface-raised to-surface-base p-3 shadow-elevation-1 relative"
+      className="rounded-[var(--radius-lg)] border border-warning/30 border-l-4 border-l-warning bg-warning/5 p-3 shadow-elevation-1 relative"
       data-testid="bulk-procurement-banner"
     >
       <button
@@ -52,7 +52,7 @@ export function BulkProcurementBanner() {
         <X className="h-4 w-4" />
       </button>
       <div className="flex items-start gap-3 pr-6">
-        <Package className="h-8 w-8 text-primary shrink-0 drop-shadow-sm" />
+        <Package className="h-8 w-8 text-warning shrink-0 drop-shadow-sm" />
         <div className="flex-1">
           <p className="font-semibold text-sm">{t('home.bulkBannerTitle')}</p>
           <p className="text-xs text-text-secondary mt-0.5">{t('home.bulkBannerDesc')}</p>
