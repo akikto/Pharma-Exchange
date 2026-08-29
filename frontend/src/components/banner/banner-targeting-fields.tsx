@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BannerFormSection } from '@/components/banner/banner-form-section';
 import { RADIUS_PRESETS_KM, type BannerFormErrors, type BannerFormValues } from '@/lib/banner-form';
 
 type BannerTargetingFieldsProps = {
@@ -23,15 +24,18 @@ export function BannerTargetingFields({
   const isRadius = form.targetType === 'RADIUS';
 
   return (
-    <div className="space-y-4 rounded-[var(--radius-md)] border border-border-subtle p-3">
-      <p className="text-sm font-medium text-text-primary">{t('admin.banners.targetAudience')}</p>
-
+    <BannerFormSection
+      variant="target-audience"
+      title={t('admin.banners.targetAudience')}
+      description={t('admin.banners.targetAudienceHint')}
+      testId="banner-target-audience-section"
+    >
       {showBannerType ? (
         <div>
           <Label htmlFor="banner-type">{t('admin.banners.fields.bannerType')}</Label>
           <select
             id="banner-type"
-            className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+            className="w-full h-10 rounded-[var(--radius-md)] border border-primary/25 bg-surface-base px-3 text-sm"
             value={form.bannerType}
             onChange={(e) => onChange('bannerType', e.target.value as BannerFormValues['bannerType'])}
           >
@@ -45,7 +49,7 @@ export function BannerTargetingFields({
         <Label htmlFor="banner-target-type">{t('admin.banners.fields.targetType')}</Label>
         <select
           id="banner-target-type"
-          className="w-full h-10 rounded-[var(--radius-md)] border border-border-subtle bg-surface-base px-3 text-sm"
+          className="w-full h-10 rounded-[var(--radius-md)] border border-primary/25 bg-surface-base px-3 text-sm"
           value={form.targetType}
           onChange={(e) => onChange('targetType', e.target.value as BannerFormValues['targetType'])}
           data-testid="banner-target-type-select"
@@ -110,7 +114,7 @@ export function BannerTargetingFields({
               <button
                 key={km}
                 type="button"
-                className="rounded-full border border-border-subtle px-3 py-1 text-xs"
+                className="rounded-full border border-primary/25 bg-surface-base px-3 py-1 text-xs text-primary"
                 onClick={() => onChange('radiusKm', String(km))}
               >
                 {t('admin.banners.radiusPreset', { km })}
@@ -168,6 +172,6 @@ export function BannerTargetingFields({
           onChange={(e) => onChange('priority', e.target.value)}
         />
       </div>
-    </div>
+    </BannerFormSection>
   );
 }

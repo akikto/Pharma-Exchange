@@ -59,4 +59,26 @@ describe('HomeBannerCarousel', () => {
     expect(screen.getByTestId('home-banner-carousel')).toBeInTheDocument();
     expect(screen.getByTestId('home-banner-slide-b1')).toBeInTheDocument();
   });
+
+  it('shows sound toggle for video banners', () => {
+    useHomeBanners.mockReturnValue({
+      data: [
+        {
+          id: 'video-1',
+          title: 'Video Promo',
+          subtitle: null,
+          mediaUrl: 'https://example.com/promo.mp4',
+          mediaType: 'VIDEO',
+          mediaAlt: null,
+          ctaText: null,
+          actionType: 'NONE',
+          actionTarget: null,
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    renderCarousel();
+    expect(screen.getByTestId('banner-media-sound-toggle')).toBeInTheDocument();
+  });
 });

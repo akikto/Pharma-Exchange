@@ -13,7 +13,7 @@ import type { HomeBanner } from '@/lib/banner-form';
 import { cn } from '@/lib/utils';
 
 const AUTOPLAY_MS = 6000;
-const BANNER_FRAME_CLASS = 'border border-border-subtle shadow-elevation-1';
+const BANNER_FRAME_CLASS = 'border border-accent/25 shadow-elevation-1';
 const BANNER_FRAME_EMBEDDED_CLASS = 'rounded-none border-0 shadow-none bg-transparent';
 
 function BannerSlide({
@@ -42,20 +42,21 @@ function BannerSlide({
         alt={alt}
         isActive={isActive}
         priority={isActive}
+        showSoundToggle={banner.mediaType === 'VIDEO'}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
       {banner.isSponsored ? (
-        <span className="absolute top-3 left-3 z-10 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white pointer-events-none">
+        <span className="absolute top-3 left-3 z-20 rounded-full bg-accent/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white pointer-events-none shadow-sm">
           {t('home.bannerSponsored')}
         </span>
       ) : null}
-      <div className="absolute inset-x-0 bottom-0 p-4 text-left text-white pointer-events-none">
+      <div className="absolute inset-x-0 bottom-0 z-20 p-4 text-left text-white pointer-events-none">
         <p className="font-semibold text-base sm:text-lg drop-shadow">{banner.title}</p>
         {banner.subtitle ? (
           <p className="text-xs sm:text-sm text-white/90 mt-0.5 line-clamp-2">{banner.subtitle}</p>
         ) : null}
         {banner.ctaText ? (
-          <span className="inline-block mt-2 text-xs font-medium bg-white/20 backdrop-blur px-2.5 py-1 rounded-full">
+          <span className="inline-block mt-2 text-xs font-semibold bg-accent/90 text-white px-2.5 py-1 rounded-full shadow-sm">
             {banner.ctaText}
           </span>
         ) : null}
@@ -65,15 +66,15 @@ function BannerSlide({
 
   if (destination) {
     return (
-      <button
-        type="button"
-        className="absolute inset-0 w-full h-full text-left"
-        onClick={handleClick}
-        aria-label={banner.ctaText || banner.title}
-        data-testid={`home-banner-slide-${banner.id}`}
-      >
+      <div className="absolute inset-0" data-testid={`home-banner-slide-${banner.id}`}>
         {content}
-      </button>
+        <button
+          type="button"
+          className="absolute inset-0 z-10 w-full h-full text-left"
+          onClick={handleClick}
+          aria-label={banner.ctaText || banner.title}
+        />
+      </div>
     );
   }
 
@@ -208,7 +209,7 @@ export function HomeBannerCarousel({ embedded = false }: { embedded?: boolean })
                   aria-label={t('home.bannerDot', { title: banner.title, index: i + 1, count })}
                   className={cn(
                     'h-1.5 rounded-full transition-all',
-                    i === activeIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/50',
+                    i === activeIndex ? 'w-5 bg-accent' : 'w-1.5 bg-white/50',
                   )}
                   onClick={() => goTo(i)}
                 />

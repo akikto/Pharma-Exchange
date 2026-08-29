@@ -38,6 +38,7 @@ describe('BannerTargetingFields', () => {
     );
 
     expect(screen.getByTestId('banner-radius-km')).toBeInTheDocument();
+    expect(screen.getByTestId('banner-target-audience-section')).toBeInTheDocument();
     expect(screen.getByTestId('banner-radius-center-hint')).toBeInTheDocument();
     expect(screen.queryByTestId('banner-target-country')).not.toBeInTheDocument();
     expect(screen.queryByTestId('banner-target-state')).not.toBeInTheDocument();
