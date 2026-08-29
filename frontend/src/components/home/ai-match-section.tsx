@@ -7,6 +7,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { useAiMatches } from '@/hooks/use-ai-matches';
 import { isRenderableListing } from '@/lib/catalog-groups';
 import { sortAiPickMatchesByDistance } from '@/lib/ai-pick-card-utils';
+import { sectionThemeShell } from '@/lib/section-theme';
 import { cn } from '@/lib/utils';
 
 interface AiMatchSectionProps {
@@ -30,11 +31,11 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
   if (!isLoading && matches.length === 0) return null;
 
   return (
-    <section data-testid="ai-match-section" className="min-w-0 max-w-full space-y-3">
+    <section data-testid="ai-match-section" className={cn('min-w-0 max-w-full space-y-3', sectionThemeShell('ai-pick'))}>
       <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="font-semibold flex items-center gap-2 text-text-primary">
-            <Sparkles className="h-4 w-4 text-primary" />
+            <Sparkles className="h-4 w-4 text-ai-pick" />
             {t('aiMatch.title')}
           </h2>
           <p className="text-[10px] text-text-disabled">
@@ -58,11 +59,11 @@ export function AiMatchSection({ role = 'buyer' }: AiMatchSectionProps) {
           {Array.from({ length: 2 }).map((_, i) => (
             <div
               key={i}
-              className="flex h-[7.5rem] w-full max-w-full min-w-0 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle"
+              className="flex h-[7.5rem] w-full max-w-full min-w-0 overflow-hidden rounded-[var(--radius-md)] border border-ai-pick/20"
               data-testid="ai-match-card-skeleton"
             >
               <div className="w-[70%] animate-pulse bg-surface-sunken" />
-              <div className="w-[30%] animate-pulse bg-primary/40" />
+              <div className="w-[30%] animate-pulse bg-ai-pick/30" />
             </div>
           ))}
         </div>

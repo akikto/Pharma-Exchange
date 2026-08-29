@@ -161,7 +161,7 @@ function OfferCardContent({
       ) : (
         <div
           className={cn(
-            'flex h-full items-center justify-center bg-gradient-to-br from-primary-subtle via-surface-sunken to-surface-raised text-text-disabled',
+            'flex h-full items-center justify-center bg-gradient-to-br from-primary-subtle via-ai-pick-subtle to-surface-raised text-text-disabled',
             variant === 'featured' ? 'text-xl' : 'text-3xl',
           )}
         >

@@ -1,20 +1,29 @@
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  sectionThemeAccentBar,
+  sectionThemeIconShell,
+  type SectionTheme,
+} from '@/lib/section-theme';
 
 interface HomeSectionHeaderProps {
   title: string;
   subtitle?: string;
   icon?: LucideIcon;
+  theme?: SectionTheme;
   className?: string;
 }
 
-export function HomeSectionHeader({ title, subtitle, icon: Icon, className }: HomeSectionHeaderProps) {
+export function HomeSectionHeader({ title, subtitle, icon: Icon, theme = 'default', className }: HomeSectionHeaderProps) {
   return (
     <div className={cn('mb-3', className)}>
       <div className="flex items-center gap-2">
-        <span className="h-5 w-1 shrink-0 rounded-full bg-gradient-to-b from-primary to-accent" aria-hidden />
+        <span
+          className={cn('h-5 w-1 shrink-0 rounded-full bg-gradient-to-b', sectionThemeAccentBar(theme))}
+          aria-hidden
+        />
         {Icon && (
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary">
+          <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full', sectionThemeIconShell(theme))}>
             <Icon className="h-3.5 w-3.5" aria-hidden />
           </span>
         )}

@@ -71,7 +71,7 @@ export function HomeAiPickListingCard({
   return (
     <article
       className={cn(
-        'flex w-full max-w-full min-w-0 flex-row items-stretch overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-surface-base shadow-elevation-1',
+        'flex w-full max-w-full min-w-0 flex-row items-stretch overflow-hidden rounded-[var(--radius-md)] border border-ai-pick/25 bg-surface-base shadow-elevation-1',
         className,
       )}
       data-testid={`ai-pick-listing-card-${listing.id}`}
@@ -147,7 +147,7 @@ export function HomeAiPickListingCard({
       </Link>
 
       <aside
-        className="flex w-[30%] max-w-[30%] min-w-[5.5rem] shrink-0 basis-[30%] flex-col items-center justify-between bg-primary px-1.5 py-1.5 text-center text-white"
+        className="flex w-[30%] max-w-[30%] min-w-[5.5rem] shrink-0 basis-[30%] flex-col items-center justify-between bg-ai-pick px-1.5 py-1.5 text-center text-white"
         style={{
           backgroundImage:
             'radial-gradient(circle at 1px 1px, color-mix(in srgb, white 12%, transparent) 1px, transparent 0)',
@@ -183,7 +183,7 @@ export function HomeAiPickListingCard({
           type="button"
           variant="secondary"
           size="sm"
-          className="h-7 w-full gap-1 border-0 bg-white text-[10px] font-bold text-primary hover:bg-surface-raised"
+          className="h-7 w-full gap-1 border-0 bg-white text-[10px] font-bold text-ai-pick hover:bg-surface-raised"
           onClick={handleAddToCart}
           loading={addToCart.isAddingToCart(listing?.id)}
           disabled={!canAddToCart || addToCart.isAddingToCart(listing?.id)}

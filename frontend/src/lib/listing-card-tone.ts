@@ -20,9 +20,9 @@ export function listingCardToneClasses(tone: ListingCardTone): string {
   return cn(
     'border',
     tone === 'default' && 'border-border-subtle bg-surface-base',
-    tone === 'featured' && 'border-primary/35 bg-primary-subtle/25',
-    tone === 'warning' && 'border-warning/40 bg-surface-base',
-    tone === 'danger' && 'border-danger/45 bg-surface-base',
+    tone === 'featured' && 'border-featured/35 bg-featured-subtle/30 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--color-featured)_8%,transparent)]',
+    tone === 'warning' && 'border-short-expiry/40 bg-short-expiry-subtle/25',
+    tone === 'danger' && 'border-danger/45 bg-danger-subtle/20',
   );
 }
 

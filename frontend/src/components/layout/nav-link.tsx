@@ -24,7 +24,7 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
         data-testid={`nav-side-${labelKey}`}
         className={cn(
           'flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium transition-colors',
-          active ? 'bg-primary-subtle text-primary' : 'text-text-secondary hover:bg-surface-raised hover:text-text-primary',
+          active ? 'bg-primary-subtle text-primary ring-1 ring-primary/15' : 'text-text-secondary hover:bg-surface-sunken hover:text-text-primary',
         )}
       >
         <span className="relative">
@@ -52,12 +52,12 @@ export function NavLinkItem({ item, variant, badgeCount = 0 }: NavLinkItemProps)
     >
       {active && (
         <span
-          className="pointer-events-none absolute inset-x-1 top-1 bottom-1 rounded-[var(--radius-md)] bg-primary-subtle"
+          className="pointer-events-none absolute inset-x-1 top-1 bottom-1 rounded-[var(--radius-md)] bg-primary-subtle ring-1 ring-primary/15"
           aria-hidden
         />
       )}
       <span className="relative">
-        <Icon className={cn('h-5 w-5', active ? 'text-primary fill-primary/20' : 'text-text-disabled')} />
+        <Icon className={cn('h-5 w-5', active ? 'text-primary fill-primary/25' : 'text-text-disabled')} />
         <NavBadge count={badgeCount} />
       </span>
       <span className={cn('relative text-[10px] font-medium leading-tight text-center', active ? 'text-primary' : 'text-text-disabled')}>
@@ -132,11 +132,11 @@ export function AdminBottomNavLinkItem({ item }: { item: AdminBottomNavItem }) {
     >
       {active && (
         <span
-          className="pointer-events-none absolute inset-x-1 top-1 bottom-1 rounded-[var(--radius-md)] bg-primary-subtle"
+          className="pointer-events-none absolute inset-x-1 top-1 bottom-1 rounded-[var(--radius-md)] bg-primary-subtle ring-1 ring-primary/15"
           aria-hidden
         />
       )}
-      <Icon className={cn('relative h-5 w-5', active ? 'text-primary fill-primary/20' : 'text-text-disabled')} />
+      <Icon className={cn('relative h-5 w-5', active ? 'text-primary fill-primary/25' : 'text-text-disabled')} />
       <span
         className={cn(
           'relative text-center text-[10px] font-medium leading-tight',
