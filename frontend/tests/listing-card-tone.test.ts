@@ -64,7 +64,7 @@ describe('listing-card-tone', () => {
   it('maps four tones to distinct border classes', () => {
     expect(listingCardToneClasses('default')).toContain('border-border-subtle');
     expect(listingCardToneClasses('featured')).toContain('border-featured');
-    expect(listingCardToneClasses('warning')).toContain('border-warning');
+    expect(listingCardToneClasses('warning')).toContain('border-short-expiry');
     expect(listingCardToneClasses('danger')).toContain('border-danger');
   });
 
