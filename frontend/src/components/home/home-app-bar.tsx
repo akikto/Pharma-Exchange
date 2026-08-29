@@ -16,14 +16,14 @@ export function HomeAppBar() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 flex h-14 items-center justify-between gap-1 border-b border-border-subtle glass-surface shadow-elevation-1',
+        'app-header-premium sticky top-0 z-40 flex h-14 items-center justify-between gap-1',
         HOME_GUTTER_CLASS,
       )}
       data-testid="home-app-bar"
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <Logo size="xs" className="shrink-0" />
-        <span className="whitespace-nowrap text-sm font-semibold leading-none tracking-tight text-text-primary">
+        <span className="whitespace-nowrap text-sm font-bold leading-none tracking-tight text-secondary">
           {t('common.appName')}
         </span>
       </div>
@@ -37,7 +37,7 @@ export function HomeAppBar() {
               ? t('shell.notificationsUnread', { count: badges.notifications })
               : t('shell.notifications')
           }
-          className="relative flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-raised"
+          className="relative flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-primary-subtle hover:text-primary"
           onClick={() => navigate('/notifications')}
         >
           <Bell className="h-4 w-4" />

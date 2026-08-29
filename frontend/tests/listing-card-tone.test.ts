@@ -63,8 +63,8 @@ describe('listing-card-tone', () => {
 
   it('maps four tones to distinct border classes', () => {
     expect(listingCardToneClasses('default')).toContain('border-border-subtle');
-    expect(listingCardToneClasses('featured')).toContain('border-primary');
-    expect(listingCardToneClasses('warning')).toContain('border-warning');
+    expect(listingCardToneClasses('featured')).toContain('border-featured');
+    expect(listingCardToneClasses('warning')).toContain('border-short-expiry');
     expect(listingCardToneClasses('danger')).toContain('border-danger');
   });
 
@@ -72,6 +72,6 @@ describe('listing-card-tone', () => {
     const shell = marketplaceCardShellClasses('featured', true);
     expect(shell).toContain('shadow-elevation-1');
     expect(shell).toContain('listing-card-interactive');
-    expect(shell).toContain('border-primary');
+    expect(shell).toContain('border-featured');
   });
 });

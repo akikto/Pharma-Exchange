@@ -34,6 +34,7 @@ import { useDemoShopStore } from '@/stores/demo-shop-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { cn } from '@/lib/utils';
+import { sectionThemeShell } from '@/lib/section-theme';
 
 type FeedView = 'grid' | 'catalog';
 
@@ -198,8 +199,8 @@ export function HomePage() {
               className={cn(
                 'shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors',
                 activeFilter === key
-                  ? 'border-primary bg-primary text-white font-semibold shadow-elevation-1'
-                  : 'border-border-subtle bg-surface-raised/80 text-text-secondary hover:bg-surface-sunken hover:border-border-strong',
+                  ? 'border-primary bg-primary text-white font-semibold shadow-elevation-1 ring-2 ring-primary/20'
+                  : 'border-border-subtle bg-surface-base/90 text-text-secondary hover:bg-surface-sunken hover:border-border-strong',
               )}
               onClick={() => setActiveFilter(key)}
             >
@@ -208,14 +209,14 @@ export function HomePage() {
           ))}
         </div>
 
-        <div className="flex w-full max-w-full gap-1 rounded-[var(--radius-lg)] border border-border-subtle bg-surface-raised/60 p-1 shadow-elevation-1 sm:w-fit" data-testid="home-feed-view-toggle">
+        <div className="flex w-full max-w-full gap-1 rounded-[var(--radius-lg)] border border-border-subtle bg-surface-base/80 p-1 shadow-elevation-1 sm:w-fit" data-testid="home-feed-view-toggle">
           <button
             type="button"
             className={cn(
               'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-1.5 text-sm transition-colors sm:flex-none',
               feedView === 'grid'
-                ? 'bg-surface-base font-medium text-primary shadow-elevation-1'
-                : 'text-text-secondary hover:text-text-primary',
+                ? 'bg-primary-subtle font-semibold text-primary shadow-elevation-1 ring-1 ring-primary/20'
+                : 'text-text-secondary hover:text-text-primary hover:bg-surface-sunken',
             )}
             onClick={() => setFeedView('grid')}
             data-testid="feed-view-grid"
@@ -228,8 +229,8 @@ export function HomePage() {
             className={cn(
               'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-1.5 text-sm transition-colors sm:flex-none',
               feedView === 'catalog'
-                ? 'bg-surface-base font-medium text-primary shadow-elevation-1'
-                : 'text-text-secondary hover:text-text-primary',
+                ? 'bg-primary-subtle font-semibold text-primary shadow-elevation-1 ring-1 ring-primary/20'
+                : 'text-text-secondary hover:text-text-primary hover:bg-surface-sunken',
             )}
             onClick={() => setFeedView('catalog')}
             data-testid="feed-view-catalog"
@@ -242,11 +243,12 @@ export function HomePage() {
         {isAuthenticated && <AiMatchSection />}
 
         {feedView === 'catalog' ? (
-          <section>
+          <section className={sectionThemeShell('catalog')}>
             <HomeSectionHeader
               title={t('home.catalogComparison')}
               subtitle={t('home.catalogComparisonSub')}
               icon={Layers}
+              theme="catalog"
             />
             {isLoading ? (
               <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <ListingCardSkeleton key={i} />)}</div>
@@ -263,11 +265,12 @@ export function HomePage() {
         ) : (
           <>
             {featured.length > 0 && (
-              <section className="min-w-0 max-w-full">
+              <section className={cn('min-w-0 max-w-full', sectionThemeShell('featured'))}>
                 <HomeSectionHeader
                   title={t('home.featuredDeals')}
                   subtitle={t('home.featuredDealsSub')}
                   icon={Sparkles}
+                  theme="featured"
                 />
                 <div
                   className="flex gap-2.5 overflow-x-auto pb-2 overscroll-x-contain scroll-smooth"
@@ -289,11 +292,12 @@ export function HomePage() {
             )}
 
             {shortExpiry.length > 0 && (
-              <section className="min-w-0 max-w-full">
+              <section className={cn('min-w-0 max-w-full', sectionThemeShell('short-expiry'))}>
                 <HomeSectionHeader
                   title={t('home.shortExpiry')}
                   subtitle={t('home.shortExpirySub')}
                   icon={Clock}
+                  theme="short-expiry"
                 />
                 <div className="grid grid-cols-2 gap-2.5" data-testid="home-short-expiry-grid">
                   {shortExpiry.map((l) => (
@@ -303,7 +307,7 @@ export function HomePage() {
               </section>
             )}
 
-            <section>
+            <section className={sectionThemeShell('default')}>
               <HomeSectionHeader
                 title={t('home.allListings')}
                 subtitle={t('home.allListingsSub')}
