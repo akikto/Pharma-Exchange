@@ -224,13 +224,28 @@ jobs:
     needs: [frontend]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        continue-on-error: true
+        id: android_sdk
         with:
           packages: platforms;android-35 build-tools;35.0.0 platform-tools
+      - name: Retry Android SDK setup
+        if: steps.android_sdk.outcome == 'failure'
+        uses: android-actions/setup-android@v3
+        continue-on-error: true
+        id: android_sdk_retry
+        with:
+          packages: platforms;android-35 build-tools;35.0.0 platform-tools
+      - name: Verify Android SDK setup
+        if: steps.android_sdk.outcome == 'failure' && steps.android_sdk_retry.outcome == 'failure'
+        run: |
+          echo "::error title=Android SDK setup failed::sdkmanager failed after two attempts"
+          exit 1
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
@@ -249,8 +264,12 @@ jobs:
           set -o pipefail
           gradle assembleDebug --stacktrace 2>&1 | tee ../../gradle-build.log
       - name: Publish Gradle failure excerpt
-        if: failure()
+        if: failure() && steps.build.outcome == 'failure'
         run: |
+          if [ ! -f gradle-build.log ]; then
+            echo "::error title=android-twa build failed::Gradle build did not produce a log file"
+            exit 1
+          fi
           {
             echo "### android-twa Gradle failure"
             echo '```'
