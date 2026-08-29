@@ -1020,6 +1020,8 @@
       "orderLabel": "Order {{order}}",
       "actionSummary": "{{type}} → {{target}}",
       "targetAudience": "Target audience",
+      "targetAudienceHint": "Choose who should see this banner based on location.",
+      "clickActionHint": "Choose where buyers go when they tap the banner.",
       "targetRadiusSummary": "{{city}} · {{radius}} km radius",
       "filterAll": "All",
       "filterPending": "Pending approval",
