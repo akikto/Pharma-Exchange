@@ -1114,7 +1114,8 @@
         "stateRequired": "State/region is required.",
         "cityRequired": "City is required.",
         "coordinatesRequired": "Latitude and longitude are required.",
-        "radiusRequired": "Enter a valid radius greater than 0.",
+        "radiusRequired": "Enter a radius between 1 and 1000 km.",
+        "radiusInvalid": "Radius must be a whole number from 1 to 1000.",
         "endAfterStart": "End date must be after start date."
       }
     }
@@ -1146,7 +1147,8 @@
     "rejectionReason": "Rejection reason: {{reason}}",
     "targetSummary": "Target: {{target}}",
     "scheduleSummary": "{{start}} → {{end}}",
-    "sellerActionHint": "Choose a product, your shop, or one of your active listings."
+    "sellerActionHint": "Choose a product, your shop, or one of your active listings.",
+    "radiusCenterHint": "Radius is centered on your verified shop location ({{shop}})."
   },
   "modal": {
     "watchlistTitle": "Watchlist",

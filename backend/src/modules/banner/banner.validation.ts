@@ -69,7 +69,7 @@ const targetingFields = {
   targetCity: z.string().trim().max(120).optional().nullable(),
   targetLatitude: z.number().finite().min(-90).max(90).optional().nullable(),
   targetLongitude: z.number().finite().min(-180).max(180).optional().nullable(),
-  radiusKm: z.number().positive().max(5000).optional().nullable(),
+  radiusKm: z.number().int().min(1).max(1000).optional().nullable(),
   startsAt: z.coerce.date().optional().nullable(),
   endsAt: z.coerce.date().optional().nullable(),
   priority: z.number().int().min(0).max(9999).optional(),
@@ -121,20 +121,12 @@ function targetingRefine(
       }
       return;
     case BannerTargetType.RADIUS:
-      if (!data.targetCountry?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Country is required', path: ['targetCountry'] });
-      }
-      if (!data.targetState?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'State/region is required', path: ['targetState'] });
-      }
-      if (!data.targetCity?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'City is required', path: ['targetCity'] });
-      }
-      if (data.targetLatitude == null || data.targetLongitude == null) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Coordinates are required for radius targeting', path: ['targetLatitude'] });
-      }
-      if (data.radiusKm == null || data.radiusKm <= 0) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Radius is required for radius targeting', path: ['radiusKm'] });
+      if (data.radiusKm == null || data.radiusKm < 1 || data.radiusKm > 1000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Radius must be an integer from 1 to 1000 km',
+          path: ['radiusKm'],
+        });
       }
       return;
     default:

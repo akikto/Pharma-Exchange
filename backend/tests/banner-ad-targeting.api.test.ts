@@ -129,14 +129,13 @@ describe('Banner advertisement targeting API', () => {
     const radius = await createAdminBanner({
       title: 'Radius',
       targetType: BannerTargetType.RADIUS,
-      targetCountry: 'India',
-      targetState: 'West Bengal',
-      targetCity: 'Berhampore',
-      targetLatitude: 24.1,
-      targetLongitude: 88.25,
+      actionType: BannerActionType.PHARMACY,
+      actionTarget: sellerPharmacyId,
       radiusKm: 25,
     });
     expect(radius.status).toBe(201);
+    expect(radius.body.targetLatitude).toBeTruthy();
+    expect(radius.body.targetLongitude).toBeTruthy();
   });
 
   it('verified seller can submit advertisement and buyer cannot', async ({ skip }) => {
@@ -242,11 +241,8 @@ describe('Banner advertisement targeting API', () => {
     const local = await createAdminBanner({
       title: 'Local Radius',
       targetType: BannerTargetType.RADIUS,
-      targetCountry: 'India',
-      targetState: 'West Bengal',
-      targetCity: 'Berhampore',
-      targetLatitude: 24.1,
-      targetLongitude: 88.25,
+      actionType: BannerActionType.PHARMACY,
+      actionTarget: sellerPharmacyId,
       radiusKm: 25,
       priority: 1,
     });
@@ -264,11 +260,11 @@ describe('Banner advertisement targeting API', () => {
     });
 
     const res = await request(app).get('/api/v1/banners').query({
-      latitude: 24.12,
-      longitude: 88.27,
-      country: 'India',
-      state: 'West Bengal',
-      city: 'Berhampore',
+      latitude: 23.7461,
+      longitude: 90.3742,
+      country: 'Bangladesh',
+      state: 'Dhaka',
+      city: 'Dhaka',
     });
     expect(res.status).toBe(200);
     const ids = res.body.data.map((b: { id: string }) => b.id);
@@ -276,6 +272,51 @@ describe('Banner advertisement targeting API', () => {
     expect(ids).toContain(country.body.id);
     expect(ids).not.toContain(bangladesh.body.id);
     expect(ids.indexOf(local.body.id)).toBeLessThan(ids.indexOf(country.body.id));
+  });
+
+  it('verified seller can create radius advertisement using shop location', async ({ skip }) => {
+    if (!dbAvailable || !sellerToken || !sellerListingId) skip();
+
+    const sellerRes = await request(app)
+      .post('/api/v1/advertisements')
+      .set('Authorization', `Bearer ${sellerToken}`)
+      .send({
+        title: 'Radius Promo',
+        mediaUrl: 'https://example.com/seller-radius.jpg',
+        mediaType: BannerMediaType.IMAGE,
+        actionType: BannerActionType.LISTING,
+        actionTarget: sellerListingId,
+        targetType: BannerTargetType.RADIUS,
+        radiusKm: 10,
+      });
+    expect(sellerRes.status).toBe(201);
+    expect(sellerRes.body.targetType).toBe(BannerTargetType.RADIUS);
+    expect(sellerRes.body.radiusKm).toBe(10);
+    expect(sellerRes.body.targetLatitude).toBeTruthy();
+    expect(sellerRes.body.targetLongitude).toBeTruthy();
+    createdIds.push(sellerRes.body.id);
+  });
+
+  it('rejects invalid radius values', async ({ skip }) => {
+    if (!dbAvailable || !adminToken || !sellerPharmacyId) skip();
+
+    const zero = await createAdminBanner({
+      title: 'Bad Radius Zero',
+      targetType: BannerTargetType.RADIUS,
+      actionType: BannerActionType.PHARMACY,
+      actionTarget: sellerPharmacyId,
+      radiusKm: 0,
+    });
+    expect(zero.status).toBe(400);
+
+    const tooLarge = await createAdminBanner({
+      title: 'Bad Radius Large',
+      targetType: BannerTargetType.RADIUS,
+      actionType: BannerActionType.PHARMACY,
+      actionTarget: sellerPharmacyId,
+      radiusKm: 1001,
+    });
+    expect(tooLarge.status).toBe(400);
   });
 
   it('admin can approve and reject seller advertisements', async ({ skip }) => {

@@ -203,7 +203,18 @@ export function SellerAdvertisementFormPage() {
           </div>
         ) : null}
 
-        <BannerTargetingFields form={form} errors={errors} t={t} onChange={updateField} showBannerType={false} />
+        <BannerTargetingFields
+          form={form}
+          errors={errors}
+          t={t}
+          onChange={updateField}
+          showBannerType={false}
+          radiusCenterHint={
+            form.targetType === 'RADIUS' && pharmacy?.name
+              ? t('sellerAds.radiusCenterHint', { shop: pharmacy.name })
+              : undefined
+          }
+        />
 
         <div className="flex gap-2">
           <Button onClick={() => void handleSubmit()} disabled={createAd.isPending || updateAd.isPending}>
