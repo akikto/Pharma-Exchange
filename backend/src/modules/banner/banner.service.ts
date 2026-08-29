@@ -132,7 +132,19 @@ async function applyRadiusTargeting<T extends Record<string, unknown>>(
 
   const center = options.pharmacy
     ? radiusCenterFromVerifiedPharmacy(options.pharmacy)
-    : await resolveAdminRadiusCenter(actionType, actionTarget, options.existing);
+    : await resolveAdminRadiusCenter(
+      actionType,
+      actionTarget,
+      options.existing
+        ? {
+            targetLatitude: options.existing.targetLatitude,
+            targetLongitude: options.existing.targetLongitude,
+            targetCity: options.existing.targetCity,
+            targetState: options.existing.targetState,
+            targetCountry: options.existing.targetCountry,
+          }
+        : null,
+    );
 
   return {
     ...input,
