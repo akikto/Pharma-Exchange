@@ -4,10 +4,8 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.pharmex.exchange",
-      "sha256_cert_fingerprints": [
-        "6C:68:13:5B:05:6D:88:67:81:1C:35:39:74:64:D7:7F:BF:9E:79:A8:98:40:6E:AF:8F:86:23:7A:E1:02:E6:B1",
-        "CA:33:FD:35:03:77:1C:1D:7B:3C:3B:39:0C:EC:9E:8E:5D:34:10:E7:AB:AD:E4:BD:12:5C:24:A9:3B:48:D6:29"
-      ]
+      "sha256_cert_fingerprints":
+        ["FF:13:58:47:BC:3B:B3:D4:15:40:63:3E:50:D0:E8:45:A7:6C:91:13:60:6C:F6:42:91:4B:88:F0:9A:9B:93:9D"]
     }
   }
 ]
